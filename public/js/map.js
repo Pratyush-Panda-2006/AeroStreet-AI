@@ -1,398 +1,245 @@
 // ============================================
-// IndianAQI — Interactive SVG Map Integration
+// IndianAQI — Google Maps Integration
 // ============================================
-// Renders a high-performance interactive SVG map of India.
-// Supports drilling down into states (West Bengal, Karnataka, Maharashtra)
-// to view district-level boundaries and AQIs in real-time.
 
-import { AQI_LEVELS, getAQILevel, IS_DEMO_MODE } from './config.js';
-import { STATE_PATHS, STATE_DISTRICTS_MAP } from './india-map-svg.js';
+import { getAQILevel } from './config.js';
 import { DEMO_STATES, DEMO_DISTRICTS_BY_STATE, DEMO_HOTSPOTS } from './demo-data.js';
-import { getDb, COLLECTIONS, isFirebaseAvailable } from './firebase-init.js';
+import { fetchLiveWebcams } from './webcams.js';
 
-let mapContainerId = 'map-container';
-let currentZoomedState = null; // null (National) or stateId (e.g., 'in-wb')
+let mapInstance = null;
+let currentMarkers = [];
+let currentZoomedState = null;
 let liveHotspots = [];
-let liveReports = [];
-
-// Callbacks for UI updates
 let onStateChangeCallback = null;
+let mapContainerId = 'map-container';
 
 export function registerOnStateChange(cb) {
   onStateChangeCallback = cb;
 }
 
-/**
- * Initialize the interactive SVG map in a container
- * @param {string} containerId - ID of the map container element
- * @returns {Promise<boolean>}
- */
+function loadGoogleMapsScript() {
+  if (window.google && window.google.maps) return Promise.resolve();
+  
+  const apiKey = window.__AEROSTREET_CONFIG__?.googleMapsApiKey;
+  if (!apiKey) {
+    return Promise.reject(new Error("No Google Maps API Key provided."));
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("Failed to load Google Maps script."));
+    document.head.appendChild(script);
+  });
+}
+
 export async function initMap(containerId) {
   mapContainerId = containerId;
   const container = document.getElementById(containerId);
-  if (!container) {
-    console.warn(`[Map] Container #${containerId} not found`);
+  if (!container) return false;
+
+  container.innerHTML = '<div class="absolute inset-0 flex items-center justify-center text-sm text-slate-500"><span class="material-symbols-outlined animate-spin mr-2">progress_activity</span> Loading Google Maps...</div>';
+  
+  try {
+    await loadGoogleMapsScript();
+  } catch (err) {
+    container.innerHTML = `<div class="p-4 text-center text-red-500 text-sm font-semibold">${err.message}</div>`;
     return false;
   }
+  
+  container.innerHTML = '<div id="gmap-inner" class="w-full h-full min-h-[450px] rounded-xl overflow-hidden shadow-sm"></div>';
+  
+  const mapStyle = [
+    { elementType: "geometry", stylers: [{ color: "#f8fafc" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#475569" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#e2e8f0" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#f1f5f9" }] },
+    { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#cbd5e1" }] }
+  ];
 
-  console.log('[Map] Initializing custom interactive SVG map');
-
-  // Clear container
-  container.innerHTML = '';
-  container.className = `${container.className} relative flex flex-col items-center justify-center p-4`;
-
-  // Render national map immediately so it shows up instantly without waiting for network!
-  renderNationalMap();
-
-  // Load live data in the background asynchronously
-  loadMapData().then(() => {
-    console.log('[Map] Asynchronous database load completed');
-    if (currentZoomedState) {
-      zoomToState(currentZoomedState);
-    } else {
-      renderNationalMap();
-    }
-  }).catch((err) => {
-    console.warn('[Map] Asynchronous database load failed, kept demo data:', err.message);
+  mapInstance = new google.maps.Map(document.getElementById('gmap-inner'), {
+    center: { lat: 21.5937, lng: 80.9629 }, // Center of India
+    zoom: 4.8,
+    styles: mapStyle,
+    disableDefaultUI: true,
+    zoomControl: true
   });
 
+  liveHotspots = DEMO_HOTSPOTS;
+  
+  await renderNationalMap();
+  
   return true;
 }
 
-/**
- * Fetch map data (sensor hotspots & citizen reports) with timeout
- */
-async function loadMapData() {
-  if (isFirebaseAvailable()) {
-    try {
-      const db = await getDb();
-      const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js');
-      
-      // Simple timeout helper
-      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore Timeout')), 2500));
-      
-      const hotspotSnapshot = await Promise.race([
-        getDocs(collection(db, COLLECTIONS.HOTSPOTS)),
-        timeout
-      ]);
-      liveHotspots = hotspotSnapshot.empty 
-        ? DEMO_HOTSPOTS 
-        : hotspotSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      const reportSnapshot = await Promise.race([
-        getDocs(collection(db, COLLECTIONS.REPORTS)),
-        timeout
-      ]);
-      liveReports = reportSnapshot.empty 
-        ? [] 
-        : reportSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (e) {
-      console.warn('[Map] Firebase fetch timed out or failed, using fallback demo data', e.message);
-      liveHotspots = DEMO_HOTSPOTS;
-      liveReports = [];
-    }
-  } else {
-    liveHotspots = DEMO_HOTSPOTS;
-    liveReports = [];
-  }
+function clearMapMarkers() {
+  currentMarkers.forEach(m => m.setMap(null));
+  currentMarkers = [];
 }
 
-/**
- * Render Pan-India State-Level Map
- */
-export function renderNationalMap() {
+export async function renderNationalMap() {
+  if (!mapInstance) return;
   currentZoomedState = null;
-  const container = document.getElementById(mapContainerId);
-  if (!container) return;
+  clearMapMarkers();
+  
+  mapInstance.setCenter({ lat: 21.5937, lng: 80.9629 });
+  mapInstance.setZoom(4.8);
 
-  // Create SVG wrapper
-  const svgNS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", "0 0 600 650");
-  svg.setAttribute("class", "w-full h-full max-h-[500px] select-none transition-all duration-500 animate-[fadeIn_0.5s_ease-out]");
-  svg.style.filter = "drop-shadow(0 10px 15px rgba(2, 6, 23, 0.08))";
-
-  // Render Grid lines pattern in background for enterprise look
-  const defs = document.createElementNS(svgNS, "defs");
-  defs.innerHTML = `
-    <pattern id="mapGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
-    </pattern>
-  `;
-  svg.appendChild(defs);
-
-  const gridRect = document.createElementNS(svgNS, "rect");
-  gridRect.setAttribute("width", "100%");
-  gridRect.setAttribute("height", "100%");
-  gridRect.setAttribute("fill", "url(#mapGrid)");
-  svg.appendChild(gridRect);
-
-  // Render state paths
-  STATE_PATHS.forEach(state => {
-    // Find state data
-    const stateData = DEMO_STATES.find(s => s.id === state.id) || { aqi: 50 };
-    const level = getAQILevel(stateData.aqi);
-
-    const path = document.createElementNS(svgNS, "path");
-    path.setAttribute("d", state.path);
-    path.setAttribute("class", "interactive-map-area transition-all duration-300 ease-in-out");
-    path.setAttribute("stroke", "#cbd5e1");
-    path.setAttribute("stroke-width", "1.5");
-    path.setAttribute("fill", `${level.color}15`); // Soft tint
-    path.style.cursor = "pointer";
-
-    // Set custom hover interactions
-    path.addEventListener('mouseenter', (e) => {
-      path.setAttribute("fill", `${level.color}40`);
-      path.setAttribute("stroke", "#2563eb");
-      path.setAttribute("stroke-width", "2");
-      showMapTooltip(e, `
-        <div class="font-bold text-slate-900">${state.name}</div>
-        <div class="text-xs text-slate-500 mt-0.5">Capital: ${stateData.capital || 'N/A'}</div>
-        <div class="flex items-center gap-2 mt-2 pt-1 border-t border-slate-100">
-          <span class="w-2.5 h-2.5 rounded-full" style="background: ${level.color}"></span>
-          <span class="font-semibold text-slate-700">AQI ${stateData.aqi}</span>
-          <span class="text-[10px] uppercase font-bold text-slate-400 font-mono">(${level.label})</span>
+  // Render State markers
+  DEMO_STATES.forEach(state => {
+    if (!state.coordinates) return;
+    const level = getAQILevel(state.aqi);
+    
+    const infoWindow = new google.maps.InfoWindow({
+      content: `
+        <div class="p-1 min-w-[120px]">
+          <h3 class="font-bold text-slate-800 text-[13px]">${state.name}</h3>
+          <p class="text-[11px] text-slate-500 mb-1">AQI: <span class="font-bold" style="color:${level.color}">${state.aqi}</span></p>
         </div>
-        ${STATE_DISTRICTS_MAP[state.id] ? `<div class="text-[10px] text-blue-600 font-semibold mt-1">🖱 Click to check district AQIs</div>` : ''}
-      `);
+      `
     });
 
-    path.addEventListener('mouseleave', () => {
-      path.setAttribute("fill", `${level.color}15`);
-      path.setAttribute("stroke", "#cbd5e1");
-      path.setAttribute("stroke-width", "1.5");
-      hideMapTooltip();
+    const marker = new google.maps.Marker({
+      position: state.coordinates,
+      map: mapInstance,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: level.color,
+        fillOpacity: 0.8,
+        strokeWeight: 1,
+        strokeColor: '#ffffff',
+        scale: 6
+      },
+      title: state.name
     });
+    
+    marker.addListener('mouseover', () => infoWindow.open(mapInstance, marker));
+    marker.addListener('mouseout', () => infoWindow.close());
+    marker.addListener('click', () => zoomToState(state.id));
 
-    path.addEventListener('mousemove', (e) => {
-      positionTooltip(e);
-    });
-
-    path.addEventListener('click', () => {
-      if (STATE_DISTRICTS_MAP[state.id]) {
-        zoomToState(state.id);
-      } else {
-        window.__aerostreet?.showToast?.(`Detailed district data for ${state.name} is coming soon! Try West Bengal, Karnataka, or Maharashtra.`, 'info');
-      }
-    });
-
-    svg.appendChild(path);
+    currentMarkers.push(marker);
   });
 
-  // Render floating overlay indicators for major cities on the SVG map
-  renderNationalCityPins(svg, svgNS);
+  // Render Live Webcams
+  try {
+    const webcams = await fetchLiveWebcams();
+    webcams.forEach(cam => {
+      const infoWindow = new google.maps.InfoWindow({
+        content: `
+          <div class="p-1 w-[200px]">
+            <h3 class="font-bold text-slate-800 text-[11px] mb-1">${cam.title}</h3>
+            <img src="${cam.image}" class="w-full h-auto rounded bg-slate-200" />
+            <p class="text-[9px] text-slate-400 mt-1">Live Windy API Feed</p>
+          </div>
+        `
+      });
 
-  container.innerHTML = '';
-  container.appendChild(svg);
+      const marker = new google.maps.Marker({
+        position: cam.coordinates,
+        map: mapInstance,
+        icon: {
+          path: 'M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M12,18c-3.31,0-6-2.69-6-6s2.69-6,6-6s6,2.69,6,6 S15.31,18,12,18z M12,8c-2.21,0-4,1.79-4,4s1.79,4,4,4s4-1.79,4-4S14.21,8,12,8z', // Camera lens icon
+          fillColor: '#3b82f6',
+          fillOpacity: 1,
+          strokeWeight: 1,
+          strokeColor: '#ffffff',
+          scale: 0.8,
+          anchor: new google.maps.Point(12, 12)
+        },
+        title: cam.title
+      });
+      
+      marker.addListener('click', () => infoWindow.open(mapInstance, marker));
+      currentMarkers.push(marker);
+    });
+  } catch (err) {
+    console.warn("Failed to fetch webcams", err);
+  }
 
-  // Fire state change callback
+  const backBtn = document.getElementById('map-back-btn');
+  if (backBtn) backBtn.style.display = 'none';
+
   if (onStateChangeCallback) {
     onStateChangeCallback({ view: 'national', data: DEMO_STATES });
   }
 }
 
-/**
- * Render major city overlay markers on national map
- */
-function renderNationalCityPins(svg, svgNS) {
-  const cities = [
-    { name: 'Delhi', cx: 235, cy: 165, aqi: 345 },
-    { name: 'Mumbai', cx: 145, cy: 330, aqi: 142 },
-    { name: 'Bengaluru', cx: 210, cy: 470, aqi: 55 },
-    { name: 'Kolkata', cx: 435, cy: 320, aqi: 178 }
-  ];
-
-  cities.forEach(city => {
-    const level = getAQILevel(city.aqi);
-
-    // Outer glowing ring
-    const glow = document.createElementNS(svgNS, "circle");
-    glow.setAttribute("cx", city.cx);
-    glow.setAttribute("cy", city.cy);
-    glow.setAttribute("r", "8");
-    glow.setAttribute("fill", level.color);
-    glow.setAttribute("opacity", "0.3");
-    glow.innerHTML = `<animate attributeName="r" values="6;12;6" dur="3s" repeatCount="indefinite" />`;
-
-    // Inner solid core
-    const core = document.createElementNS(svgNS, "circle");
-    core.setAttribute("cx", city.cx);
-    core.setAttribute("cy", city.cy);
-    core.setAttribute("r", "4");
-    core.setAttribute("fill", level.color);
-    core.setAttribute("stroke", "#ffffff");
-    core.setAttribute("stroke-width", "1");
-
-    svg.appendChild(glow);
-    svg.appendChild(core);
-  });
-}
-
-/**
- * Drill-down zoom transition into a particular state
- */
 export function zoomToState(stateId) {
+  if (!mapInstance) return;
+  
+  const stateData = DEMO_STATES.find(s => s.id === stateId);
+  if (!stateData || !stateData.coordinates) return;
+
   currentZoomedState = stateId;
-  const stateConfig = STATE_DISTRICTS_MAP[stateId];
-  if (!stateConfig) return;
+  clearMapMarkers();
 
-  const container = document.getElementById(mapContainerId);
-  if (!container) return;
+  mapInstance.setCenter(stateData.coordinates);
+  mapInstance.setZoom(7);
 
-  console.log(`[Map] Drilling down into state: ${stateConfig.name}`);
-
-  const svgNS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", stateConfig.viewBox);
-  svg.setAttribute("class", "w-full h-full max-h-[500px] select-none transition-all duration-500 animate-[fadeIn_0.5s_ease-out]");
-  svg.style.filter = "drop-shadow(0 10px 20px rgba(2, 6, 23, 0.1))";
-
-  // Grid line pattern
-  const defs = document.createElementNS(svgNS, "defs");
-  defs.innerHTML = `
-    <pattern id="stateGrid" width="30" height="30" patternUnits="userSpaceOnUse">
-      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#f8fafc" stroke-width="1"/>
-    </pattern>
-  `;
-  svg.appendChild(defs);
-
-  const gridRect = document.createElementNS(svgNS, "rect");
-  gridRect.setAttribute("width", "100%");
-  gridRect.setAttribute("height", "100%");
-  gridRect.setAttribute("fill", "url(#stateGrid)");
-  svg.appendChild(gridRect);
-
-  // Render districts
   const districts = DEMO_DISTRICTS_BY_STATE[stateId] || [];
 
-  stateConfig.paths.forEach(dist => {
-    const distData = districts.find(d => d.id === dist.id) || { aqi: 45 };
-    const level = getAQILevel(distData.aqi);
-
-    const path = document.createElementNS(svgNS, "path");
-    path.setAttribute("d", dist.path);
-    path.setAttribute("stroke", "#e2e8f0");
-    path.setAttribute("stroke-width", "1");
-    path.setAttribute("fill", `${level.color}18`);
-    path.style.cursor = "pointer";
-    path.setAttribute("class", "transition-all duration-200");
-
-    path.addEventListener('mouseenter', (e) => {
-      path.setAttribute("fill", `${level.color}35`);
-      path.setAttribute("stroke", "#2563eb");
-      path.setAttribute("stroke-width", "1.5");
-      showMapTooltip(e, `
-        <div class="font-bold text-slate-900">${dist.name}</div>
-        <div class="text-xs text-slate-400">District · ${stateConfig.name}</div>
-        <div class="flex items-center gap-2 mt-2 pt-1 border-t border-slate-100">
-          <span class="w-2.5 h-2.5 rounded-full" style="background: ${level.color}"></span>
-          <span class="font-semibold text-slate-700">AQI ${distData.aqi}</span>
-          <span class="text-[10px] uppercase font-bold text-slate-400">(${level.label})</span>
+  districts.forEach(dist => {
+    if (!dist.coordinates) return;
+    const level = getAQILevel(dist.aqi);
+    
+    const infoWindow = new google.maps.InfoWindow({
+      content: `
+        <div class="p-1 min-w-[120px]">
+          <h3 class="font-bold text-slate-800 text-[13px]">${dist.name}</h3>
+          <p class="text-[10px] text-slate-400 mb-1">AQI: <span class="font-bold" style="color:${level.color}">${dist.aqi}</span></p>
         </div>
-        <div class="space-y-0.5 mt-1 text-[11px] text-slate-500">
-          <div>PM2.5: ${distData.pollutants?.[0]?.value || Math.round(distData.aqi * 0.7)} µg/m³</div>
-        </div>
-      `);
+      `
     });
 
-    path.addEventListener('mouseleave', () => {
-      path.setAttribute("fill", `${level.color}18`);
-      path.setAttribute("stroke", "#e2e8f0");
-      path.setAttribute("stroke-width", "1");
-      hideMapTooltip();
+    const marker = new google.maps.Marker({
+      position: dist.coordinates,
+      map: mapInstance,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: level.color,
+        fillOpacity: 0.9,
+        strokeWeight: 1,
+        strokeColor: '#ffffff',
+        scale: 4
+      },
+      title: dist.name
     });
+    
+    marker.addListener('mouseover', () => infoWindow.open(mapInstance, marker));
+    marker.addListener('mouseout', () => infoWindow.close());
 
-    path.addEventListener('mousemove', (e) => {
-      positionTooltip(e);
-    });
-
-    path.addEventListener('click', () => {
-      window.__aerostreet?.showToast?.(`Selected district: ${dist.name} (AQI: ${distData.aqi})`, 'success');
-    });
-
-    svg.appendChild(path);
-
-    // Place small colored circle core for district monitoring stations
-    if (dist.center) {
-      const core = document.createElementNS(svgNS, "circle");
-      core.setAttribute("cx", dist.center.x);
-      core.setAttribute("cy", dist.center.y);
-      core.setAttribute("r", "3.5");
-      core.setAttribute("fill", level.color);
-      core.setAttribute("stroke", "#ffffff");
-      core.setAttribute("stroke-width", "1");
-      svg.appendChild(core);
-    }
+    currentMarkers.push(marker);
   });
 
-  // Render a clean floating Back Button inside the map container
-  container.innerHTML = '';
-  container.appendChild(svg);
+  let backBtn = document.getElementById('map-back-btn');
+  if (!backBtn) {
+    const container = document.getElementById(mapContainerId);
+    backBtn = document.createElement('button');
+    backBtn.id = 'map-back-btn';
+    backBtn.className = 'absolute top-4 left-4 z-[10] px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-md border border-slate-700 transition-all cursor-pointer';
+    backBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">arrow_back</span> Back to National Map';
+    backBtn.onclick = renderNationalMap;
+    container.style.position = 'relative';
+    container.appendChild(backBtn);
+  } else {
+    backBtn.style.display = 'flex';
+  }
 
-  const backBtn = document.createElement('button');
-  backBtn.className = 'absolute top-4 left-4 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm border border-slate-800 transition-all';
-  backBtn.innerHTML = `
-    <span class="material-symbols-outlined text-[16px]">arrow_back</span>
-    Back to India Map
-  `;
-  backBtn.addEventListener('click', () => {
-    renderNationalMap();
-  });
-  container.appendChild(backBtn);
-
-  // Fire state change callback to sync sidebar explorer list
   if (onStateChangeCallback) {
-    onStateChangeCallback({ view: 'state', name: stateConfig.name, data: districts });
+    onStateChangeCallback({ view: 'state', name: stateData.name, data: districts });
   }
 }
 
-// ── Tooltip Helpers ──
-
-function showMapTooltip(e, content) {
-  let tooltip = document.getElementById('map-tooltip');
-  if (!tooltip) {
-    tooltip = document.createElement('div');
-    tooltip.id = 'map-tooltip';
-    tooltip.className = 'fixed z-[999] pointer-events-none p-3 rounded-xl border border-slate-200 bg-white/95 backdrop-blur-md shadow-xl text-slate-700 text-xs font-sans max-w-xs transition-opacity duration-150 opacity-0';
-    document.body.appendChild(tooltip);
-  }
-  tooltip.innerHTML = content;
-  tooltip.style.opacity = '1';
-  positionTooltip(e);
+export function clearMarkers() {
+  clearMapMarkers();
 }
 
-function positionTooltip(e) {
-  const tooltip = document.getElementById('map-tooltip');
-  if (!tooltip) return;
-
-  const width = tooltip.offsetWidth;
-  const height = tooltip.offsetHeight;
-  const x = e.clientX + 15;
-  const y = e.clientY - height - 10;
-
-  tooltip.style.left = `${x}px`;
-  tooltip.style.top = `${y}px`;
+export function getMap() {
+  return mapInstance;
 }
-
-function hideMapTooltip() {
-  const tooltip = document.getElementById('map-tooltip');
-  if (tooltip) {
-    tooltip.style.opacity = '0';
-  }
-}
-
-/** Stub compatibility with legacy markers API */
-export function renderHotspotMarkers(hotspots) {
-  loadMapData().then(() => {
-    if (currentZoomedState) {
-      zoomToState(currentZoomedState);
-    } else {
-      renderNationalMap();
-    }
-  });
-}
-
-export function clearMarkers() {}
-export function getMap() { return null; }
 export const mapInitialized = true;
+export function renderHotspotMarkers() {}

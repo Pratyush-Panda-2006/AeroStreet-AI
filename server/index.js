@@ -44,6 +44,7 @@ app.use((req, res, next) => {
     firebaseAppId: "${process.env.FIREBASE_APP_ID || ''}",
     googleMapsApiKey: "${process.env.GOOGLE_MAPS_API_KEY || ''}",
     geminiApiKey: "${process.env.GEMINI_API_KEY || ''}",
+    windyApiKey: "${process.env.WINDY_API_KEY || ''}",
     apiBaseUrl: ""
   };
 </script>`;
