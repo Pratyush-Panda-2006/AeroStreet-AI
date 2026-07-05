@@ -2,12 +2,14 @@
 // IndianAQI — Windy Webcams API Integration
 // ============================================
 
+import { MOCK_CAMERAS } from './demo-data.js';
+
 export async function fetchLiveWebcams() {
   const apiKey = window.__AEROSTREET_CONFIG__?.windyApiKey;
   
   if (!apiKey || apiKey === 'your_windy_api_key_here') {
-    console.warn('[Webcams] No valid Windy API key configured. Skipping CCTV fetch.');
-    return [];
+    console.warn('[Webcams] No valid Windy API key configured. Using only simulated cameras.');
+    return MOCK_CAMERAS;
   }
 
   try {
@@ -26,9 +28,9 @@ export async function fetchLiveWebcams() {
     }
 
     const data = await response.json();
-    return data.webcams || [];
+    return [...(data.webcams || []), ...MOCK_CAMERAS];
   } catch (error) {
     console.error('[Webcams] Failed to fetch live feeds:', error);
-    return [];
+    return MOCK_CAMERAS;
   }
 }

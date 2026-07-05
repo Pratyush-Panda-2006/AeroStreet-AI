@@ -211,3 +211,30 @@ export const DEMO_NATIONAL_STATS = {
   activeHotspots: 87,
   districtsAffected: 12,
 };
+
+// Simulated mock cameras to ensure pan-India coverage for demos
+export const MOCK_CAMERAS = DEMO_STATES.map((state) => {
+  // slightly offset from the exact state coordinate so it doesn't overlap perfectly with the state marker
+  const latOffset = (Math.random() - 0.5) * 1.5;
+  const lngOffset = (Math.random() - 0.5) * 1.5;
+  
+  const camLat = state.coordinates.lat + latOffset;
+  const camLng = state.coordinates.lng + lngOffset;
+  
+  const googleApiKey = window.__AEROSTREET_CONFIG__?.googleMapsApiKey || '';
+  // Use Static Maps API (Satellite View) to ensure we always get an image of the area, even if Street View is unavailable
+  const areaImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${camLat},${camLng}&zoom=18&size=400x300&maptype=satellite&key=${googleApiKey}`;
+
+  return {
+    title: `Simulated Traffic Cam: ${state.capital}, ${state.name}`,
+    location: {
+      latitude: camLat,
+      longitude: camLng
+    },
+    images: {
+      current: {
+        preview: areaImageUrl
+      }
+    }
+  };
+});
