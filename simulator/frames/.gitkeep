@@ -1,0 +1,2 @@
+# This directory holds mock CCTV frames for the simulator.
+# Place .jpg or .png images here named by camera ID (e.g., cam-d01.jpg).

@@ -1,0 +1,22 @@
+{
+  "name": "aerostreet-ai",
+  "version": "1.0.0",
+  "description": "AeroStreet AI - Spotting and fixing local pollution hotspots",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "node server/index.js",
+    "seed": "node server/seed-data.js",
+    "cron": "node server/analytics-cron.js",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase": "^11.6.0",
+    "firebase-admin": "^13.0.0",
+    "node-cron": "^3.0.3"
+  },
+  "type": "module"
+}

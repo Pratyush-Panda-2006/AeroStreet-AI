@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>IndianAQI — Enterprise Air Quality Monitoring & Analytics Platform</title>
+  <meta name="description" content="IndianAQI is a high-performance enterprise dashboard for national-level air quality tracking, automated pollution spotting, and AI-powered municipal action recommendations."/>
+  
+  <!-- Fontshare Satoshi Font -->
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#2563eb",       // Blue 600
+            'primary-hover': "#1d4ed8",
+            'deep-slate': "#020617",  // Slate 950
+            'card-border': "#e2e8f0",
+            'muted-bg': "#f8fafc",
+            success: "#16a34a",
+            warning: "#d97706",
+            error: "#dc2626"
+          },
+          fontFamily: {
+            sans: ['Satoshi', 'Inter', 'sans-serif']
+          },
+          borderRadius: {
+            'card': '12px',
+            'btn': '8px'
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body {
+      font-family: 'Satoshi', 'Inter', sans-serif;
+      line-height: 1.625;
+      color: #334155; /* Slate 600 */
+    }
+    
+    .grid-bg {
+      background-image: linear-gradient(to right, rgba(226,232,240,0.4) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(226,232,240,0.4) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    
+    /* Smooth transitions */
+    .interactive-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .interactive-card:hover {
+      background-color: #ffffff;
+      box-shadow: 0 20px 25px -5px rgba(2, 6, 23, 0.05), 0 8px 10px -6px rgba(2, 6, 23, 0.05);
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+    }
+    
+    .interactive-map-area {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Animation Keyframes */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .animate-fadeInUp {
+      animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+  </style>
+</head>
+<body class="bg-white antialiased min-h-screen flex flex-col">
+
+  <!-- Fixed Navigation Header -->
+  <header class="fixed top-0 left-0 right-0 h-16 z-50 glass-panel border-b border-card-border/60 flex items-center justify-between px-6 lg:px-12">
+    <!-- Logo -->
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-deep-slate flex items-center justify-center text-white font-bold text-lg select-none">I</div>
+      <a href="/national.html" class="font-bold text-lg tracking-tight text-slate-900 select-none">IndianAQI</a>
+    </div>
+    
+    <!-- Navigation Links -->
+    <nav class="hidden md:flex items-center gap-8">
+      <a href="/national.html" class="text-sm font-medium text-slate-900 flex items-center gap-1.5 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">map</span> National Map
+      </a>
+      <a href="/district.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">explore</span> Districts
+      </a>
+      <a href="/municipality.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">analytics</span> Municipality Hub
+      </a>
+      <a href="#" id="nav-community-link" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">groups</span> Community
+      </a>
+    </nav>
+    
+    <!-- CTA Actions -->
+    <div class="flex items-center gap-4">
+      <button id="nav-report-btn" class="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-4 py-2 border border-card-border hover:bg-slate-50 text-slate-700 rounded-btn transition-colors">
+        <span class="material-symbols-outlined text-[16px]">add_circle</span> Quick Report
+      </button>
+      <img alt="user profile avatar" id="user-avatar" class="w-8 h-8 rounded-full border border-card-border/50 object-cover cursor-pointer hidden" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq0NM-3MIfoLB0WYgeMarhquCFzUBTCG3997CleBO-PGN_WtYpT1lpfuBFOzr_jd8AWbUCZ0Jqg0U_3oLAImWndwjJCJt9m2aVwEAoRCaMTezxG0JNJygEdN_N_2EY36cOCD1CRil6Gfh7s_nnpCtKSvgCprI7taiXZXkfT8J-Y6EjoVVCdoXOfdRYQSWk4SfXcJDsMbJaDulJjZVGo9j6fNetMPh2pFAAvWmsQEFoVnhvAZB-hKTCbGVYSsx6t4LtS84p6oyHjrI"/>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative pt-32 pb-20 px-6 lg:px-12 grid-bg flex flex-col items-center text-center overflow-hidden border-b border-card-border/50">
+    <div class="max-w-4xl mx-auto space-y-6 animate-fadeInUp">
+      <!-- Status Badge -->
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-xs font-semibold text-primary">
+        <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+        Live Monitoring Active — Version 2.5
+      </div>
+      
+      <!-- Main Title -->
+      <h1 class="text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-tight">
+        Spotting and Fixing Local <br/>
+        <span class="text-primary">Pollution Hotspots</span>
+      </h1>
+      
+      <!-- Subtitle -->
+      <p class="text-lg text-slate-500 max-w-2xl mx-auto font-normal">
+        Deploying high-performance air quality tracking, real-time citizen reporting, and automated AI command models across India's cities and states.
+      </p>
+      
+      <!-- Action buttons -->
+      <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+        <a href="#dashboard-anchor" class="px-6 py-3 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-btn transition-colors inline-flex items-center gap-2 shadow-sm">
+          Explore Live Map <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+        </a>
+        <button id="hero-report-btn" class="px-6 py-3 border border-card-border bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-btn transition-colors inline-flex items-center gap-2">
+          <span class="material-symbols-outlined text-[18px]">add_photo_alternate</span> Report Violation
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard Preview & SVG Interactive Map Section -->
+  <section id="dashboard-anchor" class="py-20 px-6 lg:px-12 bg-muted-bg border-b border-card-border/50 flex flex-col items-center">
+    <div class="w-full max-w-[1152px] space-y-6">
+      <div class="text-center max-w-2xl mx-auto mb-12 space-y-3">
+        <h2 class="text-3xl font-bold tracking-tight text-slate-900">National Interactive Explorer</h2>
+        <p class="text-sm text-slate-500">
+          Click on a particular state to drill down and review regional district AQIs, active sensor alerts, and citizen-reported hotspots.
+        </p>
+      </div>
+
+      <!-- Simulated Browser Container -->
+      <div class="w-full bg-white rounded-card border border-card-border shadow-2xl overflow-hidden flex flex-col h-[650px] animate-fadeInUp">
+        <!-- Browser Top Bar -->
+        <div class="h-12 border-b border-card-border bg-slate-50 flex items-center px-4 justify-between select-none">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-red-400"></span>
+            <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+            <span class="w-3 h-3 rounded-full bg-green-400"></span>
+          </div>
+          <div class="px-6 py-1 bg-white border border-card-border rounded-md text-[11px] font-mono text-slate-400 w-80 text-center truncate">
+            https://india-aqi.org/national-map
+          </div>
+          <div class="w-12"></div>
+        </div>
+
+        <!-- Dashboard Internal Layout -->
+        <div class="flex-1 flex overflow-hidden">
+          <!-- Sidebar: State/District List -->
+          <aside class="w-72 bg-slate-50 border-r border-card-border flex flex-col select-none">
+            <div class="p-4 border-b border-card-border bg-white flex flex-col gap-3">
+              <div id="explorer-title-wrapper">
+                <h3 class="font-bold text-slate-800 text-sm">State-level Air Quality</h3>
+                <p class="text-[10px] text-slate-400 mt-0.5">Pan-India regional index</p>
+              </div>
+              
+              <!-- Search bar -->
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">search</span>
+                <input id="map-sidebar-search" type="text" placeholder="Find state or district..." 
+                  class="w-full pl-7 pr-3 py-1.5 border border-card-border bg-white rounded-lg text-xs outline-none focus:border-primary transition-colors placeholder:text-slate-400"/>
+              </div>
+            </div>
+            
+            <!-- List scrollable area -->
+            <div id="map-sidebar-list" class="flex-1 overflow-y-auto p-3 space-y-1 sidebar-scroll text-xs">
+              <!-- Rendered dynamically by map.js sync -->
+            </div>
+          </aside>
+
+          <!-- Interactive Map Render Container -->
+          <div class="flex-1 relative bg-white flex items-center justify-center p-4">
+            <!-- Loader fallback -->
+            <div id="interactive-map" class="w-full h-full relative">
+              <!-- Rendered via SVG in map.js -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Module Grid: Core Capabilities -->
+  <section class="py-24 px-6 lg:px-12 max-w-container-max mx-auto w-full">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Card 1 -->
+      <div class="p-6 rounded-card border border-card-border bg-white interactive-card flex flex-col justify-between">
+        <div>
+          <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-primary mb-4">
+            <span class="material-symbols-outlined text-[20px]">sensors</span>
+          </div>
+          <h3 class="font-bold text-slate-900 text-base mb-2">Real-time Hotspot Tracking</h3>
+          <p class="text-sm text-slate-500">
+            Real-time data ingestion pipelines connecting city-wide monitoring grids and air pollution index sensors to a central dashboard.
+          </p>
+        </div>
+        <div class="text-xs text-primary font-bold mt-4 flex items-center gap-1">
+          Active In 12 major zones <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+        </div>
+      </div>
+      
+      <!-- Card 2 -->
+      <div class="p-6 rounded-card border border-card-border bg-white interactive-card flex flex-col justify-between">
+        <div>
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-4">
+            <span class="material-symbols-outlined text-[20px]">smart_toy</span>
+          </div>
+          <h3 class="font-bold text-slate-900 text-base mb-2">AI-driven Action Insights</h3>
+          <p class="text-sm text-slate-500">
+            Integrated Gemini models processing regional pollution spikes, construction logs, and traffic peak times to issue actionable mitigation recommendations.
+          </p>
+        </div>
+        <div class="text-xs text-emerald-600 font-bold mt-4 flex items-center gap-1">
+          Powered by Gemini 2.5 <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="p-6 rounded-card border border-card-border bg-white interactive-card flex flex-col justify-between">
+        <div>
+          <div class="w-10 h-10 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 mb-4">
+            <span class="material-symbols-outlined text-[20px]">videocam</span>
+          </div>
+          <h3 class="font-bold text-slate-900 text-base mb-2">Automated Spotting CCTV</h3>
+          <p class="text-sm text-slate-500">
+            Multimodal AI analysis analyzing mock CCTV feeds to automatically spot trash burning, excessive industrial emission, or construction dust.
+          </p>
+        </div>
+        <div class="text-xs text-rose-600 font-bold mt-4 flex items-center gap-1">
+          Live CCTV Webhook alert <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Uploaded Image Evidence Portal (Realistic & Impressive) -->
+  <section class="py-20 px-6 lg:px-12 bg-slate-50 border-t border-b border-card-border/50">
+    <div class="max-w-[1152px] mx-auto space-y-12">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="space-y-2">
+          <div class="text-xs font-semibold uppercase tracking-wider text-primary">Citizen Reporting Hub</div>
+          <h2 class="text-3xl font-bold tracking-tight text-slate-900">High-Fidelity Evidence Feed</h2>
+        </div>
+        <p class="text-sm text-slate-500 max-w-md">
+          Verified citizen reports uploaded directly from municipal hotlines, complete with geotagged locations and active status timelines.
+        </p>
+      </div>
+
+      <!-- Photo Grid Showcase -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Photo 1 -->
+        <div class="bg-white border border-card-border rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
+          <div class="relative h-48 bg-slate-200">
+            <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&q=80&w=400" alt="Heavy Smoke Emission"/>
+            <span class="absolute top-3 left-3 bg-red-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Severe Violation</span>
+          </div>
+          <div class="p-4 space-y-3">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>2 hours ago</span>
+              <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[14px]">location_on</span>Anand Vihar, Delhi</span>
+            </div>
+            <h4 class="font-bold text-slate-900 text-sm">Industrial Incineration Discharge</h4>
+            <p class="text-xs text-slate-500 line-clamp-2">Citizen reported thick black smoke stack discharge violating emissions norms in the local warehousing zone.</p>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
+              <span class="text-slate-400">Status: <strong class="text-red-600">Pending Review</strong></span>
+              <button class="text-primary font-semibold hover:underline">View Case</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photo 2 -->
+        <div class="bg-white border border-card-border rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
+          <div class="relative h-48 bg-slate-200">
+            <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1616447158750-f1ad6e6c1e50?auto=format&fit=crop&q=80&w=400" alt="Construction Dust"/>
+            <span class="absolute top-3 left-3 bg-amber-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Warning Limits</span>
+          </div>
+          <div class="p-4 space-y-3">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>5 hours ago</span>
+              <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[14px]">location_on</span>Dwarka Sector 21, Delhi</span>
+            </div>
+            <h4 class="font-bold text-slate-900 text-sm">Unsprinkled Construction Debris</h4>
+            <p class="text-xs text-slate-500 line-clamp-2">Dust cloud generated from active commercial site. Visual feeds confirm lack of mandatory dust control barriers.</p>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
+              <span class="text-slate-400">Status: <strong class="text-amber-600">Under Investigation</strong></span>
+              <button class="text-primary font-semibold hover:underline">View Case</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photo 3 -->
+        <div class="bg-white border border-card-border rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
+          <div class="relative h-48 bg-slate-200">
+            <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=400" alt="Trash Burning"/>
+            <span class="absolute top-3 left-3 bg-red-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Severe Violation</span>
+          </div>
+          <div class="p-4 space-y-3">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>1 day ago</span>
+              <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[14px]">location_on</span>Howrah Ghat, West Bengal</span>
+            </div>
+            <h4 class="font-bold text-slate-900 text-sm">Open Biomass Waste Burning</h4>
+            <p class="text-xs text-slate-500 line-clamp-2">Large scale burning of waste plastics and organic scrap detected along riverbank, causing high particulate spikes.</p>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
+              <span class="text-slate-400">Status: <strong class="text-red-600">Pending Review</strong></span>
+              <button class="text-primary font-semibold hover:underline">View Case</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quantifiable Impact Section (Corporate Stats row with concentric circles) -->
+  <section class="relative py-24 bg-deep-slate text-white overflow-hidden">
+    <!-- Concentric white decorative circles -->
+    <div class="absolute inset-0 z-0 opacity-10 flex items-center justify-center pointer-events-none">
+      <div class="w-[600px] h-[600px] border border-white rounded-full flex items-center justify-center">
+        <div class="w-[450px] h-[450px] border border-white rounded-full flex items-center justify-center">
+          <div class="w-[300px] h-[300px] border border-white rounded-full"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="relative z-10 max-w-[1152px] mx-auto px-6 space-y-12">
+      <div class="text-center max-w-2xl mx-auto space-y-2">
+        <div class="text-xs font-semibold uppercase tracking-wider text-blue-400 font-mono">Measurable Progress</div>
+        <h2 class="text-3xl font-bold tracking-tight">System Impact Overview</h2>
+      </div>
+
+      <!-- Stats Grid with Count-up Targets -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center pt-8">
+        <div>
+          <div class="text-4xl lg:text-5xl font-bold text-blue-400 font-mono tracking-tight" data-target="94.50" data-decimals="2" data-suffix="%">0.00%</div>
+          <p class="text-xs uppercase font-bold tracking-wider text-slate-400 mt-2">CCTV Detection Rate</p>
+        </div>
+        <div>
+          <div class="text-4xl lg:text-5xl font-bold text-blue-400 font-mono tracking-tight" data-target="3240" data-decimals="0" data-suffix="">0</div>
+          <p class="text-xs uppercase font-bold tracking-wider text-slate-400 mt-2">Active Sensors</p>
+        </div>
+        <div>
+          <div class="text-4xl lg:text-5xl font-bold text-blue-400 font-mono tracking-tight" data-target="15.80" data-decimals="2" data-suffix="%">0.00%</div>
+          <p class="text-xs uppercase font-bold tracking-wider text-slate-400 mt-2">AQI Reduction avg</p>
+        </div>
+        <div>
+          <div class="text-4xl lg:text-5xl font-bold text-blue-400 font-mono tracking-tight" data-target="1120" data-decimals="0" data-suffix="">0</div>
+          <p class="text-xs uppercase font-bold tracking-wider text-slate-400 mt-2">Reports Resolved</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Detailed Enterprise Footer -->
+  <footer class="bg-white border-t border-card-border mt-auto pt-16 pb-8 px-6 lg:px-12">
+    <div class="max-w-[1152px] mx-auto grid grid-cols-2 md:grid-cols-6 gap-8 pb-12 border-b border-slate-100">
+      <!-- Logo + Social -->
+      <div class="col-span-2 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-deep-slate flex items-center justify-center text-white font-bold text-lg select-none">I</div>
+          <span class="font-bold text-lg tracking-tight text-slate-900">IndianAQI</span>
+        </div>
+        <p class="text-xs text-slate-400 max-w-xs">
+          National air quality monitoring framework delivering automated spotting alert integrations and municipal planning recommendations.
+        </p>
+      </div>
+
+      <!-- Links Column 1 -->
+      <div>
+        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Platform</h4>
+        <ul class="space-y-2 text-xs text-slate-500">
+          <li><a href="/national.html" class="hover:text-primary transition-colors">National Map</a></li>
+          <li><a href="/district.html" class="hover:text-primary transition-colors">District Dashboard</a></li>
+          <li><a href="/municipality.html" class="hover:text-primary transition-colors">Municipality Command</a></li>
+        </ul>
+      </div>
+
+      <!-- Links Column 2 -->
+      <div>
+        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Resources</h4>
+        <ul class="space-y-2 text-xs text-slate-500">
+          <li><a href="#" class="hover:text-primary transition-colors">API Docs</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">CPCB Standards</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">System Status</a></li>
+        </ul>
+      </div>
+
+      <!-- Links Column 3 -->
+      <div>
+        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Organization</h4>
+        <ul class="space-y-2 text-xs text-slate-500">
+          <li><a href="#" class="hover:text-primary transition-colors">About Us</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Partners</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Links Column 4 -->
+      <div>
+        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Legal</h4>
+        <ul class="space-y-2 text-xs text-slate-500">
+          <li><a href="#" class="hover:text-primary transition-colors">Privacy Policy</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Terms of Use</a></li>
+          <li><a href="#" class="hover:text-primary transition-colors">Security Certs</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Status Bar -->
+    <div class="max-w-[1152px] mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+      <div>© 2026 IndianAQI. All rights reserved. Built securely on the Google ecosystem.</div>
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-success animate-pulse"></span>
+        <span class="text-slate-500 font-medium">All Systems Operational</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Backend App Integration -->
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

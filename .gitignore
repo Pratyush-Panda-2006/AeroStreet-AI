@@ -1,0 +1,12 @@
+node_modules/
+.env
+firebase-service-account.json
+dist/
+*.log
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+simulator/frames/*.jpg
+simulator/frames/*.png
+!simulator/frames/.gitkeep
