@@ -51,12 +51,15 @@ const DEMO_EVENTS = [
   },
 ];
 
+let loadedEvents = DEMO_EVENTS;
+
 /**
  * Get upcoming community events
  * @returns {Promise<Array>}
  */
 export async function getUpcomingEvents() {
   if (!isFirebaseAvailable()) {
+    loadedEvents = DEMO_EVENTS;
     return DEMO_EVENTS;
   }
 
@@ -78,12 +81,15 @@ export async function getUpcomingEvents() {
 
     if (snapshot.empty) {
       console.log('[Community] No database community events found, using fallback demo data');
+      loadedEvents = DEMO_EVENTS;
       return DEMO_EVENTS;
     }
 
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    loadedEvents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return loadedEvents;
   } catch (err) {
     console.warn('[Community] Upcoming events query failed or timed out, using fallback demo data', err.message);
+    loadedEvents = DEMO_EVENTS;
     return DEMO_EVENTS;
   }
 }
@@ -97,41 +103,51 @@ export async function rsvpEvent(eventId) {
   // Free for everyone: default to guest user if not authenticated
   const user = getCurrentUser() || { uid: 'guest-user-' + Math.random().toString(36).substr(2, 9), displayName: 'Anonymous Volunteer' };
 
-  if (!isFirebaseAvailable()) {
-    const event = DEMO_EVENTS.find(e => e.id === eventId);
+  try {
+    if (!isFirebaseAvailable()) throw new Error('Firebase not available');
+    
+    const db = await getDb();
+    const { doc, runTransaction, arrayUnion } = await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js');
+    const eventRef = doc(db, COLLECTIONS.COMMUNITY_EVENTS, eventId);
+
+    const result = await runTransaction(db, async (transaction) => {
+      const eventDoc = await transaction.get(eventRef);
+      if (!eventDoc.exists()) throw new Error('Event not found');
+
+      const data = eventDoc.data();
+      if (data.attendees?.includes(user.uid)) throw new Error('You have already RSVP\'d');
+      if (data.slotsFilled >= data.maxSlots) throw new Error('Event is full!');
+
+      const newSlotsFilled = (data.slotsFilled || 0) + 1;
+      transaction.update(eventRef, {
+        slotsFilled: newSlotsFilled,
+        attendees: arrayUnion(user.uid),
+      });
+
+      return { slotsFilled: newSlotsFilled };
+    });
+
+    // Mirror in local cache as well
+    const cachedEvent = loadedEvents.find(e => e.id === eventId);
+    if (cachedEvent) {
+      cachedEvent.slotsFilled = result.slotsFilled;
+      cachedEvent.attendees = cachedEvent.attendees || [];
+      if (!cachedEvent.attendees.includes(user.uid)) cachedEvent.attendees.push(user.uid);
+    }
+
+    return { ...result, success: true };
+  } catch (err) {
+    console.warn('[Community] Firestore RSVP failed, using local mock fallback:', err.message);
+    const event = loadedEvents.find(e => e.id === eventId);
     if (event) {
       if (event.slotsFilled >= event.maxSlots) throw new Error('Event is full!');
       event.slotsFilled++;
       event.attendees = event.attendees || [];
-      event.attendees.push(user.uid);
+      if (!event.attendees.includes(user.uid)) event.attendees.push(user.uid);
+      return { slotsFilled: event.slotsFilled, success: true };
     }
-    console.log(`[Community] Demo RSVP for event ${eventId}`);
-    return { slotsFilled: event?.slotsFilled || 0, success: true };
+    throw err;
   }
-
-  const db = await getDb();
-  const { doc, runTransaction, arrayUnion } = await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js');
-
-  const eventRef = doc(db, COLLECTIONS.COMMUNITY_EVENTS, eventId);
-
-  const result = await runTransaction(db, async (transaction) => {
-    const eventDoc = await transaction.get(eventRef);
-    if (!eventDoc.exists()) throw new Error('Event not found');
-
-    const data = eventDoc.data();
-    if (data.attendees?.includes(user.uid)) throw new Error('You have already RSVP\'d');
-    if (data.slotsFilled >= data.maxSlots) throw new Error('Event is full!');
-
-    const newSlotsFilled = (data.slotsFilled || 0) + 1;
-    transaction.update(eventRef, {
-      slotsFilled: newSlotsFilled,
-      attendees: arrayUnion(user.uid),
-    });
-
-    return { slotsFilled: newSlotsFilled };
-  });
-
-  return { ...result, success: true };
 }
 
 /**
@@ -141,32 +157,41 @@ export async function rsvpEvent(eventId) {
 export async function cancelRsvp(eventId) {
   const user = getCurrentUser() || { uid: 'guest-user-default', displayName: 'Anonymous Volunteer' };
 
-  if (!isFirebaseAvailable()) {
-    const event = DEMO_EVENTS.find(e => e.id === eventId);
+  try {
+    if (!isFirebaseAvailable()) throw new Error('Firebase not available');
+
+    const db = await getDb();
+    const { doc, runTransaction, arrayRemove } = await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js');
+    const eventRef = doc(db, COLLECTIONS.COMMUNITY_EVENTS, eventId);
+
+    await runTransaction(db, async (transaction) => {
+      const eventDoc = await transaction.get(eventRef);
+      if (!eventDoc.exists()) throw new Error('Event not found');
+
+      const data = eventDoc.data();
+      if (!data.attendees?.includes(user.uid)) return;
+
+      const newSlotsFilled = Math.max(0, (data.slotsFilled || 1) - 1);
+      transaction.update(eventRef, {
+        slotsFilled: newSlotsFilled,
+        attendees: arrayRemove(user.uid),
+      });
+    });
+
+    // Mirror in local cache
+    const cachedEvent = loadedEvents.find(e => e.id === eventId);
+    if (cachedEvent) {
+      cachedEvent.slotsFilled = Math.max(0, cachedEvent.slotsFilled - 1);
+      cachedEvent.attendees = (cachedEvent.attendees || []).filter(a => a !== user.uid);
+    }
+  } catch (err) {
+    console.warn('[Community] Firestore cancelRsvp failed, using local mock fallback:', err.message);
+    const event = loadedEvents.find(e => e.id === eventId);
     if (event && event.slotsFilled > 0) {
       event.slotsFilled--;
-      event.attendees = event.attendees.filter(a => a !== user.uid);
+      event.attendees = (event.attendees || []).filter(a => a !== user.uid);
     }
-    return;
   }
-
-  const db = await getDb();
-  const { doc, runTransaction, arrayRemove } = await import('https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js');
-
-  const eventRef = doc(db, COLLECTIONS.COMMUNITY_EVENTS, eventId);
-
-  await runTransaction(db, async (transaction) => {
-    const eventDoc = await transaction.get(eventRef);
-    if (!eventDoc.exists()) throw new Error('Event not found');
-
-    const data = eventDoc.data();
-    if (!data.attendees?.includes(user.uid)) return;
-
-    transaction.update(eventRef, {
-      slotsFilled: Math.max(0, (data.slotsFilled || 1) - 1),
-      attendees: arrayRemove(user.uid),
-    });
-  });
 }
 
 /**
@@ -288,9 +313,11 @@ export async function renderCommunityPanel(containerId) {
         if (hasRsvpd) {
           await cancelRsvp(eventId);
           window.__aerostreet?.showToast?.('RSVP cancelled', 'info');
+          window.dispatchEvent(new CustomEvent('rsvp-updated', { detail: { eventId, hasRsvpd: false } }));
         } else {
           await rsvpEvent(eventId);
           window.__aerostreet?.showToast?.('RSVP confirmed! 🎉', 'success');
+          window.dispatchEvent(new CustomEvent('rsvp-updated', { detail: { eventId, hasRsvpd: true } }));
         }
         // Re-render
         await renderCommunityPanel(containerId);

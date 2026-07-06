@@ -146,7 +146,7 @@
         <div class="glass-panel flex-1 rounded-card p-3 flex items-center justify-between pointer-events-auto">
           <div>
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">National Average AQI</p>
-            <p class="text-lg font-bold text-slate-800 mt-0.5">112</p>
+            <p id="kpi-national-aqi" class="text-lg font-bold text-slate-800 mt-0.5" data-target="112">112</p>
           </div>
           <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-primary">
             <span class="material-symbols-outlined text-[18px]">air</span>
@@ -155,7 +155,7 @@
         <div class="glass-panel flex-1 rounded-card p-3 flex items-center justify-between pointer-events-auto">
           <div>
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Most Polluted</p>
-            <p class="text-sm font-bold text-error mt-0.5">Delhi <span class="text-xs text-slate-400 font-normal ml-1">AQI 345</span></p>
+            <p id="kpi-most-polluted" class="text-sm font-bold text-error mt-0.5">Delhi <span class="text-xs text-slate-400 font-normal ml-1">AQI 345</span></p>
           </div>
           <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center text-error">
             <span class="material-symbols-outlined text-[18px]">warning</span>
@@ -164,7 +164,7 @@
         <div class="glass-panel flex-1 rounded-card p-3 flex items-center justify-between pointer-events-auto">
           <div>
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Cleanest State</p>
-            <p class="text-sm font-bold text-success mt-0.5">Mizoram <span class="text-xs text-slate-400 font-normal ml-1">AQI 22</span></p>
+            <p id="kpi-cleanest-state" class="text-sm font-bold text-success mt-0.5">Mizoram <span class="text-xs text-slate-400 font-normal ml-1">AQI 22</span></p>
           </div>
           <div class="w-8 h-8 rounded-lg bg-green-50 border border-green-100 flex items-center justify-center text-success">
             <span class="material-symbols-outlined text-[18px]">eco</span>
@@ -175,6 +175,18 @@
       <!-- Main Drill-down Map container -->
       <div id="map-container" class="flex-1 w-full h-full relative">
         <!-- Rendered via SVG in map.js -->
+      </div>
+
+      <!-- Floating Map Layer Selector -->
+      <div class="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex items-center bg-slate-900/95 border border-slate-800 rounded-full p-1 shadow-2xl transition-all duration-300">
+        <button id="toggle-svg-map" class="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-white bg-primary">
+          <span class="material-symbols-outlined text-[16px]">map</span>
+          SVG Map
+        </button>
+        <button id="toggle-predictive-map" class="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white">
+          <span class="material-symbols-outlined text-[16px]">insights</span>
+          3D AI Heatmap
+        </button>
       </div>
     </div>
   </main>

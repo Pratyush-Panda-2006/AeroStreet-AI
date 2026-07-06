@@ -169,21 +169,21 @@ export function showReportModal() {
   overlay.id = 'report-modal-overlay';
   overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm';
   overlay.innerHTML = `
-    <div class="bg-surface rounded-2xl shadow-2xl border border-outline-variant/30 w-full max-w-lg mx-4 overflow-hidden">
+    <div class="bg-white rounded-card shadow-2xl border border-slate-200 w-full max-w-lg mx-4 overflow-hidden animate-[fadeIn_0.2s_ease-out]">
       <!-- Header -->
-      <div class="p-6 pb-4 border-b border-outline-variant/20 bg-gradient-to-r from-secondary/5 to-transparent">
+      <div class="p-6 pb-4 border-b border-slate-100 bg-gradient-to-r from-blue-50/20 to-transparent">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-              <span class="material-symbols-outlined text-secondary">report</span>
+            <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary">report</span>
             </div>
             <div>
-              <h2 class="font-headline-md text-headline-md text-primary">Quick Report</h2>
-              <p class="text-body-sm text-on-surface-variant">Report a pollution issue in your area</p>
+              <h2 class="text-lg font-bold text-slate-800">Quick Report</h2>
+              <p class="text-xs text-slate-400">Report a pollution issue in your area</p>
             </div>
           </div>
-          <button id="report-close-btn" class="w-8 h-8 rounded-full hover:bg-surface-container-high flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-on-surface-variant">close</span>
+          <button id="report-close-btn" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-slate-500">close</span>
           </button>
         </div>
       </div>
@@ -191,25 +191,25 @@ export function showReportModal() {
       <!-- Form -->
       <form id="report-form" class="p-6 space-y-4">
         <div>
-          <label class="block font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Category</label>
+          <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Category</label>
           <select id="report-category" required
-            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary outline-none transition-colors">
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-800 text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors">
             <option value="">Select a category...</option>
             ${categoryOptions}
           </select>
         </div>
 
         <div>
-          <label class="block font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Description</label>
+          <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Description</label>
           <textarea id="report-description" rows="3" placeholder="Describe the issue you've observed..." required
-            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary outline-none transition-colors resize-none"></textarea>
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-800 text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors resize-none"></textarea>
         </div>
 
         <div>
-          <label class="block font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Photo Evidence (Optional)</label>
-          <div id="report-upload-area" class="border-2 border-dashed border-outline-variant/50 rounded-lg p-6 text-center hover:border-secondary/50 transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-outline text-3xl mb-2">add_a_photo</span>
-            <p class="text-body-sm text-on-surface-variant">Click or drag an image here</p>
+          <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Photo Evidence (Optional)</label>
+          <div id="report-upload-area" class="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-slate-300 text-3xl mb-2">add_a_photo</span>
+            <p class="text-xs text-slate-400">Click or drag an image here</p>
             <input id="report-image" type="file" accept="image/*" class="hidden" />
           </div>
           <div id="report-image-preview" class="hidden mt-2 relative">
@@ -218,14 +218,14 @@ export function showReportModal() {
           </div>
         </div>
 
-        <div class="flex items-center gap-2 p-3 bg-surface-container-low rounded-lg">
-          <span class="material-symbols-outlined text-secondary text-sm">my_location</span>
-          <span id="report-location-text" class="text-body-sm text-on-surface-variant">Detecting your location...</span>
+        <div class="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+          <span class="material-symbols-outlined text-primary text-sm">my_location</span>
+          <span id="report-location-text" class="text-xs text-slate-500">Detecting your location...</span>
         </div>
 
-        <div id="report-error" class="hidden text-error text-body-sm bg-error-container/30 p-3 rounded-lg"></div>
+        <div id="report-error" class="hidden text-red-600 text-xs bg-red-50 border border-red-100 p-3 rounded-lg"></div>
 
-        <button type="submit" id="report-submit-btn" class="w-full py-2.5 bg-secondary text-on-secondary rounded-lg font-label-md text-label-md hover:bg-secondary/90 transition-colors flex items-center justify-center gap-2">
+        <button type="submit" id="report-submit-btn" class="w-full py-2.5 bg-primary hover:bg-primary-hover text-white rounded-btn text-xs font-semibold transition-colors flex items-center justify-center gap-2">
           <span class="material-symbols-outlined text-[18px]">send</span>
           Submit Report
         </button>

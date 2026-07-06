@@ -135,7 +135,7 @@
           <div class="p-4 bg-slate-50 border border-card-border rounded-card flex items-center justify-between">
             <div>
               <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pending Incidents</p>
-              <p class="text-3xl font-bold text-slate-900 mt-1">12</p>
+              <p id="muni-kpi-pending" class="text-3xl font-bold text-slate-900 mt-1">12</p>
               <p class="text-[10px] text-slate-400 mt-0.5">4 reported today</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center text-error">
@@ -146,7 +146,7 @@
           <div class="p-4 bg-slate-50 border border-card-border rounded-card flex items-center justify-between">
             <div>
               <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">CCTV Alerts</p>
-              <p class="text-3xl font-bold text-slate-900 mt-1">7</p>
+              <p id="muni-kpi-cctv" class="text-3xl font-bold text-slate-900 mt-1">7</p>
               <p class="text-[10px] text-slate-400 mt-0.5">AI automated spotting</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-primary">
@@ -157,7 +157,7 @@
           <div class="p-4 bg-slate-50 border border-card-border rounded-card flex items-center justify-between">
             <div>
               <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Resolved Index</p>
-              <p class="text-3xl font-bold text-slate-900 mt-1">23</p>
+              <p id="muni-kpi-resolved" class="text-3xl font-bold text-slate-900 mt-1">23</p>
               <p class="text-[10px] text-slate-400 mt-0.5">↑ 15% this week</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-green-50 border border-green-100 flex items-center justify-center text-success">
@@ -168,7 +168,7 @@
           <div class="p-4 bg-slate-50 border border-card-border rounded-card flex items-center justify-between">
             <div>
               <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">RSPV Volunteers</p>
-              <p class="text-3xl font-bold text-slate-900 mt-1">124</p>
+              <p id="muni-kpi-volunteers" class="text-3xl font-bold text-slate-900 mt-1">124</p>
               <p class="text-[10px] text-slate-400 mt-0.5">Across 3 active drives</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500">
@@ -178,32 +178,32 @@
         </div>
       </div>
 
-      <!-- CCTV & Security Toggles (Glass-Morphism Toggles component) -->
+      <!-- CCTV & Security Toggles -->
       <div class="p-6 bg-slate-50 border border-card-border rounded-card">
         <h3 class="font-bold text-slate-900 text-sm mb-4">Command Policies & Security Integrations</h3>
         
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div class="flex items-center justify-between p-3 bg-white border border-card-border rounded-lg shadow-sm">
             <span class="text-xs font-semibold text-slate-700">CCTV Stream AI</span>
-            <div class="toggle-pill active" onclick="this.classList.toggle('active')">
+            <div id="toggle-cctv-stream" class="toggle-pill active">
               <div class="toggle-thumb"></div>
             </div>
           </div>
           <div class="flex items-center justify-between p-3 bg-white border border-card-border rounded-lg shadow-sm">
             <span class="text-xs font-semibold text-slate-700">MFA Enforced</span>
-            <div class="toggle-pill active" onclick="this.classList.toggle('active')">
+            <div id="toggle-mfa" class="toggle-pill active">
               <div class="toggle-thumb"></div>
             </div>
           </div>
           <div class="flex items-center justify-between p-3 bg-white border border-card-border rounded-lg shadow-sm">
             <span class="text-xs font-semibold text-slate-700">IP Whitelist</span>
-            <div class="toggle-pill" onclick="this.classList.toggle('active')">
+            <div id="toggle-ip-whitelist" class="toggle-pill">
               <div class="toggle-thumb"></div>
             </div>
           </div>
           <div class="flex items-center justify-between p-3 bg-white border border-card-border rounded-lg shadow-sm">
             <span class="text-xs font-semibold text-slate-700">Key Rotation</span>
-            <div class="toggle-pill active" onclick="this.classList.toggle('active')">
+            <div id="toggle-key-rotation" class="toggle-pill active">
               <div class="toggle-thumb"></div>
             </div>
           </div>
@@ -226,42 +226,12 @@
                 <th class="p-3">Details / Location</th>
                 <th class="p-3">Confidence</th>
                 <th class="p-3">Status</th>
+                <th class="p-3">Action</th>
                 <th class="p-3 text-right">Logged Time</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 text-xs">
-              <tr class="hover:bg-blue-50/40 transition-colors">
-                <td class="p-3 font-semibold text-slate-900">📹 CAM-A14</td>
-                <td class="p-3">Heavy Smoke</td>
-                <td class="p-3 text-slate-500">Anand Vihar, Delhi Industrial Sector</td>
-                <td class="p-3 font-mono font-medium text-slate-600">94.00%</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-100 text-red-800">Failed Compliance</span></td>
-                <td class="p-3 text-right text-slate-400 font-mono">13:10:22</td>
-              </tr>
-              <tr class="hover:bg-blue-50/40 transition-colors">
-                <td class="p-3 font-semibold text-slate-900">👤 User #004</td>
-                <td class="p-3">Construction Dust</td>
-                <td class="p-3 text-slate-500">Dwarka Sector 21 construction site</td>
-                <td class="p-3 font-mono font-medium text-slate-600">N/A</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800">Warning Active</span></td>
-                <td class="p-3 text-right text-slate-400 font-mono">12:45:00</td>
-              </tr>
-              <tr class="hover:bg-blue-50/40 transition-colors">
-                <td class="p-3 font-semibold text-slate-900">📹 CAM-M07</td>
-                <td class="p-3">Litter Dumping</td>
-                <td class="p-3 text-slate-500">Mahul Industrial, Mumbai Drainage</td>
-                <td class="p-3 font-mono font-medium text-slate-600">87.00%</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800">Warning Active</span></td>
-                <td class="p-3 text-right text-slate-400 font-mono">12:15:33</td>
-              </tr>
-              <tr class="hover:bg-blue-50/40 transition-colors">
-                <td class="p-3 font-semibold text-slate-900">🌿 Command</td>
-                <td class="p-3">Event RSVP Auto</td>
-                <td class="p-3 text-slate-500">Yamuna clean-up drive slots filled</td>
-                <td class="p-3 font-mono font-medium text-slate-600">100.00%</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-green-100 text-green-800">Success Verified</span></td>
-                <td class="p-3 text-right text-slate-400 font-mono">11:30:10</td>
-              </tr>
+            <tbody id="incident-log-body" class="divide-y divide-slate-100 text-xs">
+              <!-- Rendered dynamically by JS -->
             </tbody>
           </table>
         </div>

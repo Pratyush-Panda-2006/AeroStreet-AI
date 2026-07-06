@@ -184,53 +184,53 @@ export function showAuthModal(mode = 'login') {
   overlay.id = 'auth-modal-overlay';
   overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm';
   overlay.innerHTML = `
-    <div class="bg-surface rounded-2xl shadow-2xl border border-outline-variant/30 w-full max-w-md mx-4 overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+    <div class="bg-white rounded-card shadow-2xl border border-slate-200 w-full max-w-md mx-4 overflow-hidden animate-[fadeIn_0.2s_ease-out]">
       <!-- Header -->
-      <div class="p-6 pb-4 border-b border-outline-variant/20">
+      <div class="p-6 pb-4 border-b border-slate-100">
         <div class="flex items-center justify-between">
-          <h2 class="font-headline-md text-headline-md text-primary">${isLogin ? 'Welcome Back' : 'Join AeroStreet AI'}</h2>
-          <button id="auth-close-btn" class="w-8 h-8 rounded-full hover:bg-surface-container-high flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-on-surface-variant">close</span>
+          <h2 class="text-lg font-bold text-slate-800">${isLogin ? 'Welcome Back' : 'Join AeroStreet AI'}</h2>
+          <button id="auth-close-btn" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-slate-500">close</span>
           </button>
         </div>
-        <p class="text-body-sm text-on-surface-variant mt-1">${isLogin ? 'Sign in to report issues and join community actions' : 'Create an account to start making a difference'}</p>
+        <p class="text-xs text-slate-400 mt-1">${isLogin ? 'Sign in to report issues and join community actions' : 'Create an account to start making a difference'}</p>
       </div>
 
       <!-- Form -->
       <form id="auth-form" class="p-6 space-y-4">
         ${!isLogin ? `
         <div>
-          <label class="block font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Full Name</label>
+          <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Full Name</label>
           <input id="auth-name" type="text" placeholder="Your name" required
-            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary outline-none transition-colors" />
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-800 text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" />
         </div>
         ` : ''}
 
         <div>
-          <label class="block font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Email</label>
+          <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Email</label>
           <input id="auth-email" type="email" placeholder="you@example.com" required
-            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary outline-none transition-colors" />
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-800 text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" />
         </div>
 
         <div>
-          <label class="block font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Password</label>
+          <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Password</label>
           <input id="auth-password" type="password" placeholder="••••••••" required minlength="6"
-            class="w-full px-4 py-2.5 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary outline-none transition-colors" />
+            class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-800 text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors" />
         </div>
 
         ${isLogin ? `
         <div>
-          <label class="block font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Login As</label>
-          <select id="auth-role" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant/50 bg-surface-container-lowest text-on-surface text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary outline-none transition-colors">
+          <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Login As</label>
+          <select id="auth-role" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-800 text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors">
             <option value="citizen">Citizen</option>
             <option value="municipality">Municipality Officer</option>
           </select>
         </div>
         ` : ''}
 
-        <div id="auth-error" class="hidden text-error text-body-sm bg-error-container/30 p-3 rounded-lg"></div>
+        <div id="auth-error" class="hidden text-red-600 text-xs bg-red-50 border border-red-100 p-3 rounded-lg"></div>
 
-        <button type="submit" class="w-full py-2.5 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
+        <button type="submit" class="w-full py-2.5 bg-primary text-white font-semibold text-xs rounded-btn hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
           <span class="material-symbols-outlined text-[18px]">${isLogin ? 'login' : 'person_add'}</span>
           ${isLogin ? 'Sign In' : 'Create Account'}
         </button>
@@ -238,9 +238,9 @@ export function showAuthModal(mode = 'login') {
 
       <!-- Footer toggle -->
       <div class="px-6 pb-6 text-center">
-        <p class="text-body-sm text-on-surface-variant">
+        <p class="text-xs text-slate-500">
           ${isLogin ? "Don't have an account?" : 'Already have an account?'}
-          <button id="auth-toggle-btn" class="text-secondary font-semibold hover:underline ml-1">
+          <button id="auth-toggle-btn" class="text-primary font-semibold hover:underline ml-1">
             ${isLogin ? 'Sign Up' : 'Sign In'}
           </button>
         </p>

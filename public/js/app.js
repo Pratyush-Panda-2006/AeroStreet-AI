@@ -332,10 +332,12 @@ function syncSidebarList(viewState) {
       const q = e.target.value.toLowerCase();
       const list = document.getElementById('map-sidebar-list');
       if (list) {
-        list.childNodes.forEach(child => {
-          const text = child.textContent.toLowerCase();
-          child.style.display = text.includes(q) ? '' : 'none';
-        });
+        const items = list.getElementsByTagName('div');
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const text = item.textContent.toLowerCase();
+          item.style.display = text.includes(q) ? '' : 'none';
+        }
       }
     });
   }
@@ -361,20 +363,26 @@ function initCountUpStats() {
   const statElements = document.querySelectorAll('[data-target]');
   if (statElements.length === 0) return;
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        animateValue(entry.target);
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1 });
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting || entry.intersectionRatio > 0) {
+          animateValue(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -50px 0px' });
 
-  statElements.forEach(el => observer.observe(el));
+    statElements.forEach(el => observer.observe(el));
+  } else {
+    // Fallback for browsers without IntersectionObserver support
+    statElements.forEach(el => animateValue(el));
+  }
 }
 
 function animateValue(obj) {
   const target = parseFloat(obj.getAttribute('data-target'));
+  if (isNaN(target)) return;
   const decimals = parseInt(obj.getAttribute('data-decimals') || '0');
   const suffix = obj.getAttribute('data-suffix') || '';
   const duration = 2000;
@@ -416,15 +424,88 @@ async function initDistrictPage() {
   if (mapContainer) {
     registerOnStateChange(syncSidebarList);
     await initMap('map-container');
+
+    // Wire up Map Selector Toggles
+    const toggleSvgBtn = document.getElementById('toggle-svg-map');
+    const togglePredictiveBtn = document.getElementById('toggle-predictive-map');
+
+    if (toggleSvgBtn && togglePredictiveBtn) {
+      toggleSvgBtn.addEventListener('click', async () => {
+        toggleSvgBtn.className = 'px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-white bg-primary';
+        togglePredictiveBtn.className = 'px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white';
+        
+        await initMap('map-container');
+      });
+
+      togglePredictiveBtn.addEventListener('click', async () => {
+        togglePredictiveBtn.className = 'px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-white bg-primary';
+        toggleSvgBtn.className = 'px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white';
+        
+        const { initPredictiveHeatmap } = await import('./predictive-map.js');
+        await initPredictiveHeatmap('map-container');
+      });
+    }
   }
 }
 
 async function initMunicipalityPage() {
   console.log('[App] Municipality Page Init');
   
+  // Load municipality hub logic
+  const { initMunicipalityHub } = await import('./municipality-hub.js');
+  initMunicipalityHub();
+  
   await renderRecommendationsPanel('ai-recommendations', 'delhi');
   await renderTrendChart('aqi-trend-chart', 'delhi');
   await renderCommunityPanel('community-panel');
+}
+
+// ============================================
+// Secure Live AQI Sync for KPI Cards
+// ============================================
+
+async function updateDashboardAQI() {
+  try {
+    console.log('[Sync] Fetching live AQI from secure backend endpoint...');
+    const response = await fetch('/api/live-aqi');
+    if (!response.ok) throw new Error(`Live AQI API error: ${response.status}`);
+    
+    const locations = await response.json();
+    if (!locations || locations.length === 0) return;
+
+    // Calculate aggregates
+    const totalAqi = locations.reduce((sum, loc) => sum + loc.aqi, 0);
+    const avgAqi = Math.round(totalAqi / locations.length);
+
+    let mostPolluted = locations[0];
+    let cleanestState = locations[0];
+
+    locations.forEach(loc => {
+      if (loc.aqi > mostPolluted.aqi) mostPolluted = loc;
+      if (loc.aqi < cleanestState.aqi) cleanestState = loc;
+    });
+
+    // Update KPI UI Elements
+    const kpiNational = document.getElementById('kpi-national-aqi');
+    if (kpiNational) {
+      kpiNational.textContent = avgAqi;
+      kpiNational.setAttribute('data-target', avgAqi);
+    }
+
+    const kpiMostPolluted = document.getElementById('kpi-most-polluted');
+    if (kpiMostPolluted) {
+      kpiMostPolluted.innerHTML = `${mostPolluted.locality || mostPolluted.name} <span class="text-xs text-slate-400 font-normal ml-1">AQI ${mostPolluted.aqi}</span>`;
+    }
+
+    const kpiCleanest = document.getElementById('kpi-cleanest-state');
+    if (kpiCleanest) {
+      kpiCleanest.innerHTML = `${cleanestState.locality || cleanestState.name} <span class="text-xs text-slate-400 font-normal ml-1">AQI ${cleanestState.aqi}</span>`;
+    }
+    
+    console.log('[Sync] Dashboard KPIs successfully updated with real-time OpenAQ data');
+  } catch (err) {
+    console.warn('[Sync] Dashboard live sync failed, using fallback static config:', err.message);
+  }
 }
 
 // ============================================
@@ -436,6 +517,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     await initAuth();
     await initPage();
+    await updateDashboardAQI();
     
     if (IS_DEMO_MODE) {
       showToast('Running in Demo mode. Configure environment keys for production live-feed.', 'warning', 5000);

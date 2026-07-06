@@ -98,6 +98,25 @@ const DEMO_AQI_TRENDS = {
  * @returns {Promise<Array>}
  */
 export async function getLatestRecommendations(districtId) {
+  try {
+    const incidents = window.__municipality_incidents || [];
+    const response = await fetch(`/api/recommendations/${districtId || 'delhi'}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ incidents })
+    });
+    if (response.ok) {
+      const resJson = await response.json();
+      if (resJson && resJson.success && resJson.data) {
+        return [resJson.data];
+      }
+    }
+  } catch (err) {
+    console.warn('[Analytics] Express API getLatestRecommendations failed, using Firestore or Demo fallbacks:', err.message);
+  }
+
   if (!isFirebaseAvailable()) {
     if (districtId) {
       return DEMO_RECOMMENDATIONS.filter(r => r.districtId === districtId);
@@ -197,14 +216,26 @@ export async function getAQITrends(districtId, days = 7) {
  * @param {string} districtId
  */
 export async function requestFreshAnalysis(districtId) {
-  if (IS_DEMO_MODE || !API_BASE_URL) {
-    console.log('[Analytics] Demo mode — cannot request fresh analysis');
-    return DEMO_RECOMMENDATIONS.find(r => r.districtId === districtId) || DEMO_RECOMMENDATIONS[0];
+  const incidents = window.__municipality_incidents || [];
+  try {
+    const response = await fetch(`/api/recommendations/${districtId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ incidents })
+    });
+    if (!response.ok) throw new Error('Failed to generate analysis');
+    return response.json();
+  } catch (err) {
+    console.warn('[Analytics] requestFreshAnalysis failed, falling back to mock:', err.message);
+    const mockData = DEMO_RECOMMENDATIONS.find(r => r.districtId === districtId) || DEMO_RECOMMENDATIONS[0];
+    // Return formatted success response with mock data
+    return {
+      success: true,
+      data: mockData
+    };
   }
-
-  const response = await fetch(`${API_BASE_URL}/api/recommendations/${districtId}`, { method: 'POST' });
-  if (!response.ok) throw new Error('Failed to generate analysis');
-  return response.json();
 }
 
 // ── Priority Colors ──
