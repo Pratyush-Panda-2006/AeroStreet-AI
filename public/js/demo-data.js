@@ -129,36 +129,36 @@ export const DEMO_HOTSPOTS = [
 
 // List of all states in India with their average AQI for national overview
 export const DEMO_STATES = [
-  { id: 'in-jk', name: 'Jammu & Kashmir', aqi: 72, capital: 'Srinagar' },
-  { id: 'in-hp', name: 'Himachal Pradesh', aqi: 65, capital: 'Shimla' },
-  { id: 'in-pb', name: 'Punjab', aqi: 185, capital: 'Chandigarh' },
-  { id: 'in-ut', name: 'Uttarakhand', aqi: 82, capital: 'Dehradun' },
-  { id: 'in-hr', name: 'Haryana', aqi: 240, capital: 'Chandigarh' },
-  { id: 'in-dl', name: 'Delhi', aqi: 342, capital: 'New Delhi' },
-  { id: 'in-rj', name: 'Rajasthan', aqi: 155, capital: 'Jaipur' },
-  { id: 'in-up', name: 'Uttar Pradesh', aqi: 260, capital: 'Lucknow' },
-  { id: 'in-gj', name: 'Gujarat', aqi: 85, capital: 'Gandhinagar' },
-  { id: 'in-mp', name: 'Madhya Pradesh', aqi: 130, capital: 'Bhopal' },
-  { id: 'in-mh', name: 'Maharashtra', aqi: 125, capital: 'Mumbai' },
-  { id: 'in-ka', name: 'Karnataka', aqi: 45, capital: 'Bengaluru' },
-  { id: 'in-kl', name: 'Kerala', aqi: 38, capital: 'Thiruvananthapuram' },
-  { id: 'in-tn', name: 'Tamil Nadu', aqi: 52, capital: 'Chennai' },
-  { id: 'in-ap', name: 'Andhra Pradesh', aqi: 58, capital: 'Amaravati' },
-  { id: 'in-tg', name: 'Telangana', aqi: 75, capital: 'Hyderabad' },
-  { id: 'in-ct', name: 'Chhattisgarh', aqi: 120, capital: 'Raipur' },
-  { id: 'in-or', name: 'Odisha', aqi: 88, capital: 'Bhubaneswar' },
-  { id: 'in-br', name: 'Bihar', aqi: 210, capital: 'Patna' },
-  { id: 'in-jh', name: 'Jharkhand', aqi: 145, capital: 'Ranchi' },
-  { id: 'in-wb', name: 'West Bengal', aqi: 156, capital: 'Kolkata' },
-  { id: 'in-sk', name: 'Sikkim', aqi: 28, capital: 'Gangtok' },
-  { id: 'in-as', name: 'Assam', aqi: 74, capital: 'Dispur' },
-  { id: 'in-ar', name: 'Arunachal Pradesh', aqi: 25, capital: 'Itanagar' },
-  { id: 'in-nl', name: 'Nagaland', aqi: 32, capital: 'Kohima' },
-  { id: 'in-mn', name: 'Manipur', aqi: 35, capital: 'Imphal' },
-  { id: 'in-mz', name: 'Mizoram', aqi: 22, capital: 'Aizawl' },
-  { id: 'in-tr', name: 'Tripura', aqi: 48, capital: 'Agartala' },
-  { id: 'in-ml', name: 'Meghalaya', aqi: 30, capital: 'Shillong' },
-  { id: 'in-go', name: 'Goa', aqi: 42, capital: 'Panaji' },
+  { id: 'in-jk', name: 'Jammu & Kashmir', aqi: 72, capital: 'Srinagar', coordinates: { lat: 34.0837, lng: 74.7973 } },
+  { id: 'in-hp', name: 'Himachal Pradesh', aqi: 65, capital: 'Shimla', coordinates: { lat: 31.1048, lng: 77.1734 } },
+  { id: 'in-pb', name: 'Punjab', aqi: 185, capital: 'Chandigarh', coordinates: { lat: 30.7333, lng: 76.7794 } },
+  { id: 'in-ut', name: 'Uttarakhand', aqi: 82, capital: 'Dehradun', coordinates: { lat: 30.3165, lng: 78.0322 } },
+  { id: 'in-hr', name: 'Haryana', aqi: 240, capital: 'Chandigarh', coordinates: { lat: 30.7333, lng: 76.7794 } },
+  { id: 'in-dl', name: 'Delhi', aqi: 342, capital: 'New Delhi', coordinates: { lat: 28.6139, lng: 77.2090 } },
+  { id: 'in-rj', name: 'Rajasthan', aqi: 155, capital: 'Jaipur', coordinates: { lat: 26.9124, lng: 75.7873 } },
+  { id: 'in-up', name: 'Uttar Pradesh', aqi: 260, capital: 'Lucknow', coordinates: { lat: 26.8467, lng: 80.9462 } },
+  { id: 'in-gj', name: 'Gujarat', aqi: 85, capital: 'Gandhinagar', coordinates: { lat: 23.2156, lng: 72.6369 } },
+  { id: 'in-mp', name: 'Madhya Pradesh', aqi: 130, capital: 'Bhopal', coordinates: { lat: 23.2599, lng: 77.4126 } },
+  { id: 'in-mh', name: 'Maharashtra', aqi: 125, capital: 'Mumbai', coordinates: { lat: 19.0760, lng: 72.8777 } },
+  { id: 'in-ka', name: 'Karnataka', aqi: 45, capital: 'Bengaluru', coordinates: { lat: 12.9716, lng: 77.5946 } },
+  { id: 'in-kl', name: 'Kerala', aqi: 38, capital: 'Thiruvananthapuram', coordinates: { lat: 8.5241, lng: 76.9366 } },
+  { id: 'in-tn', name: 'Tamil Nadu', aqi: 52, capital: 'Chennai', coordinates: { lat: 13.0827, lng: 80.2707 } },
+  { id: 'in-ap', name: 'Andhra Pradesh', aqi: 58, capital: 'Amaravati', coordinates: { lat: 16.5062, lng: 80.6480 } },
+  { id: 'in-tg', name: 'Telangana', aqi: 75, capital: 'Hyderabad', coordinates: { lat: 17.3850, lng: 78.4867 } },
+  { id: 'in-ct', name: 'Chhattisgarh', aqi: 120, capital: 'Raipur', coordinates: { lat: 21.2514, lng: 81.6296 } },
+  { id: 'in-or', name: 'Odisha', aqi: 88, capital: 'Bhubaneswar', coordinates: { lat: 20.2961, lng: 85.8245 } },
+  { id: 'in-br', name: 'Bihar', aqi: 210, capital: 'Patna', coordinates: { lat: 25.5941, lng: 85.1376 } },
+  { id: 'in-jh', name: 'Jharkhand', aqi: 145, capital: 'Ranchi', coordinates: { lat: 23.3441, lng: 85.3096 } },
+  { id: 'in-wb', name: 'West Bengal', aqi: 156, capital: 'Kolkata', coordinates: { lat: 22.5726, lng: 88.3639 } },
+  { id: 'in-sk', name: 'Sikkim', aqi: 28, capital: 'Gangtok', coordinates: { lat: 27.3389, lng: 88.6065 } },
+  { id: 'in-as', name: 'Assam', aqi: 74, capital: 'Dispur', coordinates: { lat: 26.1433, lng: 91.7898 } },
+  { id: 'in-ar', name: 'Arunachal Pradesh', aqi: 25, capital: 'Itanagar', coordinates: { lat: 27.0844, lng: 93.6053 } },
+  { id: 'in-nl', name: 'Nagaland', aqi: 32, capital: 'Kohima', coordinates: { lat: 25.6751, lng: 94.1086 } },
+  { id: 'in-mn', name: 'Manipur', aqi: 35, capital: 'Imphal', coordinates: { lat: 24.8170, lng: 93.9368 } },
+  { id: 'in-mz', name: 'Mizoram', aqi: 22, capital: 'Aizawl', coordinates: { lat: 23.7271, lng: 92.7176 } },
+  { id: 'in-tr', name: 'Tripura', aqi: 48, capital: 'Agartala', coordinates: { lat: 23.8315, lng: 91.2868 } },
+  { id: 'in-ml', name: 'Meghalaya', aqi: 30, capital: 'Shillong', coordinates: { lat: 25.5788, lng: 91.8933 } },
+  { id: 'in-go', name: 'Goa', aqi: 42, capital: 'Panaji', coordinates: { lat: 15.4909, lng: 73.8278 } },
 ];
 
 // District mapping when clicking on a specific state
@@ -211,3 +211,30 @@ export const DEMO_NATIONAL_STATS = {
   activeHotspots: 87,
   districtsAffected: 12,
 };
+
+// Simulated mock cameras to ensure pan-India coverage for demos
+export const MOCK_CAMERAS = DEMO_STATES.map((state) => {
+  // slightly offset from the exact state coordinate so it doesn't overlap perfectly with the state marker
+  const latOffset = (Math.random() - 0.5) * 1.5;
+  const lngOffset = (Math.random() - 0.5) * 1.5;
+  
+  const camLat = state.coordinates.lat + latOffset;
+  const camLng = state.coordinates.lng + lngOffset;
+  
+  const googleApiKey = window.__AEROSTREET_CONFIG__?.googleMapsApiKey || '';
+  // Use Static Maps API (Satellite View) to ensure we always get an image of the area, even if Street View is unavailable
+  const areaImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${camLat},${camLng}&zoom=18&size=400x300&maptype=satellite&key=${googleApiKey}`;
+
+  return {
+    title: `Simulated Traffic Cam: ${state.capital}, ${state.name}`,
+    location: {
+      latitude: camLat,
+      longitude: camLng
+    },
+    images: {
+      current: {
+        preview: areaImageUrl
+      }
+    }
+  };
+});
