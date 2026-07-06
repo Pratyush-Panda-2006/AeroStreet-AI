@@ -425,6 +425,15 @@ async function initDistrictPage() {
     registerOnStateChange(syncSidebarList);
     await initMap('map-container');
 
+    // Wire up Compare Districts button
+    const compareBtn = document.getElementById('compare-districts-btn');
+    if (compareBtn) {
+      compareBtn.addEventListener('click', async () => {
+        const { showComparisonModal } = await import('./compare-districts.js');
+        showComparisonModal();
+      });
+    }
+
     // Wire up Map Selector Toggles
     const toggleSvgBtn = document.getElementById('toggle-svg-map');
     const togglePredictiveBtn = document.getElementById('toggle-predictive-map');
