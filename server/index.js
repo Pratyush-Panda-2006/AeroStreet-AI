@@ -477,21 +477,47 @@ function mockLocationsFallback() {
 // Fallback predictive AI dataset for Delhi NCR
 function mockPredictiveHeatmapFallback() {
   const centers = [
+    // North
     { name: 'New Delhi', coords: [77.2090, 28.6139], base: 345 },
-    { name: 'Dwarka', coords: [77.0266, 28.5823], base: 150 },
+    { name: 'Chandigarh', coords: [76.7794, 30.7333], base: 180 },
+    { name: 'Lucknow', coords: [80.9462, 26.8467], base: 260 },
+    { name: 'Jaipur', coords: [75.7873, 26.9124], base: 195 },
+    { name: 'Kanpur', coords: [80.3319, 26.4499], base: 275 },
+    // West
+    { name: 'Mumbai', coords: [72.8777, 19.0760], base: 142 },
+    { name: 'Pune', coords: [73.8567, 18.5204], base: 112 },
+    { name: 'Ahmedabad', coords: [72.5714, 23.0225], base: 165 },
+    { name: 'Surat', coords: [72.8311, 21.1702], base: 120 },
+    { name: 'Jodhpur', coords: [73.0243, 26.2389], base: 140 },
+    // South
+    { name: 'Bengaluru', coords: [77.5946, 12.9716], base: 55 },
+    { name: 'Chennai', coords: [80.2707, 13.0827], base: 85 },
+    { name: 'Hyderabad', coords: [78.4867, 17.3850], base: 110 },
+    { name: 'Thiruvananthapuram', coords: [76.9366, 8.5241], base: 38 },
+    { name: 'Coimbatore', coords: [76.9558, 11.0168], base: 45 },
+    // East & Northeast
+    { name: 'Kolkata', coords: [88.3639, 22.5726], base: 178 },
+    { name: 'Bhubaneswar', coords: [85.8245, 20.2961], base: 125 },
+    { name: 'Patna', coords: [85.1376, 25.5941], base: 210 },
+    { name: 'Guwahati', coords: [91.7898, 26.1433], base: 75 },
+    { name: 'Ranchi', coords: [85.3096, 23.3441], base: 155 },
+    // Central
+    { name: 'Nagpur', coords: [79.0882, 21.1458], base: 98 },
+    { name: 'Bhopal', coords: [77.4126, 23.2599], base: 130 },
+    { name: 'Indore', coords: [75.8577, 22.7196], base: 140 },
+    { name: 'Raipur', coords: [81.6296, 21.2514], base: 115 },
+    { name: 'Jabalpur', coords: [79.9864, 23.1815], base: 125 },
+    // More scattered points
     { name: 'Gurugram', coords: [77.0266, 28.4595], base: 290 },
-    { name: 'Noida', coords: [77.3910, 28.5355], base: 210 },
-    { name: 'Faridabad', coords: [77.3178, 28.4089], base: 240 },
-    { name: 'Rohini', coords: [77.1130, 28.7041], base: 285 },
-    { name: 'Okhla', coords: [77.2855, 28.5460], base: 295 },
-    { name: 'Ghaziabad', coords: [77.4498, 28.6853], base: 310 },
-    { name: 'Connaught Place', coords: [77.2197, 28.6304], base: 330 },
-    { name: 'Karol Bagh', coords: [77.1888, 28.6444], base: 280 },
-    { name: 'Vasant Kunj', coords: [77.1500, 28.5400], base: 140 },
-    { name: 'Inderlok', coords: [77.1680, 28.6730], base: 320 },
-    { name: 'Pitampura', coords: [77.1390, 28.6990], base: 260 },
-    { name: 'Mayur Vihar', coords: [77.2950, 28.6080], base: 225 },
-    { name: 'Janakpuri', coords: [77.0850, 28.6210], base: 190 }
+    { name: 'Noida', coords: [77.3910, 28.5355], base: 320 },
+    { name: 'Visakhapatnam', coords: [83.3186, 17.6868], base: 95 },
+    { name: 'Madurai', coords: [78.1198, 9.9252], base: 65 },
+    { name: 'Mysuru', coords: [76.6394, 12.2958], base: 45 },
+    { name: 'Dhanbad', coords: [86.4304, 23.7957], base: 185 },
+    { name: 'Kochi', coords: [76.2673, 9.9312], base: 42 },
+    { name: 'Mangaluru', coords: [74.8560, 12.9141], base: 50 },
+    { name: 'Hubli', coords: [75.1240, 15.3647], base: 55 },
+    { name: 'Nashik', coords: [73.7898, 19.9975], base: 88 }
   ];
 
   return centers.map(c => {
@@ -610,20 +636,20 @@ app.get('/api/predictive-heatmap', async (req, res) => {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const fullPrompt = `You are an expert environmental AI forecaster.
-Here is the historical 7-day average PM2.5 (µg/m³) data for 5 key areas in the Delhi NCR region:
-1. New Delhi (77.2090, 28.6139): [180, 195, 210, 205, 190, 220, 235]
-2. Dwarka (77.0266, 28.5823): [110, 125, 130, 115, 120, 135, 145]
-3. Gurugram (77.0266, 28.4595): [140, 155, 150, 160, 150, 170, 185]
-4. Noida (77.3910, 28.5355): [130, 140, 150, 145, 135, 155, 165]
-5. Faridabad (77.3178, 28.4089): [150, 160, 175, 165, 155, 180, 190]
+Here is the historical 7-day average PM2.5 (µg/m³) data for 5 key regions across India:
+1. North India (Delhi/Kanpur): [180, 195, 210, 205, 190, 220, 235]
+2. West India (Mumbai/Ahmedabad): [110, 125, 130, 115, 120, 135, 145]
+3. South India (Bengaluru/Chennai): [50, 45, 55, 60, 50, 70, 65]
+4. East India (Kolkata/Patna): [130, 140, 150, 145, 135, 155, 165]
+5. Central India (Nagpur/Indore): [100, 95, 105, 110, 100, 115, 125]
 
-Tomorrow's predicted weather forecast for Delhi NCR:
-- Temperature: 37°C
-- Humidity: 72%
-- Wind Speed: 7 km/h (East-Southeast breeze)
-- Condition: Hazy morning, scattered clouds later in the day.
+Tomorrow's predicted weather forecast for India:
+- Temperature: Variable (22°C to 40°C)
+- Humidity: Variable
+- Wind Speed: 5-15 km/h depending on region
+- Condition: Hazy in north, clear in south.
 
-Analyze this data and predict the AQI values for tomorrow morning (8:00 AM) across a dense grid of 15 coordinates in and around Delhi NCR (covering Delhi, Dwarka, Noida, Gurugram, Faridabad, Rohini, Connaught Place, Okhla, Ghaziabad, Karol Bagh, Vasant Kunj, etc.) to project tomorrow's air quality heatmap.
+Analyze this data and predict the AQI values for tomorrow morning (8:00 AM) across a dense grid of 40 coordinates representing major cities spread evenly across all regions of India (North, South, East, West, Central, Northeast) to project tomorrow's national air quality heatmap.
 
 Return your predictions in the exact JSON format:
 [
