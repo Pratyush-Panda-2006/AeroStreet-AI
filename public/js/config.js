@@ -61,4 +61,4 @@ export function getAQILevel(aqi) {
   return AQI_LEVELS.SEVERE;
 }
 
-console.log(`[IndianAQI] Running in ${IS_DEMO_MODE ? 'DEMO' : 'LIVE'} mode`);
+console.log(`[AeroStreet-AI] Running in ${IS_DEMO_MODE ? 'DEMO' : 'LIVE'} mode`);

@@ -77,6 +77,7 @@ function detectPage() {
   const path = window.location.pathname.toLowerCase();
   const title = document.title.toLowerCase();
 
+  if (path.includes('forecast') || title.includes('forecast')) return 'forecast';
   if (path.includes('district') || title.includes('district')) return 'district';
   if (path.includes('national') || title.includes('national')) return 'national';
   if (path.includes('municipality') || title.includes('dashboard') || title.includes('municipality')) return 'municipality';
@@ -101,6 +102,9 @@ async function initPage() {
       break;
     case 'municipality':
       await initMunicipalityPage();
+      break;
+    case 'forecast':
+      console.log('[App] Forecast Page Initialized - skipping map logic');
       break;
   }
 }
@@ -263,13 +267,90 @@ function showCommunityModal() {
 // Interactive SVG Map Sync
 // ============================================
 
+let currentSortMode = 'highest';
+let lastViewState = null;
+
+// Helper to retrieve/mock districts for state accordion
+function getDistrictsForState(state) {
+  const wb = [
+    { id: 'kolkata', name: 'Kolkata', state: 'West Bengal', aqi: 178 },
+    { id: 'howrah', name: 'Howrah', state: 'West Bengal', aqi: 190 },
+    { id: 'hooghly', name: 'Hooghly', state: 'West Bengal', aqi: 145 },
+    { id: 'darjeeling', name: 'Darjeeling', state: 'West Bengal', aqi: 65 }
+  ];
+  const ka = [
+    { id: 'bangalore', name: 'Bengaluru Urban', state: 'Karnataka', aqi: 55 },
+    { id: 'mysore', name: 'Mysuru', state: 'Karnataka', aqi: 48 },
+    { id: 'mangalore', name: 'Mangaluru', state: 'Karnataka', aqi: 62 }
+  ];
+  const mh = [
+    { id: 'mumbai', name: 'Mumbai', state: 'Maharashtra', aqi: 124 },
+    { id: 'pune', name: 'Pune', state: 'Maharashtra', aqi: 98 },
+    { id: 'nagpur', name: 'Nagpur', state: 'Maharashtra', aqi: 110 }
+  ];
+
+  if (state.id === 'in-wb') return wb;
+  if (state.id === 'in-ka') return ka;
+  if (state.id === 'in-mh') return mh;
+
+  return [
+    { id: `${state.id}-d1`, name: `${state.capital || state.name} City`, state: state.name, aqi: Math.max(10, state.aqi + 12) },
+    { id: `${state.id}-d2`, name: `${state.name} Rural`, state: state.name, aqi: Math.max(10, state.aqi - 8) }
+  ];
+}
+
 function syncSidebarList(viewState) {
   const sidebarList = document.getElementById('map-sidebar-list');
   const explorerTitle = document.getElementById('explorer-title-wrapper');
 
   if (!sidebarList) return;
 
+  lastViewState = viewState;
   sidebarList.innerHTML = '';
+
+  // Apply sorting filter
+  let sortedData = [...viewState.data];
+  if (currentSortMode === 'highest') {
+    sortedData.sort((a, b) => b.aqi - a.aqi);
+  } else if (currentSortMode === 'lowest') {
+    sortedData.sort((a, b) => a.aqi - b.aqi);
+  } else if (currentSortMode === 'alpha') {
+    sortedData.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  // Setup Sorting button events once on sync load
+  const highestBtn = document.getElementById('sort-highest');
+  const lowestBtn = document.getElementById('sort-lowest');
+  const alphaBtn = document.getElementById('sort-alpha');
+
+  if (highestBtn && lowestBtn && alphaBtn && !highestBtn.dataset.bound) {
+    highestBtn.dataset.bound = "true";
+
+    const updateSortStyle = (activeBtn) => {
+      [highestBtn, lowestBtn, alphaBtn].forEach(btn => {
+        btn.className = 'px-1.5 py-0.5 rounded text-[9px] font-semibold text-slate-500 hover:text-slate-800 transition-all';
+      });
+      activeBtn.className = 'px-1.5 py-0.5 rounded text-[9px] font-bold bg-white text-slate-800 shadow-sm transition-all';
+    };
+
+    highestBtn.addEventListener('click', () => {
+      currentSortMode = 'highest';
+      updateSortStyle(highestBtn);
+      syncSidebarList(lastViewState);
+    });
+
+    lowestBtn.addEventListener('click', () => {
+      currentSortMode = 'lowest';
+      updateSortStyle(lowestBtn);
+      syncSidebarList(lastViewState);
+    });
+
+    alphaBtn.addEventListener('click', () => {
+      currentSortMode = 'alpha';
+      updateSortStyle(alphaBtn);
+      syncSidebarList(lastViewState);
+    });
+  }
 
   if (viewState.view === 'national') {
     if (explorerTitle) {
@@ -279,25 +360,106 @@ function syncSidebarList(viewState) {
       `;
     }
 
-    viewState.data.forEach(state => {
+    sortedData.forEach(state => {
       const level = getAQILevel(state.aqi);
-      const row = document.createElement('div');
-      row.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors border border-transparent hover:border-slate-200';
-      row.innerHTML = `
-        <div>
-          <div class="font-semibold text-slate-800 text-xs">${state.name}</div>
-          <div class="text-[9px] text-slate-400">${state.capital}</div>
+      
+      // Calculate inline trend sparkline data points
+      const seed = (state.id || state.name).charCodeAt(0);
+      const isImproving = (seed % 2 === 0);
+      const hist = isImproving
+        ? [state.aqi + 15, state.aqi + 12, state.aqi + 8, state.aqi + 5, state.aqi]
+        : [state.aqi - 12, state.aqi - 8, state.aqi - 5, state.aqi - 2, state.aqi];
+      const minVal = Math.min(...hist) - 2;
+      const maxVal = Math.max(...hist) + 2;
+      const range = (maxVal - minVal) || 10;
+      const svgPoints = hist.map((v, i) => `${(i / 4) * 36 + 2},${14 - ((v - minVal) / range) * 12}`).join(' ');
+      const trendColor = isImproving ? '#16a34a' : '#dc2626';
+      const trendIcon = isImproving ? 'trending_down' : 'trending_up';
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'state-accordion-wrapper border-b border-slate-200/40 py-1.5 last:border-0';
+      wrapper.innerHTML = `
+        <div class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors border border-transparent hover:border-slate-200 select-none" data-accordion-header="${state.id}">
+          <div class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px] text-slate-400 transition-transform duration-200 accordion-arrow" id="arrow-${state.id}">chevron_right</span>
+            <div>
+              <div class="font-semibold text-slate-800 text-xs">${state.name}</div>
+              <div class="text-[9px] text-slate-400">${state.capital}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <!-- Sparkline -->
+            <div class="flex items-center gap-1" title="${isImproving ? 'Improving' : 'Deteriorating'} AQI trend">
+              <svg width="38" height="15" class="overflow-visible">
+                <polyline fill="none" stroke="${trendColor}" stroke-width="1.5" points="${svgPoints}" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span class="material-symbols-outlined text-[12px] font-bold" style="color: ${trendColor}">${trendIcon}</span>
+            </div>
+            
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-xs text-slate-700">${state.aqi}</span>
+              <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${level.color}"></span>
+            </div>
+          </div>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="font-bold text-xs text-slate-700">${state.aqi}</span>
-          <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${level.color}"></span>
+        <div id="accordion-body-${state.id}" class="hidden pl-6 pr-1 py-1 space-y-1 bg-slate-50/60 rounded-lg mt-1 border-l-2 border-slate-200">
+          <!-- District rows will be rendered here -->
         </div>
       `;
-      row.addEventListener('click', () => {
-        import('./map.js').then(m => m.zoomToState(state.id));
+
+      const header = wrapper.querySelector(`[data-accordion-header="${state.id}"]`);
+      const body = wrapper.querySelector(`#accordion-body-${state.id}`);
+      const arrow = wrapper.querySelector(`#arrow-${state.id}`);
+
+      // Render districts inside accordion
+      const districtsList = getDistrictsForState(state);
+      districtsList.forEach(dist => {
+        const dLevel = getAQILevel(dist.aqi);
+        const distRow = document.createElement('div');
+        distRow.className = 'district-row flex items-center justify-between p-1.5 rounded hover:bg-slate-200/50 cursor-pointer transition-colors';
+        distRow.setAttribute('data-district-name', dist.name.toLowerCase());
+        distRow.innerHTML = `
+          <span class="text-[11px] text-slate-600 font-medium">${dist.name}</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] text-slate-500 font-semibold">${dist.aqi}</span>
+            <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${dLevel.color}"></span>
+          </div>
+        `;
+        distRow.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          import('./map.js').then(m => {
+            m.zoomToState(state.id);
+            window.__aerostreet?.showToast?.(`Selected district: ${dist.name} (AQI: ${dist.aqi})`, 'success');
+          });
+        });
+        body.appendChild(distRow);
       });
-      sidebarList.appendChild(row);
+
+      header.addEventListener('click', () => {
+        const isCollapsed = body.classList.contains('hidden');
+        
+        // Collapse all others
+        sidebarList.querySelectorAll('[id^="accordion-body-"]').forEach(b => {
+          if (b.id !== `accordion-body-${state.id}`) b.classList.add('hidden');
+        });
+        sidebarList.querySelectorAll('.accordion-arrow').forEach(a => {
+          if (a.id !== `arrow-${state.id}`) a.classList.remove('rotate-90');
+        });
+
+        if (isCollapsed) {
+          body.classList.remove('hidden');
+          arrow.classList.add('rotate-90');
+          import('./map.js').then(m => m.zoomToState(state.id));
+        } else {
+          body.classList.add('hidden');
+          arrow.classList.remove('rotate-90');
+          import('./map.js').then(m => m.renderNationalMap());
+        }
+      });
+
+      sidebarList.appendChild(wrapper);
     });
+
   } else if (viewState.view === 'state') {
     if (explorerTitle) {
       explorerTitle.innerHTML = `
@@ -306,20 +468,46 @@ function syncSidebarList(viewState) {
       `;
     }
 
-    viewState.data.forEach(dist => {
+    sortedData.forEach(dist => {
       const level = getAQILevel(dist.aqi);
+      
+      const seed = (dist.id || dist.name).charCodeAt(0);
+      const isImproving = (seed % 2 === 0);
+      const hist = isImproving
+        ? [dist.aqi + 10, dist.aqi + 8, dist.aqi + 6, dist.aqi + 3, dist.aqi]
+        : [dist.aqi - 8, dist.aqi - 6, dist.aqi - 4, dist.aqi - 2, dist.aqi];
+      const minVal = Math.min(...hist) - 2;
+      const maxVal = Math.max(...hist) + 2;
+      const range = (maxVal - minVal) || 10;
+      const svgPoints = hist.map((v, i) => `${(i / 4) * 36 + 2},${14 - ((v - minVal) / range) * 12}`).join(' ');
+      const trendColor = isImproving ? '#16a34a' : '#dc2626';
+      const trendIcon = isImproving ? 'trending_down' : 'trending_up';
+
       const row = document.createElement('div');
       row.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors border border-transparent hover:border-slate-200';
       row.innerHTML = `
         <div>
           <div class="font-semibold text-slate-800 text-xs">${dist.name}</div>
-          <div class="text-[9px] text-slate-400">${dist.state}</div>
+          <div class="text-[9px] text-slate-400">${dist.state || 'District'}</div>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="font-bold text-xs text-slate-700">${dist.aqi}</span>
-          <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${level.color}"></span>
+        <div class="flex items-center gap-3">
+          <!-- Sparkline -->
+          <div class="flex items-center gap-1" title="${isImproving ? 'Improving' : 'Deteriorating'} AQI trend">
+            <svg width="38" height="15" class="overflow-visible">
+              <polyline fill="none" stroke="${trendColor}" stroke-width="1.5" points="${svgPoints}" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="material-symbols-outlined text-[12px] font-bold" style="color: ${trendColor}">${trendIcon}</span>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <span class="font-bold text-xs text-slate-700">${dist.aqi}</span>
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${level.color}"></span>
+          </div>
         </div>
       `;
+      row.addEventListener('click', () => {
+        window.__aerostreet?.showToast?.(`Selected district: ${dist.name} (AQI: ${dist.aqi})`, 'success');
+      });
       sidebarList.appendChild(row);
     });
   }
@@ -329,19 +517,53 @@ function syncSidebarList(viewState) {
   if (searchInput && !searchInput.dataset.bound) {
     searchInput.dataset.bound = "true";
     searchInput.addEventListener('input', (e) => {
-      const q = e.target.value.toLowerCase();
-      const list = document.getElementById('map-sidebar-list');
-      if (list) {
-        const items = list.getElementsByTagName('div');
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i];
+      const q = e.target.value.toLowerCase().trim();
+      const wrappers = sidebarList.querySelectorAll('.state-accordion-wrapper');
+      
+      if (viewState.view === 'national') {
+        wrappers.forEach(wrap => {
+          const header = wrap.querySelector('[data-accordion-header]');
+          const body = wrap.querySelector('[id^="accordion-body-"]');
+          const arrow = wrap.querySelector('.accordion-arrow');
+          const stateName = header.textContent.toLowerCase();
+          
+          let stateMatches = stateName.includes(q);
+          let districtMatches = false;
+          
+          const districts = wrap.querySelectorAll('.district-row');
+          districts.forEach(dRow => {
+            const dName = dRow.getAttribute('data-district-name');
+            if (dName.includes(q)) {
+              districtMatches = true;
+              dRow.style.display = '';
+            } else {
+              dRow.style.display = q === '' ? '' : 'none';
+            }
+          });
+
+          if (q === '') {
+            wrap.style.display = '';
+            body.classList.add('hidden');
+            arrow.classList.remove('rotate-90');
+          } else if (stateMatches || districtMatches) {
+            wrap.style.display = '';
+            body.classList.remove('hidden');
+            arrow.classList.add('rotate-90');
+          } else {
+            wrap.style.display = 'none';
+          }
+        });
+      } else {
+        const items = sidebarList.querySelectorAll('.flex-1 > div, #map-sidebar-list > div, div.flex');
+        items.forEach(item => {
           const text = item.textContent.toLowerCase();
           item.style.display = text.includes(q) ? '' : 'none';
-        }
+        });
       }
     });
   }
-  // Clear search on view change
+
+  // Clear search input on view changes
   if (searchInput) {
     searchInput.value = '';
   }
@@ -437,6 +659,9 @@ async function initDistrictPage() {
     // Wire up Map Selector Toggles
     const toggleSvgBtn = document.getElementById('toggle-svg-map');
     const togglePredictiveBtn = document.getElementById('toggle-predictive-map');
+    const toggleWeatherBtn = document.getElementById('toggle-weather-vectors');
+
+    let weatherActive = false;
 
     if (toggleSvgBtn && togglePredictiveBtn) {
       toggleSvgBtn.addEventListener('click', async () => {
@@ -450,8 +675,36 @@ async function initDistrictPage() {
         togglePredictiveBtn.className = 'px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-white bg-primary';
         toggleSvgBtn.className = 'px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white';
         
+        if (weatherActive) {
+          weatherActive = false;
+          if (toggleWeatherBtn) {
+            toggleWeatherBtn.className = 'px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white';
+          }
+          const { setWeatherVectors } = await import('./map.js');
+          setWeatherVectors(false);
+        }
+
         const { initPredictiveHeatmap } = await import('./predictive-map.js');
         await initPredictiveHeatmap('map-container');
+      });
+    }
+
+    if (toggleWeatherBtn) {
+      toggleWeatherBtn.addEventListener('click', async () => {
+        weatherActive = !weatherActive;
+        if (weatherActive) {
+          toggleWeatherBtn.className = 'px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-white bg-primary animate-pulse';
+          // Ensure SVG map is shown
+          if (togglePredictiveBtn && togglePredictiveBtn.className.includes('bg-primary')) {
+            if (toggleSvgBtn) toggleSvgBtn.click();
+          }
+          const { setWeatherVectors } = await import('./map.js');
+          setWeatherVectors(true);
+        } else {
+          toggleWeatherBtn.className = 'px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white';
+          const { setWeatherVectors } = await import('./map.js');
+          setWeatherVectors(false);
+        }
       });
     }
   }
@@ -501,14 +754,37 @@ async function updateDashboardAQI() {
       kpiNational.setAttribute('data-target', avgAqi);
     }
 
+    const cleanCityName = (loc) => {
+      let city = loc.locality;
+      if (!city || city.toLowerCase() === 'india' || city.toLowerCase() === 'unknown') {
+        if (loc.name) {
+          const parts = loc.name.split(/,|\-|—/);
+          if (parts.length > 1) {
+            city = parts[1].trim();
+          } else {
+            city = loc.name.trim();
+          }
+        }
+      }
+      if (city) {
+        city = city.replace(/\b(DPCC|MPCB|WBPCB|KSPCB|HSPCB|UPPCB|PCB|CPCB|APPCB|GPCB|SPCB|TSPCD|OSPCB)\b/gi, '')
+                   .replace(/[-–—,]/g, '')
+                   .trim();
+      }
+      if (!city || city.toLowerCase() === 'india') {
+        city = 'Delhi';
+      }
+      return city;
+    };
+
     const kpiMostPolluted = document.getElementById('kpi-most-polluted');
     if (kpiMostPolluted) {
-      kpiMostPolluted.innerHTML = `${mostPolluted.locality || mostPolluted.name} <span class="text-xs text-slate-400 font-normal ml-1">AQI ${mostPolluted.aqi}</span>`;
+      kpiMostPolluted.innerHTML = `${cleanCityName(mostPolluted)} <span class="text-xs text-slate-400 font-normal ml-1">AQI ${mostPolluted.aqi}</span>`;
     }
 
     const kpiCleanest = document.getElementById('kpi-cleanest-state');
     if (kpiCleanest) {
-      kpiCleanest.innerHTML = `${cleanestState.locality || cleanestState.name} <span class="text-xs text-slate-400 font-normal ml-1">AQI ${cleanestState.aqi}</span>`;
+      kpiCleanest.innerHTML = `${cleanCityName(cleanestState)} <span class="text-xs text-slate-400 font-normal ml-1">AQI ${cleanestState.aqi}</span>`;
     }
     
     console.log('[Sync] Dashboard KPIs successfully updated with real-time OpenAQ data');
@@ -522,7 +798,7 @@ async function updateDashboardAQI() {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('[IndianAQI] Bootstrapping...');
+  console.log('[AeroStreet-AI] Bootstrapping...');
   try {
     await initAuth();
     await initPage();
@@ -532,6 +808,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       showToast('Running in Demo mode. Configure environment keys for production live-feed.', 'warning', 5000);
     }
   } catch (err) {
-    console.error('[IndianAQI] Bootstrap error:', err);
+    console.error('[AeroStreet-AI] Bootstrap error:', err);
   }
 });

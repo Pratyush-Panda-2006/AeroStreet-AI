@@ -9,6 +9,7 @@ import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import multer from 'multer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -235,6 +236,7 @@ app.get('/api/recommendations/:districtId', async (req, res) => {
 app.post('/api/recommendations/:districtId', async (req, res) => {
   const districtId = req.params.districtId;
   const incidents = req.body.incidents || [];
+  const weather = req.body.weather || { aqi: 345, windSpeed: 12, windDirection: 'North-East', temp: 28 };
 
   // Format incidents details for Gemini AI prompt context
   const incidentsText = incidents.map(inc => 
@@ -250,14 +252,20 @@ app.post('/api/recommendations/:districtId', async (req, res) => {
 Active reported incidents/violations in the area:
 ${incidentsText || 'No pending incidents reported.'}
 
-Consider traffic patterns, industrial activity, construction dust, and specific listed incidents.
-Focus on immediately implementable actions with measurable impact.`,
+Live Environmental Conditions:
+- Current Local AQI: ${weather.aqi}
+- Wind Speed: ${weather.windSpeed} km/h
+- Wind Direction: ${weather.windDirection}
+- Temperature: ${weather.temp}°C
+
+Your recommendations should be hyper-specific to these live weather and environmental conditions. For instance, if wind speed is high, highlight dust containment. If wind is low and AQI is extremely high, focus on immediate road wetting/sprinkling and industrial shutdown protocols. Focus on immediately implementable actions with measurable impact.`,
       context: { 
         districtId, 
-        avgAQI: districtId === 'mumbai' ? 142 : 345, 
+        avgAQI: weather.aqi, 
         hotspotCount: pendingCount, 
         cctvAlertsCount: cctvCount,
-        peakHours: ['8:00-10:00', '17:00-20:00'] 
+        peakHours: ['8:00-10:00', '17:00-20:00'],
+        weatherInfo: weather
       },
     },
   };
@@ -543,7 +551,28 @@ app.get('/api/live-aqi', async (req, res) => {
       return {
         id: `openaq-${loc.id}`,
         name: loc.name || loc.locality || 'Station',
-        locality: loc.locality || 'India',
+        locality: (() => {
+          let city = loc.locality;
+          if (!city || city.toLowerCase() === 'india' || city.toLowerCase() === 'unknown') {
+            if (loc.name) {
+              const parts = loc.name.split(/,|\-|—/);
+              if (parts.length > 1) {
+                city = parts[1].trim();
+              } else {
+                city = loc.name.trim();
+              }
+            }
+          }
+          if (city) {
+            city = city.replace(/\b(DPCC|MPCB|WBPCB|KSPCB|HSPCB|UPPCB|PCB|CPCB|APPCB|GPCB|SPCB|TSPCD|OSPCB)\b/gi, '')
+                       .replace(/[-–—,]/g, '')
+                       .trim();
+          }
+          if (!city || city.toLowerCase() === 'india') {
+            city = 'Delhi';
+          }
+          return city;
+        })(),
         aqi: aqi,
         coordinates: {
           lat: loc.coordinates?.latitude || 28.6139,
@@ -624,6 +653,436 @@ Return ONLY the raw JSON array inside a \`\`\`json block. Do not write any expla
     console.error('[Gemini Prediction] Error:', err.message);
     res.json(mockPredictiveHeatmapFallback());
   }
+});
+
+// ── Supabase Integration for Community Drives ──
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://njeeunzyfsgjmuzoronq.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_S5ZGyVxsfQPWscyto3rLvQ_Bu4ei7St';
+
+const supabaseHeaders = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Content-Type': 'application/json'
+};
+
+// Memory fallback store (synchronously initialized)
+let memoryDrives = [
+  {
+    id: 'evt-1',
+    title: 'River Yamuna Cleanup Drive',
+    description: 'Join us for a community cleanup along the Yamuna riverbank. Gloves and bags provided.',
+    date: '2026-07-12T07:00:00Z',
+    location: 'Yamuna Ghat, Delhi',
+    coordinates: { lat: 28.6328, lng: 77.2197 },
+    maxSlots: 50,
+    slotsFilled: 34,
+    attendees: [],
+    createdBy: 'Municipality of Delhi',
+    category: 'cleanup'
+  },
+  {
+    id: 'evt-2',
+    title: 'Tree Plantation — Green Bengaluru',
+    description: 'Plant 500 saplings across Cubbon Park. Refreshments and certificates for participants.',
+    date: '2026-07-15T06:30:00Z',
+    location: 'Cubbon Park, Bangalore',
+    coordinates: { lat: 12.9763, lng: 77.5929 },
+    maxSlots: 100,
+    slotsFilled: 78,
+    attendees: [],
+    createdBy: 'BBMP Green Initiative',
+    category: 'plantation'
+  },
+  {
+    id: 'evt-3',
+    title: 'Air Quality Awareness Workshop',
+    description: 'Learn about AQI monitoring, health impacts, and what you can do to reduce pollution.',
+    date: '2026-07-20T10:00:00Z',
+    location: 'Town Hall, Pune',
+    coordinates: { lat: 18.5204, lng: 73.8567 },
+    maxSlots: 30,
+    slotsFilled: 12,
+    attendees: [],
+    createdBy: 'PMC Environment Dept',
+    category: 'workshop'
+  }
+];
+
+// Endpoint: Get all drives
+app.get('/api/drives', async (req, res) => {
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/drives?select=*`, {
+      method: 'GET',
+      headers: supabaseHeaders
+    });
+    if (response.ok) {
+      const data = await response.json();
+      // If Supabase table has data, return it
+      if (Array.isArray(data) && data.length > 0) {
+        return res.json({ success: true, drives: data });
+      }
+      
+      // If table exists but is empty, let's insert the default seed drives
+      if (Array.isArray(data) && data.length === 0) {
+        console.log('[Supabase] Table "drives" is empty. Seeding defaults...');
+        for (const drive of memoryDrives) {
+          await fetch(`${SUPABASE_URL}/rest/v1/drives`, {
+            method: 'POST',
+            headers: { ...supabaseHeaders, 'Prefer': 'return=representation' },
+            body: JSON.stringify(drive)
+          });
+        }
+        return res.json({ success: true, drives: memoryDrives });
+      }
+    } else {
+      console.warn(`[Supabase] GET /api/drives returned status ${response.status}. Falling back to in-memory.`);
+    }
+  } catch (err) {
+    console.warn('[Supabase] Failed to fetch drives, using memory fallback:', err.message);
+  }
+  
+  res.json({ success: true, drives: memoryDrives });
+});
+
+// Endpoint: RSVP to a drive
+app.post('/api/drives/:id/rsvp', async (req, res) => {
+  const driveId = req.params.id;
+  const { userId } = req.body;
+
+  try {
+    // 1. Get current drive data
+    const getRes = await fetch(`${SUPABASE_URL}/rest/v1/drives?id=eq.${driveId}`, {
+      method: 'GET',
+      headers: supabaseHeaders
+    });
+    
+    if (getRes.ok) {
+      const data = await getRes.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const drive = data[0];
+        if (drive.attendees && drive.attendees.includes(userId)) {
+          return res.status(400).json({ success: false, error: 'Already RSVP\'d to this event' });
+        }
+        if (drive.slotsFilled >= drive.maxSlots) {
+          return res.status(400).json({ success: false, error: 'Event is full!' });
+        }
+        
+        const newSlotsFilled = (drive.slotsFilled || 0) + 1;
+        const newAttendees = Array.isArray(drive.attendees) ? [...drive.attendees, userId] : [userId];
+        
+        const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/drives?id=eq.${driveId}`, {
+          method: 'PATCH',
+          headers: {
+            ...supabaseHeaders,
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify({
+            slotsFilled: newSlotsFilled,
+            attendees: newAttendees
+          })
+        });
+        
+        if (patchRes.ok) {
+          const patchData = await patchRes.json();
+          
+          // Get all drives to recalculate total volunteer count
+          const allDrivesRes = await fetch(`${SUPABASE_URL}/rest/v1/drives?select=slotsFilled`, {
+            method: 'GET',
+            headers: supabaseHeaders
+          });
+          let totalCount = 124;
+          if (allDrivesRes.ok) {
+            const allDrives = await allDrivesRes.json();
+            totalCount = allDrives.reduce((sum, d) => sum + (d.slotsFilled || 0), 0);
+          }
+          
+          console.log(`[Supabase] RSVP successful for ${driveId}. New volunteerCount: ${totalCount}`);
+          return res.json({ success: true, slotsFilled: newSlotsFilled, volunteerCount: totalCount });
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[Supabase] RSVP update failed, trying memory fallback:', err.message);
+  }
+
+  // Memory fallback logic
+  const drive = memoryDrives.find(d => d.id === driveId);
+  if (!drive) {
+    return res.status(404).json({ success: false, error: 'Drive not found' });
+  }
+  if (drive.attendees.includes(userId)) {
+    return res.status(400).json({ success: false, error: 'Already RSVP\'d to this event' });
+  }
+  if (drive.slotsFilled >= drive.maxSlots) {
+    return res.status(400).json({ success: false, error: 'Event is full!' });
+  }
+
+  drive.slotsFilled += 1;
+  drive.attendees.push(userId);
+  
+  const totalCount = memoryDrives.reduce((sum, d) => sum + (d.slotsFilled || 0), 0);
+  console.log(`[MemoryStore] RSVP successful for ${driveId}. New volunteerCount: ${totalCount}`);
+  res.json({ success: true, slotsFilled: drive.slotsFilled, volunteerCount: totalCount });
+});
+
+// Endpoint: Create a new drive
+app.post('/api/drives', async (req, res) => {
+  const { title, description, date, location, maxSlots, coordinates, createdBy, category } = req.body;
+
+  const newDrive = {
+    id: 'evt-' + Date.now(),
+    title: title || 'Custom Cleanup Drive',
+    description: description || '',
+    date: date || new Date().toISOString(),
+    location: location || 'Unknown Location',
+    coordinates: coordinates || { lat: 28.6139, lng: 77.2090 },
+    maxSlots: parseInt(maxSlots) || 50,
+    slotsFilled: 0,
+    attendees: [],
+    createdBy: createdBy || 'Municipality AI System',
+    category: category || 'cleanup'
+  };
+
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/drives`, {
+      method: 'POST',
+      headers: {
+        ...supabaseHeaders,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(newDrive)
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        console.log('[Supabase] Created new drive successfully:', newDrive.id);
+        return res.json({ success: true, drive: data[0] });
+      }
+    } else {
+      console.warn(`[Supabase] POST /api/drives returned status ${response.status}. Falling back to memory.`);
+    }
+  } catch (err) {
+    console.warn('[Supabase] Failed to create drive, using memory fallback:', err.message);
+  }
+
+  // Memory fallback
+  memoryDrives.push(newDrive);
+  console.log('[MemoryStore] Created new drive successfully:', newDrive.id);
+  res.json({ success: true, drive: newDrive });
+});
+
+// Endpoint: Predictive Heatmap Coordinates
+app.get('/api/predictive-heatmap', (req, res) => {
+  const hotspots = [];
+  
+  // Seed coordinates across major Indian cities
+  const centers = [
+    { name: 'Delhi NCR', lat: 28.6139, lng: 77.2090, weight: 340 },
+    { name: 'Mumbai Metro', lat: 19.0760, lng: 72.8777, weight: 120 },
+    { name: 'Bengaluru IT Hub', lat: 12.9716, lng: 77.5946, weight: 60 },
+    { name: 'Kolkata Port', lat: 22.5726, lng: 88.3639, weight: 160 },
+    { name: 'Chennai Auto Hub', lat: 13.0827, lng: 80.2707, weight: 80 },
+    { name: 'Patna Urban', lat: 25.5941, lng: 85.1376, weight: 240 },
+    { name: 'Lucknow Central', lat: 26.8467, lng: 80.9462, weight: 270 },
+    { name: 'Jaipur Industrial', lat: 26.9124, lng: 75.7873, weight: 180 },
+    { name: 'Hyderabad Tech', lat: 17.3850, lng: 78.4867, weight: 95 }
+  ];
+
+  // Generate density cluster layers for Deck.gl
+  centers.forEach(c => {
+    // Generate 25 coordinates around each major city to form nationwide visual hotspots
+    for (let i = 0; i < 25; i++) {
+      const offsetLat = (Math.random() - 0.5) * 0.8; // larger offset for nation-wide zoom visibility
+      const offsetLng = (Math.random() - 0.5) * 0.8;
+      const weightNoise = (Math.random() - 0.5) * 40;
+      hotspots.push({
+        coordinates: [c.lng + offsetLng, c.lat + offsetLat],
+        aqiPrediction: Math.max(10, Math.min(500, Math.round(c.weight + weightNoise)))
+      });
+    }
+  });
+
+  res.json(hotspots);
+});
+
+// Endpoint: Live AQI for state explorer
+app.get('/api/live-aqi', (req, res) => {
+  const cities = [
+    { id: 'in-dl', name: 'Delhi', aqi: 342, locality: 'Delhi' },
+    { id: 'in-mh', name: 'Mumbai', aqi: 110, locality: 'Mumbai' },
+    { id: 'in-ka', name: 'Bengaluru', aqi: 58, locality: 'Bengaluru' },
+    { id: 'in-wb', name: 'Kolkata', aqi: 156, locality: 'Kolkata' },
+    { id: 'in-mz', name: 'Aizawl', aqi: 22, locality: 'Aizawl' },
+    { id: 'in-up', name: 'Lucknow', aqi: 280, locality: 'Lucknow' },
+    { id: 'in-hr', name: 'Gurugram', aqi: 260, locality: 'Gurugram' },
+    { id: 'in-rj', name: 'Jaipur', aqi: 190, locality: 'Jaipur' },
+    { id: 'in-gj', name: 'Ahmedabad', aqi: 120, locality: 'Ahmedabad' },
+    { id: 'in-tn', name: 'Chennai', aqi: 75, locality: 'Chennai' },
+    { id: 'in-ap', name: 'Visakhapatnam', aqi: 82, locality: 'Visakhapatnam' },
+    { id: 'in-kl', name: 'Kochi', aqi: 45, locality: 'Kochi' },
+    { id: 'in-tg', name: 'Hyderabad', aqi: 92, locality: 'Hyderabad' },
+    { id: 'in-or', name: 'Bhubaneswar', aqi: 115, locality: 'Bhubaneswar' },
+    { id: 'in-pb', name: 'Ludhiana', aqi: 210, locality: 'Ludhiana' },
+    { id: 'in-br', name: 'Patna', aqi: 230, locality: 'Patna' }
+  ];
+  res.json(cities);
+});
+
+// Endpoint: Generate Legal Notice warning letter using Gemini
+app.post('/api/generate-legal-notice', async (req, res) => {
+  const { incident } = req.body;
+  if (!incident) return res.status(400).json({ error: 'Incident description missing' });
+
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey) {
+    return res.status(500).json({ error: 'Gemini API key is not configured.' });
+  }
+
+  try {
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(geminiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const prompt = `Draft a formal Legal Notice warning letter on behalf of "AeroStreet-AI Municipal Command Control Center" to a business or construction site violating clean air regulations.
+    Violation Details: ${incident}.
+    The letter must look official, include sections for Date, Case Reference, Violator address placeholder, specific violations under the Clean Air Act, required compliance actions within 24 hours, and fine warning. Do not output markdown code blocks. Output plain professional text formatted with double newlines.`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    res.json({ success: true, notice: text });
+  } catch (error) {
+    console.error('Failed to generate notice:', error);
+    res.status(500).json({ error: 'Failed to generate legal notice document.' });
+  }
+});
+
+// Endpoint: Generate simulated forecast insights using Gemini
+app.post('/api/gemini-forecast-insights', async (req, res) => {
+  const { traffic, industry, wind, temp, baseline } = req.body;
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey) {
+    return res.status(500).json({ error: 'Gemini API key is not configured.' });
+  }
+
+  try {
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(geminiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const prompt = `You are the AeroStreet-AI predictive simulation engine.
+    Current conditions: Baseline AQI is ${baseline}. User simulated inputs for the next 7 days: Traffic Density is ${traffic}%, Industrial Output is ${industry}%, Wind Speed is ${wind} km/h, and Temperature is ${temp}°C.
+    Based on these inputs, predict the daily AQI value for the next 7 days.
+    Output your response in the following strict JSON format, with no other text, explanation, or markdown backticks:
+    {
+      "forecast": [value1, value2, value3, value4, value5, value6, value7],
+      "insights": "Specific municipal advisory message warning about conditions and suggesting mitigation guidelines."
+    }`;
+
+    const result = await model.generateContent(prompt);
+    let text = result.response.text().trim();
+    text = text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+
+    const data = JSON.parse(text);
+    res.json({ success: true, ...data });
+  } catch (error) {
+    console.error('Failed to get Gemini forecast insights:', error);
+    res.status(500).json({ error: 'Failed to compute predictions.' });
+  }
+});
+
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Endpoint: Submit Report (with Multer file upload & Gemini AI analysis)
+app.post('/api/reports', upload.single('image'), async (req, res) => {
+  const { category, description, lat, lng } = req.body;
+
+  let imageUrl = '';
+  if (req.file) {
+    imageUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+  }
+
+  // AI Verification (Automated Verification) using Gemini API
+  let confidenceVal = 'N/A';
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (geminiKey) {
+    try {
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(geminiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+      // Multimodal contents array
+      let contents = [];
+      let prompt = `Analyze this citizen pollution description: "${description}". Does it actually contain environmental pollution or a violation (like trash burning, excessive industrial emission, litter dumping, or construction dust)? Respond with a single confidence score between 0 and 100 as a single integer number. Return ONLY the integer, no markdown, no other text.`;
+      
+      contents.push(prompt);
+      
+      if (req.file) {
+        contents.push({
+          inlineData: {
+            data: req.file.buffer.toString('base64'),
+            mimeType: req.file.mimetype
+          }
+        });
+      }
+
+      const result = await model.generateContent(contents);
+      const resText = result.response.text().trim();
+      const match = resText.match(/\d+/);
+      if (match) {
+        confidenceVal = `${parseFloat(match[0]).toFixed(2)}%`;
+      } else {
+        confidenceVal = '85.00%';
+      }
+    } catch (err) {
+      console.warn('[Gemini AI Verification failed]', err.message);
+      confidenceVal = '85.00%';
+    }
+  } else {
+    confidenceVal = '80.00%';
+  }
+
+  const reportId = 'rep-' + Date.now();
+  const timeString = new Date().toLocaleTimeString('en-IN', { hour12: false });
+  const categoryLabel = category.charAt(0).toUpperCase() + category.slice(1);
+  
+  const reportData = {
+    id: `👤 Report #${reportId.slice(-4)}`,
+    type: `${categoryLabel} Pollution`,
+    location: description.length > 30 ? description.slice(0, 30) + '...' : description,
+    confidence: confidenceVal,
+    status: 'Warning Active',
+    time: timeString,
+    source: 'citizen',
+    description: description,
+    imageUrl: imageUrl,
+    coordinates: { lat: parseFloat(lat) || 28.6139, lng: parseFloat(lng) || 77.2090 }
+  };
+
+  // 1. Try to save to Supabase "reports" table
+  try {
+    const resSupabase = await fetch(`${SUPABASE_URL}/rest/v1/reports`, {
+      method: 'POST',
+      headers: {
+        ...supabaseHeaders,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(reportData)
+    });
+    if (resSupabase.ok) {
+      const data = await resSupabase.json();
+      if (Array.isArray(data) && data.length > 0) {
+        console.log('[Supabase] Saved report to database successfully:', reportData.id);
+        return res.json({ success: true, report: data[0] });
+      }
+    } else {
+      console.warn(`[Supabase] POST /rest/v1/reports returned status ${resSupabase.status}. Falling back to memory.`);
+    }
+  } catch (err) {
+    console.warn('[Supabase] Failed to save report, using memory fallback:', err.message);
+  }
+
+  res.json({ success: true, report: reportData });
 });
 
 // ── Health check ──

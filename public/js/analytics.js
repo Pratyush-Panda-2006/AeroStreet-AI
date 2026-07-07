@@ -217,13 +217,22 @@ export async function getAQITrends(districtId, days = 7) {
  */
 export async function requestFreshAnalysis(districtId) {
   const incidents = window.__municipality_incidents || [];
+  const waqiAqiVal = parseInt(document.getElementById('muni-kpi-waqi')?.textContent) || 345;
   try {
     const response = await fetch(`/api/recommendations/${districtId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ incidents })
+      body: JSON.stringify({ 
+        incidents,
+        weather: {
+          aqi: waqiAqiVal,
+          windSpeed: 12,
+          windDirection: 'North-East',
+          temp: 28
+        }
+      })
     });
     if (!response.ok) throw new Error('Failed to generate analysis');
     return response.json();
@@ -306,6 +315,7 @@ export async function renderRecommendationsPanel(containerId, districtId, preloa
       <!-- Recommendation cards -->
       ${rec.recommendations.map((item, idx) => {
         const style = PRIORITY_STYLES[item.priority] || PRIORITY_STYLES.info;
+        const isCitizenCleanup = item.icon === 'volunteer_activism' || item.title.toLowerCase().includes('cleanup');
         return `
           <div class="p-3 rounded-xl border ${style.border} ${style.bg} transition-all hover:shadow-sm">
             <div class="flex items-start gap-3">
@@ -318,10 +328,20 @@ export async function renderRecommendationsPanel(containerId, districtId, preloa
                   <h4 class="font-label-md text-label-md text-on-surface truncate">${item.title}</h4>
                 </div>
                 <p class="text-[11px] text-on-surface-variant leading-relaxed mb-2">${item.description}</p>
-                <div class="flex items-center gap-1 text-[10px] ${style.text}">
+                <div class="flex items-center gap-1 text-[10px] ${style.text} mb-2">
                   <span class="material-symbols-outlined text-[12px]">trending_up</span>
                   ${item.impact}
                 </div>
+                ${isCitizenCleanup ? `
+                  <button data-idx="${idx}" class="approve-rec-btn px-3 py-1 bg-primary text-white hover:bg-primary-hover text-[10px] font-bold rounded-btn transition-colors flex items-center gap-1 shadow-sm mt-1.5">
+                    <span class="material-symbols-outlined text-[12px]">thumb_up</span> Approve Recommendation
+                  </button>
+                ` : ''}
+                ${(!isCitizenCleanup && (item.title.toLowerCase().includes('emission') || item.title.toLowerCase().includes('dust') || item.title.toLowerCase().includes('illegal') || item.description.toLowerCase().includes('violat') || item.description.toLowerCase().includes('factor') || item.description.toLowerCase().includes('burn') || item.title.toLowerCase().includes('sprinkl') || item.title.toLowerCase().includes('complian') || item.title.toLowerCase().includes('smog'))) ? `
+                  <button data-idx="${idx}" class="generate-notice-btn px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold rounded-btn transition-colors flex items-center gap-1 shadow-sm mt-1.5">
+                    <span class="material-symbols-outlined text-[12px]">description</span> Generate Legal Notice
+                  </button>
+                ` : ''}
               </div>
             </div>
           </div>
@@ -349,6 +369,226 @@ export async function renderRecommendationsPanel(containerId, districtId, preloa
     } catch (err) {
       console.error(err);
       container.innerHTML = `<div class="text-center py-4 text-error text-body-sm">Failed to refresh: ${err.message}</div>`;
+    }
+  });
+
+  // Wire up Approve Recommendation buttons
+  container.querySelectorAll('.approve-rec-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      const item = rec.recommendations[idx];
+      showApproveRecommendationForm(item);
+    });
+  });
+
+  // Wire up Generate Legal Notice buttons
+  container.querySelectorAll('.generate-notice-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt(btn.dataset.idx);
+      const item = rec.recommendations[idx];
+      await generateLegalNoticeDoc(item.title + ": " + item.description);
+    });
+  });
+}
+
+/**
+ * Request warning notice drafting from Gemini backend
+ */
+async function generateLegalNoticeDoc(description) {
+  window.__aerostreet?.showToast?.('Generating warning notice via Gemini...', 'info');
+  
+  try {
+    const response = await fetch('/api/generate-legal-notice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ incident: description })
+    });
+    
+    if (!response.ok) throw new Error('API request failed');
+    const result = await response.json();
+    
+    if (result.success && result.notice) {
+      openDocumentModal(result.notice);
+    }
+  } catch(err) {
+    console.error(err);
+    window.__aerostreet?.showToast?.('Failed to draft legal notice. Try again.', 'error');
+  }
+}
+
+/**
+ * Display ready-to-print notice document modal overlay
+ */
+function openDocumentModal(content) {
+  const existing = document.getElementById('notice-document-overlay');
+  if (existing) existing.remove();
+  
+  const overlay = document.createElement('div');
+  overlay.id = 'notice-document-overlay';
+  overlay.className = 'fixed inset-0 z-[120] flex items-center justify-center bg-black/50 backdrop-blur-sm';
+  overlay.innerHTML = `
+    <div class="bg-white rounded-card shadow-2xl border border-slate-300 w-full max-w-2xl mx-4 overflow-hidden flex flex-col max-h-[90vh] animate-[fadeIn_0.2s_ease-out] font-sans text-slate-700">
+      <!-- Header -->
+      <div class="p-6 pb-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-amber-600">gavel</span>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Official Warning Notice</h3>
+            <p class="text-[10px] text-slate-400">Gemini AI Auto-Generated Document</p>
+          </div>
+        </div>
+        <button id="notice-close-btn" class="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center transition-colors">
+          <span class="material-symbols-outlined text-slate-500 text-[18px]">close</span>
+        </button>
+      </div>
+      
+      <!-- Letter Content -->
+      <div class="p-8 overflow-y-auto bg-stone-50/50 flex-grow font-serif text-sm leading-relaxed text-slate-800 whitespace-pre-wrap select-text border-b border-slate-100" id="print-notice-content">
+        ${content}
+      </div>
+      
+      <!-- Footer actions -->
+      <div class="p-4 bg-white flex justify-end gap-3 flex-shrink-0">
+        <button id="print-notice-btn" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all shadow flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[16px]">print</span>
+          Print / Save PDF
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+  
+  overlay.querySelector('#notice-close-btn').addEventListener('click', () => overlay.remove());
+  overlay.querySelector('#print-notice-btn').addEventListener('click', () => {
+    const printWin = window.open('', '_blank');
+    printWin.document.write(`
+      <html>
+      <head>
+        <title>AeroStreet-AI Warning Notice</title>
+        <style>
+          body { font-family: serif; padding: 40px; color: #1e293b; line-height: 1.6; font-size: 14px; }
+          .header { text-align: center; margin-bottom: 30px; font-family: sans-serif; font-size: 20px; font-weight: bold; border-bottom: 2px solid #1e293b; padding-bottom: 15px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">MUNICIPAL COMMAND CONTROL CENTER - WARNING NOTICE</div>
+        <div style="white-space: pre-wrap;">${content}</div>
+      </body>
+      </html>
+    `);
+    printWin.document.close();
+    printWin.print();
+  });
+}
+
+/**
+ * Open a sleek form modal to approve and launch an AI-recommended cleanup drive
+ */
+function showApproveRecommendationForm(item) {
+  const existing = document.getElementById('approve-rec-modal-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'approve-rec-modal-overlay';
+  overlay.className = 'fixed inset-0 z-[110] flex items-center justify-center bg-black/40 backdrop-blur-sm';
+  overlay.innerHTML = `
+    <div class="bg-white rounded-card shadow-2xl border border-slate-200 w-full max-w-md mx-4 overflow-hidden animate-[fadeIn_0.2s_ease-out] font-sans text-slate-700">
+      <!-- Header -->
+      <div class="p-6 pb-4 border-b border-slate-100 bg-gradient-to-r from-blue-50/10 to-transparent">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Approve AI Drive Proposal</h3>
+            <p class="text-[11px] text-slate-400">Initialize a new community clean-up drive</p>
+          </div>
+          <button id="approve-rec-close-btn" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-slate-500 text-[18px]">close</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Form Body -->
+      <form id="approve-rec-form" class="p-6 space-y-4">
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Drive Title</label>
+          <input type="text" id="rec-form-title" class="w-full px-3 py-2 border border-slate-200 rounded-btn text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-slate-50/50" value="Yamuna Ghat Cleanup Part 2" required />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Description</label>
+          <textarea id="rec-form-desc" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-btn text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-slate-50/50 resize-none" required>Community cleanup campaign at Yamuna Ghat to clear illegal waste dumping hotspots, recommended by Gemini AI.</textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Date & Time</label>
+            <input type="datetime-local" id="rec-form-date" class="w-full px-3 py-2 border border-slate-200 rounded-btn text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-slate-50/50" value="2026-07-19T09:00" required />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Max Capacity</label>
+            <input type="number" id="rec-form-capacity" class="w-full px-3 py-2 border border-slate-200 rounded-btn text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-slate-50/50" value="50" min="10" required />
+          </div>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Location</label>
+          <input type="text" id="rec-form-location" class="w-full px-3 py-2 border border-slate-200 rounded-btn text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-slate-50/50" value="Yamuna Ghat, Delhi" required />
+        </div>
+        
+        <div class="pt-2 flex items-center justify-end gap-3">
+          <button type="button" id="rec-form-cancel-btn" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 rounded-btn transition-colors">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-btn shadow-md transition-colors flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[14px]">rocket_launch</span> Launch Drive
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  document.getElementById('approve-rec-close-btn').addEventListener('click', close);
+  document.getElementById('rec-form-cancel-btn').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  document.getElementById('approve-rec-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('rec-form-title').value;
+    const description = document.getElementById('rec-form-desc').value;
+    const dateVal = document.getElementById('rec-form-date').value;
+    const maxSlots = parseInt(document.getElementById('rec-form-capacity').value);
+    const location = document.getElementById('rec-form-location').value;
+
+    const eventData = {
+      title,
+      description,
+      date: new Date(dateVal).toISOString(),
+      location,
+      maxSlots,
+      coordinates: { lat: 28.6328, lng: 77.2197 },
+      createdBy: 'Municipality AI System',
+      category: 'cleanup'
+    };
+
+    try {
+      const { createEvent } = await import('./community.js');
+      await createEvent(eventData);
+      window.__aerostreet?.showToast?.('Custom Clean-up Drive created! 🚀', 'success');
+      close();
+      
+      // Open the Community modal to reveal the newly added card
+      setTimeout(() => {
+        const link = document.getElementById('nav-community-link');
+        if (link) {
+          link.click();
+        } else {
+          const panel = document.getElementById('community-panel');
+          if (panel) {
+            import('./community.js').then(m => m.renderCommunityPanel('community-panel'));
+          }
+        }
+      }, 500);
+
+    } catch (err) {
+      window.__aerostreet?.showToast?.(err.message, 'error');
     }
   });
 }

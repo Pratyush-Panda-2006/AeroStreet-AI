@@ -74,5 +74,61 @@ export const STATE_DISTRICTS_MAP = {
       { id: 'nashik', name: 'Nashik', path: 'M 85 20 L 155 35 L 145 105 L 75 100 Z', center: { x: 115, y: 65 } },
       { id: 'nagpur', name: 'Nagpur', path: 'M 330 35 L 390 40 L 385 110 L 325 100 Z', center: { x: 357, y: 71 } }
     ]
+  },
+  'in-dl': {
+    name: 'Delhi',
+    viewBox: '0 0 400 400',
+    paths: [
+      { id: 'delhi-n', name: 'North Delhi', path: 'M 100 50 L 200 50 L 200 120 L 150 150 L 100 120 Z', center: { x: 150, y: 85 } },
+      { id: 'delhi-w', name: 'West Delhi', path: 'M 50 120 L 100 120 L 150 150 L 120 220 L 50 200 Z', center: { x: 95, y: 160 } },
+      { id: 'delhi-c', name: 'New Delhi Central', path: 'M 100 120 L 150 150 L 200 120 L 250 150 L 220 220 L 150 200 Z', center: { x: 170, y: 165 } },
+      { id: 'delhi-e', name: 'East Delhi', path: 'M 200 120 L 300 100 L 300 200 L 250 220 L 250 150 Z', center: { x: 260, y: 150 } },
+      { id: 'delhi-s', name: 'South Delhi', path: 'M 120 220 L 150 200 L 220 220 L 250 300 L 150 320 L 100 280 Z', center: { x: 170, y: 260 } }
+    ]
+  },
+  'in-up': {
+    name: 'Uttar Pradesh',
+    viewBox: '0 0 450 350',
+    paths: [
+      { id: 'up-noid', name: 'Noida', path: 'M 50 50 L 150 40 L 170 120 L 50 140 Z', center: { x: 100, y: 90 } },
+      { id: 'up-knp', name: 'Kanpur', path: 'M 150 40 L 280 60 L 260 180 L 170 120 Z', center: { x: 215, y: 110 } },
+      { id: 'up-lko', name: 'Lucknow', path: 'M 280 60 L 380 80 L 350 220 L 260 180 Z', center: { x: 320, y: 140 } }
+    ]
+  },
+  'in-br': {
+    name: 'Bihar',
+    viewBox: '0 0 450 350',
+    paths: [
+      { id: 'br-pat', name: 'Patna', path: 'M 50 50 L 180 50 L 150 150 L 50 120 Z', center: { x: 110, y: 90 } },
+      { id: 'br-gay', name: 'Gaya', path: 'M 180 50 L 320 70 L 280 180 L 150 150 Z', center: { x: 230, y: 110 } },
+      { id: 'br-muz', name: 'Muzaffarpur', path: 'M 150 150 L 280 180 L 250 260 L 100 240 Z', center: { x: 190, y: 200 } }
+    ]
+  },
+  'in-rj': {
+    name: 'Rajasthan',
+    viewBox: '0 0 450 350',
+    paths: [
+      { id: 'rj-jpr', name: 'Jaipur', path: 'M 50 50 L 200 50 L 180 180 L 50 150 Z', center: { x: 120, y: 110 } },
+      { id: 'rj-jdp', name: 'Jodhpur', path: 'M 200 50 L 350 70 L 300 200 L 180 180 Z', center: { x: 260, y: 125 } },
+      { id: 'rj-udp', name: 'Udaipur', path: 'M 180 180 L 300 200 L 250 300 L 100 280 Z', center: { x: 210, y: 240 } }
+    ]
+  },
+  'in-gj': {
+    name: 'Gujarat',
+    viewBox: '0 0 450 350',
+    paths: [
+      { id: 'gj-ahd', name: 'Ahmedabad', path: 'M 50 50 L 180 60 L 160 160 L 50 140 Z', center: { x: 110, y: 100 } },
+      { id: 'gj-srt', name: 'Surat', path: 'M 180 60 L 320 80 L 280 200 L 160 160 Z', center: { x: 230, y: 125 } },
+      { id: 'gj-vad', name: 'Vadodara', path: 'M 160 160 L 280 200 L 230 290 L 100 270 Z', center: { x: 190, y: 230 } }
+    ]
+  },
+  'in-tn': {
+    name: 'Tamil Nadu',
+    viewBox: '0 0 450 350',
+    paths: [
+      { id: 'tn-chn', name: 'Chennai', path: 'M 50 50 L 180 50 L 150 150 L 50 120 Z', center: { x: 110, y: 90 } },
+      { id: 'tn-cbe', name: 'Coimbatore', path: 'M 180 50 L 320 70 L 280 180 L 150 150 Z', center: { x: 230, y: 110 } },
+      { id: 'tn-mdu', name: 'Madurai', path: 'M 150 150 L 280 180 L 250 280 L 100 250 Z', center: { x: 190, y: 210 } }
+    ]
   }
 };

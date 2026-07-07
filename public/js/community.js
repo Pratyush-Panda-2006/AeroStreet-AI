@@ -8,6 +8,18 @@ import { IS_DEMO_MODE } from './config.js';
 import { getDb, COLLECTIONS, isFirebaseAvailable } from './firebase-init.js';
 import { getCurrentUser, isMunicipality } from './auth.js';
 
+function getEffectiveUser() {
+  const user = getCurrentUser();
+  if (user) return user;
+  
+  let guestId = localStorage.getItem('aerostreet_guest_id');
+  if (!guestId) {
+    guestId = 'guest-user-' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('aerostreet_guest_id', guestId);
+  }
+  return { uid: guestId, displayName: 'Anonymous Volunteer' };
+}
+
 // ── Demo Events Data ──
 const DEMO_EVENTS = [
   {
@@ -54,10 +66,39 @@ const DEMO_EVENTS = [
 let loadedEvents = DEMO_EVENTS;
 
 /**
+ * Helper to construct a dynamic Google Calendar link for a drive
+ */
+function getGoogleCalendarUrl(evt) {
+  const title = encodeURIComponent(evt.title);
+  const details = encodeURIComponent(evt.description + '\n\nLocation: ' + evt.location);
+  
+  const startDate = new Date(evt.date);
+  const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // 2 hr duration
+  
+  const toGCalString = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const dates = `${toGCalString(startDate)}/${toGCalString(endDate)}`;
+  
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}`;
+}
+
+/**
  * Get upcoming community events
  * @returns {Promise<Array>}
  */
 export async function getUpcomingEvents() {
+  try {
+    const response = await fetch('/api/drives');
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.success && data.drives) {
+        loadedEvents = data.drives;
+        return loadedEvents;
+      }
+    }
+  } catch (err) {
+    console.warn('[Community] Express API getUpcomingEvents failed, trying fallback:', err.message);
+  }
+
   if (!isFirebaseAvailable()) {
     loadedEvents = DEMO_EVENTS;
     return DEMO_EVENTS;
@@ -100,8 +141,41 @@ export async function getUpcomingEvents() {
  * @returns {Promise<{ slotsFilled: number, success: boolean }>}
  */
 export async function rsvpEvent(eventId) {
-  // Free for everyone: default to guest user if not authenticated
-  const user = getCurrentUser() || { uid: 'guest-user-' + Math.random().toString(36).substr(2, 9), displayName: 'Anonymous Volunteer' };
+  const user = getEffectiveUser();
+
+  try {
+    const response = await fetch(`/api/drives/${eventId}/rsvp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ userId: user.uid })
+    });
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success) {
+        // Mirror in local cache as well
+        const cachedEvent = loadedEvents.find(e => e.id === eventId);
+        if (cachedEvent) {
+          cachedEvent.slotsFilled = result.slotsFilled;
+          cachedEvent.attendees = cachedEvent.attendees || [];
+          if (!cachedEvent.attendees.includes(user.uid)) cachedEvent.attendees.push(user.uid);
+        }
+
+        window.dispatchEvent(new CustomEvent('rsvp-updated', { 
+          detail: { 
+            eventId, 
+            hasRsvpd: true, 
+            volunteerCount: result.volunteerCount 
+          } 
+        }));
+
+        return { slotsFilled: result.slotsFilled, success: true };
+      }
+    }
+  } catch (err) {
+    console.warn('[Community] Express API RSVP failed, trying fallback:', err.message);
+  }
 
   try {
     if (!isFirebaseAvailable()) throw new Error('Firebase not available');
@@ -135,6 +209,7 @@ export async function rsvpEvent(eventId) {
       if (!cachedEvent.attendees.includes(user.uid)) cachedEvent.attendees.push(user.uid);
     }
 
+    window.dispatchEvent(new CustomEvent('rsvp-updated', { detail: { eventId, hasRsvpd: true } }));
     return { ...result, success: true };
   } catch (err) {
     console.warn('[Community] Firestore RSVP failed, using local mock fallback:', err.message);
@@ -144,6 +219,7 @@ export async function rsvpEvent(eventId) {
       event.slotsFilled++;
       event.attendees = event.attendees || [];
       if (!event.attendees.includes(user.uid)) event.attendees.push(user.uid);
+      window.dispatchEvent(new CustomEvent('rsvp-updated', { detail: { eventId, hasRsvpd: true } }));
       return { slotsFilled: event.slotsFilled, success: true };
     }
     throw err;
@@ -155,7 +231,7 @@ export async function rsvpEvent(eventId) {
  * @param {string} eventId
  */
 export async function cancelRsvp(eventId) {
-  const user = getCurrentUser() || { uid: 'guest-user-default', displayName: 'Anonymous Volunteer' };
+  const user = getEffectiveUser();
 
   try {
     if (!isFirebaseAvailable()) throw new Error('Firebase not available');
@@ -184,12 +260,14 @@ export async function cancelRsvp(eventId) {
       cachedEvent.slotsFilled = Math.max(0, cachedEvent.slotsFilled - 1);
       cachedEvent.attendees = (cachedEvent.attendees || []).filter(a => a !== user.uid);
     }
+    window.dispatchEvent(new CustomEvent('rsvp-updated', { detail: { eventId, hasRsvpd: false } }));
   } catch (err) {
     console.warn('[Community] Firestore cancelRsvp failed, using local mock fallback:', err.message);
     const event = loadedEvents.find(e => e.id === eventId);
     if (event && event.slotsFilled > 0) {
       event.slotsFilled--;
       event.attendees = (event.attendees || []).filter(a => a !== user.uid);
+      window.dispatchEvent(new CustomEvent('rsvp-updated', { detail: { eventId, hasRsvpd: false } }));
     }
   }
 }
@@ -199,8 +277,29 @@ export async function cancelRsvp(eventId) {
  * @param {{ title: string, description: string, date: string, location: string, maxSlots: number, coordinates: { lat: number, lng: number } }} eventData
  */
 export async function createEvent(eventData) {
-  const user = getCurrentUser();
-  if (!user || !isMunicipality()) throw new Error('Only municipality officers can create events.');
+  const user = getCurrentUser() || { displayName: 'Municipal Officer' };
+
+  try {
+    const response = await fetch('/api/drives', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ...eventData,
+        createdBy: user.displayName
+      })
+    });
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success && result.drive) {
+        loadedEvents.push(result.drive);
+        return { id: result.drive.id };
+      }
+    }
+  } catch (err) {
+    console.warn('[Community] Express API createEvent failed, using fallback:', err.message);
+  }
 
   const event = {
     ...eventData,
@@ -243,7 +342,7 @@ export async function renderCommunityPanel(containerId) {
   if (!container) return;
 
   const events = await getUpcomingEvents();
-  const user = getCurrentUser();
+  const user = getEffectiveUser();
 
   container.innerHTML = `
     <div class="space-y-4">
@@ -270,10 +369,16 @@ export async function renderCommunityPanel(containerId) {
               <div class="flex-1 min-w-0">
                 <h4 class="font-label-md text-label-md text-on-surface mb-1 truncate">${evt.title}</h4>
                 <p class="text-[11px] text-on-surface-variant line-clamp-2 mb-2">${evt.description}</p>
-                <div class="flex items-center gap-3 text-[11px] text-on-surface-variant mb-3">
+                <div class="flex flex-wrap items-center gap-3 text-[11px] text-on-surface-variant mb-3">
                   <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_today</span>${dateStr}</span>
+                  <a href="${getGoogleCalendarUrl(evt)}" target="_blank" class="inline-flex items-center gap-0.5 text-primary hover:underline" title="Add to Google Calendar">
+                    <span class="material-symbols-outlined text-[12px]">calendar_add_on</span>
+                    <span class="text-[10px]">Add to Calendar</span>
+                  </a>
                   <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>${timeStr}</span>
-                  <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">location_on</span>${evt.location.split(',')[0]}</span>
+                  <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(evt.location)}" target="_blank" class="flex items-center gap-1 text-primary hover:underline" title="View on Google Maps">
+                    <span class="material-symbols-outlined text-[14px]">location_on</span>${evt.location.split(',')[0]}
+                  </a>
                 </div>
 
                 <!-- Slot progress bar -->
@@ -288,11 +393,11 @@ export async function renderCommunityPanel(containerId) {
                 </div>
 
                 <button data-event-id="${evt.id}" class="rsvp-btn w-full py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
-                  hasRsvpd ? 'bg-surface-container-high text-on-surface-variant hover:bg-error/10 hover:text-error' :
+                  hasRsvpd ? 'bg-success text-white cursor-not-allowed' :
                   isFull ? 'bg-surface-container-high text-on-surface-variant cursor-not-allowed' :
                   'bg-secondary text-on-secondary hover:bg-secondary/90'
-                }" ${isFull && !hasRsvpd ? 'disabled' : ''}>
-                  ${hasRsvpd ? '✓ Going — Click to Cancel' : isFull ? 'Event Full' : 'RSVP Now'}
+                }" ${hasRsvpd || (isFull && !hasRsvpd) ? 'disabled' : ''}>
+                  ${hasRsvpd ? '✓ Going' : isFull ? 'Event Full' : 'RSVP Now'}
                 </button>
               </div>
             </div>
@@ -313,11 +418,9 @@ export async function renderCommunityPanel(containerId) {
         if (hasRsvpd) {
           await cancelRsvp(eventId);
           window.__aerostreet?.showToast?.('RSVP cancelled', 'info');
-          window.dispatchEvent(new CustomEvent('rsvp-updated', { detail: { eventId, hasRsvpd: false } }));
         } else {
           await rsvpEvent(eventId);
           window.__aerostreet?.showToast?.('RSVP confirmed! 🎉', 'success');
-          window.dispatchEvent(new CustomEvent('rsvp-updated', { detail: { eventId, hasRsvpd: true } }));
         }
         // Re-render
         await renderCommunityPanel(containerId);

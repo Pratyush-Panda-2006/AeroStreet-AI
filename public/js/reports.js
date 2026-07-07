@@ -17,14 +17,47 @@ export async function submitReport({ category, description, imageFile, coordinat
   // Free for everyone: default to guest citizen if not authenticated
   const user = getCurrentUser() || { uid: 'guest-citizen-' + Math.random().toString(36).substr(2, 9), displayName: 'Guest Citizen' };
 
+  try {
+    const formData = new FormData();
+    formData.append('category', category);
+    formData.append('description', description);
+    formData.append('lat', coordinates.lat);
+    formData.append('lng', coordinates.lng);
+    formData.append('userId', user.uid);
+    formData.append('userName', user.displayName);
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+
+    const response = await fetch('/api/reports', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success && result.report) {
+        // Dispatch custom event to notify municipality hub of new report
+        window.dispatchEvent(new CustomEvent('report-submitted', { detail: { report: result.report } }));
+        return { id: result.report.id, success: true };
+      }
+    }
+  } catch (err) {
+    console.warn('[Reports] Express API submission failed, using Firebase or local fallback:', err.message);
+  }
+
   let imageUrl = '';
 
   // Upload image if provided
   if (imageFile && isFirebaseAvailable()) {
     imageUrl = await uploadReportImage(imageFile, user.uid);
   } else if (imageFile) {
-    // Demo mode: use a placeholder URL
-    imageUrl = `https://via.placeholder.com/400x300?text=${encodeURIComponent(category)}`;
+    // Demo mode: use a placeholder URL or dataURL
+    imageUrl = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(imageFile);
+    });
   }
 
   const report = {
@@ -53,7 +86,21 @@ export async function submitReport({ category, description, imageFile, coordinat
 
   // Demo mode
   const demoId = 'demo-report-' + Date.now();
-  console.log('[Reports] Demo report submitted:', demoId, report);
+  const timeString = new Date().toLocaleTimeString('en-IN', { hour12: false });
+  const mockReport = {
+    id: `👤 User #${demoId.slice(-3)}`,
+    type: category.charAt(0).toUpperCase() + category.slice(1) + ' Pollution',
+    location: description.slice(0, 30) + '...',
+    confidence: 'N/A',
+    status: 'Warning Active',
+    time: timeString,
+    source: 'citizen',
+    description: description,
+    imageUrl: imageUrl,
+    coordinates: { lat: coordinates.lat, lng: coordinates.lng }
+  };
+  window.dispatchEvent(new CustomEvent('report-submitted', { detail: { report: mockReport } }));
+  console.log('[Reports] Demo report submitted:', demoId, mockReport);
   return { id: demoId, success: true };
 }
 
@@ -218,7 +265,7 @@ export function showReportModal() {
           </div>
         </div>
 
-        <div class="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+        <div id="report-detect-location" class="flex items-center gap-2 p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200/50 rounded-lg cursor-pointer transition-colors" title="Click to refresh device location coordinates">
           <span class="material-symbols-outlined text-primary text-sm">my_location</span>
           <span id="report-location-text" class="text-xs text-slate-500">Detecting your location...</span>
         </div>
@@ -243,6 +290,20 @@ export function showReportModal() {
     if (locText) locText.textContent = `Location: ${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
   });
 
+  // Manual location click detection
+  const locationBtn = document.getElementById('report-detect-location');
+  locationBtn.addEventListener('click', () => {
+    const locText = document.getElementById('report-location-text');
+    locText.textContent = 'Querying device Geolocation API...';
+    getCurrentLocation().then(coords => {
+      reportCoordinates = coords;
+      locText.textContent = `Location: ${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
+      window.__aerostreet?.showToast?.('Device coordinates updated successfully!', 'success');
+    }).catch(() => {
+      locText.textContent = 'Delhi (Default): 28.6139, 77.2090';
+    });
+  });
+
   // Image upload handling
   const uploadArea = document.getElementById('report-upload-area');
   const imageInput = document.getElementById('report-image');
@@ -250,6 +311,34 @@ export function showReportModal() {
   const previewImg = document.getElementById('report-preview-img');
 
   uploadArea.addEventListener('click', () => imageInput.click());
+
+  // Drag and Drop support
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('border-primary', 'bg-blue-50/20');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('border-primary', 'bg-blue-50/20');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('border-primary', 'bg-blue-50/20');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      imageInput.files = e.dataTransfer.files;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        previewImg.src = ev.target.result;
+        previewContainer.classList.remove('hidden');
+        uploadArea.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+      window.__aerostreet?.showToast?.('Image evidence attached successfully!', 'info');
+    }
+  });
+
   imageInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -260,6 +349,7 @@ export function showReportModal() {
         uploadArea.classList.add('hidden');
       };
       reader.readAsDataURL(file);
+      window.__aerostreet?.showToast?.('Image evidence attached successfully!', 'info');
     }
   });
 

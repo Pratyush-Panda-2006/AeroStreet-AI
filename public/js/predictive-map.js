@@ -40,7 +40,7 @@ function loadScript(url, globalName) {
 /**
  * Load Google Maps JavaScript API
  */
-function loadGoogleMapsScript(apiKey) {
+export function loadGoogleMapsScript(apiKey) {
   if (googleMapsLoadingPromise) return googleMapsLoadingPromise;
 
   const url = apiKey 
@@ -138,11 +138,11 @@ export async function initPredictiveHeatmap(containerId) {
 
     // 3. Render Google Map in canvas
     const canvas = document.getElementById('predictive-map-canvas');
-    const mapCenter = { lat: 28.6139, lng: 77.2090 }; // Center on Delhi
+    const mapCenter = { lat: 22.5937, lng: 78.9629 }; // Center on India national coordinates
 
     mapInstance = new google.maps.Map(canvas, {
       center: mapCenter,
-      zoom: 11,
+      zoom: 5,
       styles: darkMapStyle,
       mapTypeControl: false,
       streetViewControl: false,

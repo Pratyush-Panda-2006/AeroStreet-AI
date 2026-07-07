@@ -190,6 +190,38 @@ export const DEMO_DISTRICTS_BY_STATE = {
     { id: 'thane', name: 'Thane', state: 'Maharashtra', aqi: 135, coordinates: { lat: 19.2183, lng: 72.9781 }, pollutants: [{ name: 'PM2.5', value: 60, unit: 'µg/m³' }] },
     { id: 'nashik', name: 'Nashik', state: 'Maharashtra', aqi: 88, coordinates: { lat: 19.9975, lng: 73.7898 }, pollutants: [{ name: 'PM2.5', value: 40, unit: 'µg/m³' }] },
   ],
+  'in-dl': [
+    { id: 'delhi-n', name: 'North Delhi', state: 'Delhi', aqi: 310, coordinates: { lat: 28.7041, lng: 77.1025 }, pollutants: [{ name: 'PM2.5', value: 165, unit: 'µg/m³' }] },
+    { id: 'delhi-w', name: 'West Delhi', state: 'Delhi', aqi: 330, coordinates: { lat: 28.6304, lng: 77.0878 }, pollutants: [{ name: 'PM2.5', value: 180, unit: 'µg/m³' }] },
+    { id: 'delhi-c', name: 'New Delhi Central', state: 'Delhi', aqi: 342, coordinates: { lat: 28.6139, lng: 77.2090 }, pollutants: [{ name: 'PM2.5', value: 195, unit: 'µg/m³' }] },
+    { id: 'delhi-e', name: 'East Delhi', state: 'Delhi', aqi: 365, coordinates: { lat: 28.6289, lng: 77.2882 }, pollutants: [{ name: 'PM2.5', value: 220, unit: 'µg/m³' }] },
+    { id: 'delhi-s', name: 'South Delhi', state: 'Delhi', aqi: 290, coordinates: { lat: 28.5355, lng: 77.2090 }, pollutants: [{ name: 'PM2.5', value: 145, unit: 'µg/m³' }] },
+  ],
+  'in-up': [
+    { id: 'up-noid', name: 'Noida', state: 'Uttar Pradesh', aqi: 320, coordinates: { lat: 28.5355, lng: 77.3910 }, pollutants: [{ name: 'PM2.5', value: 200, unit: 'µg/m³' }] },
+    { id: 'up-knp', name: 'Kanpur', state: 'Uttar Pradesh', aqi: 295, coordinates: { lat: 26.4499, lng: 80.3319 }, pollutants: [{ name: 'PM2.5', value: 175, unit: 'µg/m³' }] },
+    { id: 'up-lko', name: 'Lucknow', state: 'Uttar Pradesh', aqi: 280, coordinates: { lat: 26.8467, lng: 80.9462 }, pollutants: [{ name: 'PM2.5', value: 160, unit: 'µg/m³' }] },
+  ],
+  'in-br': [
+    { id: 'br-pat', name: 'Patna', state: 'Bihar', aqi: 230, coordinates: { lat: 25.5941, lng: 85.1376 }, pollutants: [{ name: 'PM2.5', value: 130, unit: 'µg/m³' }] },
+    { id: 'br-gay', name: 'Gaya', state: 'Bihar', aqi: 180, coordinates: { lat: 24.7914, lng: 84.9997 }, pollutants: [{ name: 'PM2.5', value: 95, unit: 'µg/m³' }] },
+    { id: 'br-muz', name: 'Muzaffarpur', state: 'Bihar', aqi: 210, coordinates: { lat: 26.1197, lng: 85.3910 }, pollutants: [{ name: 'PM2.5', value: 115, unit: 'µg/m³' }] },
+  ],
+  'in-rj': [
+    { id: 'rj-jpr', name: 'Jaipur', state: 'Rajasthan', aqi: 190, coordinates: { lat: 26.9124, lng: 75.7873 }, pollutants: [{ name: 'PM2.5', value: 100, unit: 'µg/m³' }] },
+    { id: 'rj-jdp', name: 'Jodhpur', state: 'Rajasthan', aqi: 140, coordinates: { lat: 26.2389, lng: 73.0243 }, pollutants: [{ name: 'PM2.5', value: 65, unit: 'µg/m³' }] },
+    { id: 'rj-udp', name: 'Udaipur', state: 'Rajasthan', aqi: 115, coordinates: { lat: 24.5854, lng: 73.7125 }, pollutants: [{ name: 'PM2.5', value: 50, unit: 'µg/m³' }] },
+  ],
+  'in-gj': [
+    { id: 'gj-ahd', name: 'Ahmedabad', state: 'Gujarat', aqi: 120, coordinates: { lat: 23.0225, lng: 72.5714 }, pollutants: [{ name: 'PM2.5', value: 55, unit: 'µg/m³' }] },
+    { id: 'gj-srt', name: 'Surat', state: 'Gujarat', aqi: 110, coordinates: { lat: 21.1702, lng: 72.8311 }, pollutants: [{ name: 'PM2.5', value: 48, unit: 'µg/m³' }] },
+    { id: 'gj-vad', name: 'Vadodara', state: 'Gujarat', aqi: 95, coordinates: { lat: 22.3072, lng: 73.1812 }, pollutants: [{ name: 'PM2.5', value: 40, unit: 'µg/m³' }] },
+  ],
+  'in-tn': [
+    { id: 'tn-chn', name: 'Chennai', state: 'Tamil Nadu', aqi: 75, coordinates: { lat: 13.0827, lng: 80.2707 }, pollutants: [{ name: 'PM2.5', value: 25, unit: 'µg/m³' }] },
+    { id: 'tn-cbe', name: 'Coimbatore', state: 'Tamil Nadu', aqi: 52, coordinates: { lat: 11.0168, lng: 76.9558 }, pollutants: [{ name: 'PM2.5', value: 15, unit: 'µg/m³' }] },
+    { id: 'tn-mdu', name: 'Madurai', state: 'Tamil Nadu', aqi: 62, coordinates: { lat: 9.9252, lng: 78.1198 }, pollutants: [{ name: 'PM2.5', value: 18, unit: 'µg/m³' }] },
+  ],
 };
 
 export const DEMO_DISTRICTS = [

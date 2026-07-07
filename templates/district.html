@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>District Dashboard — IndianAQI</title>
+  <title>District Dashboard — AeroStreet-AI</title>
   <meta name="description" content="State and district-level interactive air quality dashboard. Track specific regional spikes, sensor outputs, and local hotspot monitors."/>
   
   <!-- Fontshare Satoshi Font -->
@@ -70,7 +70,7 @@
   <header class="fixed top-0 left-0 right-0 h-16 z-50 glass-panel border-b border-card-border/60 flex items-center justify-between px-6 lg:px-12">
     <div class="flex items-center gap-3">
       <div class="w-8 h-8 rounded-lg bg-deep-slate flex items-center justify-center text-white font-bold text-lg select-none">I</div>
-      <a href="/national.html" class="font-bold text-lg tracking-tight text-slate-900 select-none">IndianAQI</a>
+      <a href="/national.html" class="font-bold text-lg tracking-tight text-slate-900 select-none">AeroStreet-AI</a>
     </div>
     
     <nav class="hidden md:flex items-center gap-8">
@@ -82,6 +82,9 @@
       </a>
       <a href="/municipality.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
         <span class="material-symbols-outlined text-[18px]">analytics</span> Municipality Hub
+      </a>
+      <a href="/forecast.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">cloud</span> AQI Forecast
       </a>
       <a href="#" id="nav-community-link" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
         <span class="material-symbols-outlined text-[18px]">groups</span> Community
@@ -112,6 +115,18 @@
           <input id="sidebar-search" type="text" placeholder="Find state or district..." 
             class="w-full pl-7 pr-3 py-1.5 border border-card-border bg-white rounded-lg text-xs outline-none focus:border-primary transition-colors placeholder:text-slate-400"/>
         </div>
+
+        <!-- Sorting Controls -->
+        <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+          <span class="font-bold text-[9px] uppercase tracking-wider text-slate-400 flex items-center gap-0.5">
+            <span class="material-symbols-outlined text-[12px]">filter_list</span> Sort By
+          </span>
+          <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5 border border-slate-200/50">
+            <button id="sort-highest" class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-white text-slate-800 shadow-sm transition-all">Highest</button>
+            <button id="sort-lowest" class="px-1.5 py-0.5 rounded text-[9px] font-semibold text-slate-500 hover:text-slate-800 transition-all">Lowest</button>
+            <button id="sort-alpha" class="px-1.5 py-0.5 rounded text-[9px] font-semibold text-slate-500 hover:text-slate-800 transition-all">A-Z</button>
+          </div>
+        </div>
         
         <!-- Comparison Action -->
         <button id="compare-districts-btn" class="w-full py-1.5 border border-primary/30 text-primary hover:bg-blue-50/50 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors">
@@ -141,6 +156,10 @@
             <span class="w-2.5 h-2.5 rounded-full bg-error"></span>
             <span>301+</span>
           </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px]">
+          <span class="text-slate-400 font-semibold">WAQI Live Feed</span>
+          <span id="waqi-status-badge" class="px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-400 border border-slate-200">Checking...</span>
         </div>
       </div>
     </aside>
@@ -192,6 +211,11 @@
         <button id="toggle-predictive-map" class="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white">
           <span class="material-symbols-outlined text-[16px]">insights</span>
           3D AI Heatmap
+        </button>
+        <div class="w-px h-5 bg-slate-800 mx-1"></div>
+        <button id="toggle-weather-vectors" class="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white">
+          <span class="material-symbols-outlined text-[16px]">air</span>
+          Wind Flow
         </button>
       </div>
     </div>
