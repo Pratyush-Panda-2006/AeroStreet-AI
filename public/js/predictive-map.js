@@ -107,7 +107,7 @@ export async function initPredictiveHeatmap(containerId) {
     <div id="predictive-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 z-30 transition-opacity duration-300">
       <div class="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin mb-4"></div>
       <p class="text-sm font-semibold text-white">Consulting Gemini environmental forecast...</p>
-      <p class="text-[11px] text-slate-400 mt-1">Generating 24hr predicted Delhi AQI coordinates</p>
+      <p class="text-[11px] text-slate-400 mt-1">Generating 24hr predicted pan-India AQI heatmap</p>
     </div>
     <div id="predictive-map-canvas" class="w-full h-full"></div>
   `;
@@ -159,8 +159,8 @@ export async function initPredictiveHeatmap(containerId) {
       data: predictedAqiData,
       getPosition: d => d.coordinates,
       getWeight: d => d.aqiPrediction,
-      radiusPixels: 60,
-      intensity: 2.0,
+      radiusPixels: 45,
+      intensity: 1.5,
       colorRange: [
         [34, 197, 94],   // Green (Good) - 22c55e
         [234, 179, 8],   // Yellow (Moderate) - eab308
