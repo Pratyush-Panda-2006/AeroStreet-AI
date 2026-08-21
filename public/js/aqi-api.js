@@ -1,17 +1,19 @@
 // ============================================
-// IndianAQI — WAQI API Integration
+// IndianAQI — WAQI & IQAir AirVisual API Integration
 // ============================================
+
+const IQAIR_FALLBACK_KEY = 'dc690c3c-9182-4108-8adb-bb3b2c1dde83';
+const localCache = new Map();
 
 export async function fetchLiveStations(lat, lng, radiusDegrees = 2.5) {
   const token = window.__AEROSTREET_CONFIG__?.waqiApiToken;
   
   if (!token || token === 'your_waqi_api_token') {
     console.warn('[WAQI] No valid WAQI API token configured. Falling back to mock data.');
-    return null; // Return null to signal fallback to mock data
+    return null;
   }
 
   try {
-    // Calculate a rough bounding box around the state center
     const lat1 = lat - radiusDegrees;
     const lng1 = lng - radiusDegrees;
     const lat2 = lat + radiusDegrees;
@@ -29,12 +31,11 @@ export async function fetchLiveStations(lat, lng, radiusDegrees = 2.5) {
       throw new Error(`WAQI API returned error: ${json.data}`);
     }
 
-    // Filter out stations with invalid AQI (like "-")
     return (json.data || [])
       .filter(station => station.aqi && !isNaN(parseInt(station.aqi, 10)))
       .map(station => ({
         id: `waqi-${station.uid}`,
-        name: station.station.name.split(',')[0], // Use the first part of the name for brevity
+        name: station.station.name.split(',')[0],
         fullName: station.station.name,
         aqi: parseInt(station.aqi, 10),
         coordinates: { lat: station.lat, lng: station.lon },
@@ -67,4 +68,80 @@ export async function fetchNearestAQI(lat, lng) {
     console.error('[WAQI] Failed to fetch nearest AQI:', error);
     return null;
   }
+}
+
+// ============================================
+// IQAir AirVisual API Client with Dual-Transport
+// ============================================
+
+export async function fetchIQAirNearest(lat, lng) {
+  const cacheKey = `iqair_${parseFloat(lat).toFixed(2)}_${parseFloat(lng).toFixed(2)}`;
+  const cached = localCache.get(cacheKey);
+  if (cached && (Date.now() - cached.time < 15 * 60 * 1000)) {
+    return cached.data;
+  }
+
+  // 1. Try Backend Proxy first
+  try {
+    const response = await fetch(`/api/iqair/nearest?lat=${lat}&lon=${lng}`);
+    if (response.ok) {
+      const json = await response.json();
+      if (json.status === 'success' && json.data) {
+        const pol = json.data.current?.pollution;
+        const weather = json.data.current?.weather;
+        const result = {
+          city: json.data.city,
+          state: json.data.state,
+          country: json.data.country,
+          aqi: pol?.aqius ?? 0,
+          mainPollutant: pol?.mainus ?? 'PM2.5',
+          temperature: weather?.tp,
+          humidity: weather?.hu,
+          windSpeed: weather?.ws,
+          source: 'IQAir AirVisual Live',
+          timestamp: pol?.ts
+        };
+        localCache.set(cacheKey, { time: Date.now(), data: result });
+        return result;
+      }
+    }
+  } catch (e) {
+    // Proxy unavailable, fallback to direct API
+  }
+
+  // 2. Direct IQAir API fallback
+  const apiKey = window.__AEROSTREET_CONFIG__?.iqairApiKey || IQAIR_FALLBACK_KEY;
+  try {
+    const directUrl = `https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lng}&key=${apiKey}`;
+    const response = await fetch(directUrl);
+    if (!response.ok) return null;
+    const json = await response.json();
+    if (json.status === 'success' && json.data) {
+      const pol = json.data.current?.pollution;
+      const weather = json.data.current?.weather;
+      const result = {
+        city: json.data.city,
+        state: json.data.state,
+        country: json.data.country,
+        aqi: pol?.aqius ?? 0,
+        mainPollutant: pol?.mainus ?? 'PM2.5',
+        temperature: weather?.tp,
+        humidity: weather?.hu,
+        windSpeed: weather?.ws,
+        source: 'IQAir AirVisual Live',
+        timestamp: pol?.ts
+      };
+      localCache.set(cacheKey, { time: Date.now(), data: result });
+      return result;
+    }
+  } catch (err) {
+    console.warn('[IQAir Direct Client Error]', err.message);
+  }
+
+  return null;
+}
+
+export async function fetchIQAirForState(stateObj) {
+  if (!stateObj || !stateObj.coordinates) return null;
+  return await fetchIQAirNearest(stateObj.coordinates.lat, stateObj.coordinates.lng);
 }

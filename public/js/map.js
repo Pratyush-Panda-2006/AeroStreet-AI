@@ -9,7 +9,7 @@ import { AQI_LEVELS, getAQILevel, IS_DEMO_MODE } from './config.js';
 import { STATE_PATHS, STATE_DISTRICTS_MAP } from './india-map-svg.js';
 import { DEMO_STATES, DEMO_DISTRICTS_BY_STATE, DEMO_HOTSPOTS } from './demo-data.js';
 import { getDb, COLLECTIONS, isFirebaseAvailable } from './firebase-init.js';
-import { fetchLiveStations } from './aqi-api.js';
+import { fetchLiveStations, fetchIQAirNearest, fetchIQAirForState } from './aqi-api.js';
 
 // Bounding box coordinate mappings from lat/lng to custom local SVG coordinates
 const STATE_MAP_BOUNDS = {
@@ -115,7 +115,48 @@ export async function initMap(containerId) {
 /**
  * Fetch map data (sensor hotspots & citizen reports) with timeout
  */
+
+// Fetch live state AQIs from IQAir in parallel batches
+async function enrichStatesWithLiveIQAir() {
+  console.log('[IQAir] Fetching live state AQI data from IQAir API...');
+  
+  // Prioritize top states first for instant responsiveness
+  const priorityStates = ['in-dl', 'in-mh', 'in-ka', 'in-wb', 'in-up', 'in-gj', 'in-tn', 'in-rj', 'in-pb', 'in-ap', 'in-tg', 'in-br'];
+  
+  for (const stateId of priorityStates) {
+    const state = DEMO_STATES.find(s => s.id === stateId);
+    if (state && state.coordinates) {
+      fetchIQAirNearest(state.coordinates.lat, state.coordinates.lng).then(live => {
+        if (live && live.aqi) {
+          state.aqi = live.aqi;
+          state.temperature = live.temperature;
+          state.humidity = live.humidity;
+          state.source = 'IQAir Live';
+          
+          // Re-render map and update UI if still in national view
+          if (!currentZoomedState) {
+            updateLiveStateVisuals(state.id, state.aqi);
+          }
+        }
+      }).catch(() => {});
+    }
+  }
+}
+
+function updateLiveStateVisuals(stateId, newAqi) {
+  const path = document.getElementById(`state-${stateId}`);
+  if (!path) return;
+  const level = getAQILevel(newAqi);
+  path.setAttribute("fill", `${level.color}50`);
+  
+  // Also notify listeners to refresh sidebar KPIs and lists
+  if (onStateChangeCallback) {
+    onStateChangeCallback({ view: 'national', data: DEMO_STATES });
+  }
+}
+
 async function loadMapData() {
+  enrichStatesWithLiveIQAir();
   if (isFirebaseAvailable()) {
     try {
       const db = await getDb();
@@ -158,18 +199,17 @@ export function renderNationalMap() {
   const container = document.getElementById(mapContainerId);
   if (!container) return;
 
-  // Create SVG wrapper
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("viewBox", "0 0 600 650");
-  svg.setAttribute("class", "w-full h-full max-h-[500px] select-none transition-all duration-500 animate-[fadeIn_0.5s_ease-out]");
-  svg.style.filter = "drop-shadow(0 10px 15px rgba(2, 6, 23, 0.08))";
+  svg.setAttribute("viewBox", "0 0 612 696");
+  svg.setAttribute("class", "india-svg-map w-full h-full select-none transition-all duration-500 animate-[fadeIn_0.4s_ease-out]");
+  svg.style.filter = "drop-shadow(0 12px 28px rgba(2, 6, 23, 0.08))";
 
-  // Render Grid lines pattern in background for enterprise look
+  // Grid background
   const defs = document.createElementNS(svgNS, "defs");
   defs.innerHTML = `
-    <pattern id="mapGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    <pattern id="mapGrid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M 36 0 L 0 0 0 36" fill="none" stroke="#f1f5f9" stroke-width="0.8"/>
     </pattern>
   `;
   svg.appendChild(defs);
@@ -178,43 +218,75 @@ export function renderNationalMap() {
   gridRect.setAttribute("width", "100%");
   gridRect.setAttribute("height", "100%");
   gridRect.setAttribute("fill", "url(#mapGrid)");
+  gridRect.setAttribute("rx", "16");
   svg.appendChild(gridRect);
 
-  // Render state paths
+  const g = document.createElementNS(svgNS, "g");
+
+  // Render State Paths
   STATE_PATHS.forEach(state => {
-    // Find state data
-    const stateData = DEMO_STATES.find(s => s.id === state.id) || { aqi: 50 };
+    const stateData = DEMO_STATES.find(s => s.id === state.id || s.id === state.rawId || s.name.toLowerCase() === state.name.toLowerCase()) || { aqi: 50, capital: 'Capital' };
     const level = getAQILevel(stateData.aqi);
+
+    const baseFill = `${level.color}45`; // Subtle translucent state tint
+    const hoverFill = `${level.color}80`; // Brighter light tint of exact AQI color
+    const strokeColor = level.color;
 
     const path = document.createElementNS(svgNS, "path");
     path.setAttribute("d", state.path);
-    path.setAttribute("class", "interactive-map-area transition-all duration-300 ease-in-out");
-    path.setAttribute("stroke", "#cbd5e1");
-    path.setAttribute("stroke-width", "1.5");
-    path.setAttribute("fill", `${level.color}45`); // Soft tint
+    path.setAttribute("id", `state-${state.id}`);
+    path.setAttribute("data-id", state.id);
+    path.setAttribute("class", "interactive-state-path");
+    path.setAttribute("stroke", strokeColor);
+    path.setAttribute("stroke-width", "0.9");
+    path.setAttribute("stroke-linejoin", "round");
+    path.setAttribute("fill", baseFill);
     path.style.cursor = "pointer";
+    path.style.transition = "all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1)";
+    path.style.transformOrigin = "center";
 
-    // Set custom hover interactions
+    // Dynamic Hover using state's own AQI light tint (not generic orange)
     path.addEventListener('mouseenter', (e) => {
-      path.setAttribute("fill", `${level.color}80`);
-      path.setAttribute("stroke", "#2563eb");
-      path.setAttribute("stroke-width", "2");
+      path.setAttribute("fill", hoverFill);
+      path.setAttribute("stroke", strokeColor);
+      path.setAttribute("stroke-width", "2.2");
+      path.style.filter = `drop-shadow(0 0 10px ${level.color}90)`;
+      path.style.zIndex = "10";
+
+      const rankBadge = stateData.rank ? `<span class="text-[10px] text-slate-400 font-mono">Rank #${stateData.rank}</span>` : '';
+
       showMapTooltip(e, `
-        <div class="font-bold text-slate-900">${state.name}</div>
-        <div class="text-xs text-slate-500 mt-0.5">Capital: ${stateData.capital || 'N/A'}</div>
-        <div class="flex items-center gap-2 mt-2 pt-1 border-t border-slate-100">
-          <span class="w-2.5 h-2.5 rounded-full" style="background: ${level.color}"></span>
-          <span class="font-semibold text-slate-700">AQI ${stateData.aqi}</span>
-          <span class="text-[10px] uppercase font-bold text-slate-400 font-mono">(${level.label})</span>
+        <div class="p-3.5 bg-slate-950/95 backdrop-blur-md rounded-xl border text-white shadow-2xl min-w-[220px]" style="border-color: ${level.color}60;">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-bold text-sm text-white">📍 ${state.name}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" style="background: ${level.color}25; color: ${level.color}; border: 1px solid ${level.color}60;">AQI ${stateData.aqi}</span>
+          </div>
+          <div class="text-[11px] text-slate-300 mt-1.5 flex items-center justify-between">
+            <span>Capital</span>
+            <strong class="text-white">${stateData.capital || 'N/A'}</strong>
+          </div>
+          ${stateData.temperature !== undefined ? `
+            <div class="text-[11px] text-slate-300 mt-1 flex items-center justify-between">
+              <span>Weather</span>
+              <span class="text-slate-200">${stateData.temperature}°C &bull; ${stateData.humidity}% hum</span>
+            </div>
+          ` : ''}
+          <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-[10px]">
+            <span class="text-slate-400 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full" style="background: ${level.color};"></span>
+              ${level.label}
+            </span>
+            ${rankBadge}
+          </div>
         </div>
-        ${STATE_DISTRICTS_MAP[state.id] ? `<div class="text-[10px] text-blue-600 font-semibold mt-1">🖱 Click to check district AQIs</div>` : ''}
       `);
     });
 
     path.addEventListener('mouseleave', () => {
-      path.setAttribute("fill", `${level.color}45`);
-      path.setAttribute("stroke", "#cbd5e1");
-      path.setAttribute("stroke-width", "1.5");
+      path.setAttribute("fill", baseFill);
+      path.setAttribute("stroke", strokeColor);
+      path.setAttribute("stroke-width", "0.9");
+      path.style.filter = "none";
       hideMapTooltip();
     });
 
@@ -226,10 +298,12 @@ export function renderNationalMap() {
       zoomToState(state.id);
     });
 
-    svg.appendChild(path);
+    g.appendChild(path);
   });
 
-  // Render floating overlay indicators for major cities on the SVG map
+  svg.appendChild(g);
+
+  // Render major city pin coordinates
   renderNationalCityPins(svg, svgNS);
 
   if (showWeatherVectors) {
@@ -239,7 +313,6 @@ export function renderNationalMap() {
   container.innerHTML = '';
   container.appendChild(svg);
 
-  // Fire state change callback
   if (onStateChangeCallback) {
     onStateChangeCallback({ view: 'national', data: DEMO_STATES });
   }
@@ -250,35 +323,41 @@ export function renderNationalMap() {
  */
 function renderNationalCityPins(svg, svgNS) {
   const cities = [
-    { name: 'Delhi', cx: 235, cy: 165, aqi: 345 },
-    { name: 'Mumbai', cx: 145, cy: 330, aqi: 142 },
-    { name: 'Bengaluru', cx: 210, cy: 470, aqi: 55 },
-    { name: 'Kolkata', cx: 435, cy: 320, aqi: 178 }
+    { name: 'Delhi', cx: 195, cy: 200, aqi: 345 },
+    { name: 'Mumbai', cx: 148, cy: 380, aqi: 142 },
+    { name: 'Bengaluru', cx: 215, cy: 535, aqi: 55 },
+    { name: 'Kolkata', cx: 435, cy: 330, aqi: 178 },
+    { name: 'Lucknow', cx: 290, cy: 235, aqi: 434 },
+    { name: 'Hyderabad', cx: 280, cy: 425, aqi: 183 }
   ];
 
   cities.forEach(city => {
     const level = getAQILevel(city.aqi);
 
+    const pinGroup = document.createElementNS(svgNS, "g");
+    pinGroup.style.cursor = "pointer";
+
     // Outer glowing ring
     const glow = document.createElementNS(svgNS, "circle");
     glow.setAttribute("cx", city.cx);
     glow.setAttribute("cy", city.cy);
-    glow.setAttribute("r", "8");
+    glow.setAttribute("r", "9");
     glow.setAttribute("fill", level.color);
-    glow.setAttribute("opacity", "0.3");
-    glow.innerHTML = `<animate attributeName="r" values="6;12;6" dur="3s" repeatCount="indefinite" />`;
+    glow.setAttribute("opacity", "0.35");
+    glow.innerHTML = `<animate attributeName="r" values="7;14;7" dur="2.5s" repeatCount="indefinite" />`;
 
     // Inner solid core
     const core = document.createElementNS(svgNS, "circle");
     core.setAttribute("cx", city.cx);
     core.setAttribute("cy", city.cy);
-    core.setAttribute("r", "4");
+    core.setAttribute("r", "4.5");
     core.setAttribute("fill", level.color);
     core.setAttribute("stroke", "#ffffff");
-    core.setAttribute("stroke-width", "1");
+    core.setAttribute("stroke-width", "1.5");
 
-    svg.appendChild(glow);
-    svg.appendChild(core);
+    pinGroup.appendChild(glow);
+    pinGroup.appendChild(core);
+    svg.appendChild(pinGroup);
   });
 }
 

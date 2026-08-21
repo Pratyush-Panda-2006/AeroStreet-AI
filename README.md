@@ -1,133 +1,106 @@
-# IndianAQI 🌿
+# 🇮🇳 AeroStreet-AI — Real-Time Pan-India Air Quality & Municipal Intelligence Platform
 
-A real-time, high-performance citizen science and municipal action platform designed to monitor, report, and mitigate air quality and local pollution hotspots across India. Built on a premium corporate-enterprise design system using a responsive SVG coordinate map, Firebase real-time sync, and Gemini-powered analytical pipelines.
+[![Node.js](https://img.shields.io/badge/Node.js-v20+-68a063?style=for-the-badge&logo=node.js)](https://nodejs.org)
+[![Express](https://img.shields.io/badge/Express-4.21-black?style=for-the-badge&logo=express)](https://expressjs.com)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38bdf8?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com)
+[![IQAir AirVisual](https://img.shields.io/badge/IQAir-AirVisual_API-e11d48?style=for-the-badge)](https://www.iqair.com)
+[![Gemini AI](https://img.shields.io/badge/Gemini_AI-2.5_Flash-4285F4?style=for-the-badge&logo=google)](https://ai.google.dev)
 
----
-
-## 🚀 Key Features
-
-*   **Interactive Drill-Down SVG Map**:
-    *   **National View**: Interactive state-level air quality index (AQI) map of India with custom hover tooltips showing state capitals and live AQI levels.
-    *   **State-to-District Drill-down**: Click on any state (e.g. West Bengal, Maharashtra, Karnataka) to smoothly zoom in and transition the map viewport, displaying sub-district outlines (e.g. Kolkata, Howrah, Hooghly) and their localized AQI scores.
-    *   **Explorer Sidebar Sync**: Synchronized lists with live search filter functionality matching the zoomed map state.
-*   **Gemini AI-Powered Action Insights**:
-    *   Uses **Gemini 2.5 Flash** (via Google AI Studio) to parse environmental data, active local hotspots, and peak traffic hours.
-    *   Generates prioritized, actionable recommendations (Critical, High, Medium, Info) with estimated quantitative impacts for municipal officers.
-*   **Automated CCTV Pollution Spotting**:
-    *   Multimodal Python CCTV simulator that periodically scans virtual camera feeds across Indian traffic junctions.
-    *   Applies Gemini Vision API to analyze camera frames for illegal waste dumping, construction dust violations, and heavy vehicle smoke, automatically posting high-confidence alerts directly to the backend.
-*   **High-Fidelity Evidence Feed**:
-    *   A clean, modern gallery showing verified citizen-reported violations, complete with geotagged locations, status tracking (Under Investigation, Resolved, Pending Review), and image overlays.
-*   **Open Access Architecture**:
-    *   No logins or login barriers required to submit quick reports or RSVP to community cleanup and plantation initiatives.
-*   **Enterprise Dashboard Visuals**:
-    *   Built using Satoshi typography, sleek dark layouts, concentric highlight grids, glass-morphism panels, and SVG sparkline charts detailing 7-day AQI trends.
-    *   Operational toggles (CCTV Streams, MFA, IP Whitelists) and high-density System Operations tables.
+> An enterprise-grade environmental monitoring platform featuring **high-precision vector interactive maps for all 36 Indian States & Union Territories**, live multi-source sensor telemetry, 72-hour AI-driven AQI forecasting, and autonomous municipal action planning.
 
 ---
 
-## 🛠️ Technology Stack
+## 🌟 Key Highlights & Feature Matrix
 
-*   **Frontend**: HTML5, Vanilla JavaScript (ES Modules), TailwindCSS (v3), Material Icons.
-*   **Backend**: Node.js, Express.
-*   **AI Integration**: Google Gen AI SDK (`gemini-2.5-flash`), Gemini Vision API.
-*   **Database & Auth**: Firebase JS SDK & Firebase Admin SDK (Cloud Firestore for hotspots, citizen reports, RSVPs, and AI insights).
-*   **Multimodal Simulator**: Python (using `requests`, `python-dotenv`, and `google-generativeai`).
-
----
-
-## 📦 Directory Structure
-
-```text
-├── public/                  # Frontend Web Assets
-│   ├── national.html        # National Map & Core Landing Hub
-│   ├── district.html        # Interactive Drill-down Maps
-│   ├── municipality.html    # Command Center & AI Insights Hub
-│   ├── js/
-│   │   ├── app.js           # Page Initializer & UI Orchestrator
-│   │   ├── map.js           # SVG Map Renderer & Zoom Transitions
-│   │   ├── india-map-svg.js # SVG Viewbox Path Outlines for States/Districts
-│   │   ├── analytics.js     # AI Insights Fetch & SVG Sparkline Trend Charts
-│   │   ├── community.js     # Initiative Event Manager & Slot RSVPs
-│   │   ├── reports.js       # Citizen Report Submitters & Galleries
-│   │   └── config.js        # Global Application Configurations
-│   └── css/
-│       └── tailwind.css     # Design System & Satoshi Typography Styles
-├── server/                  # Node.js Backend Server
-│   ├── index.js             # API Router & Express Configuration
-│   ├── analytics-cron.js    # AI Recommendations Scheduler
-│   └── seed-data.js         # Initial Firebase Seeder
-├── simulator/               # CCTV Automated Scanner
-│   ├── cctv_simulator.py    # Python Multimodal Simulator Script
-│   └── requirements.txt     # Python Dependencies
-├── .env                     # Local Environment Config (Git Ignored)
-└── README.md                # Repository Documentation
+```
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │                           AeroStreet-AI Core Architecture              │
+  ├────────────────────────────────────────────────────────────────────────┤
+  │                                                                        │
+  │  [ 36 Indian States & UTs ] ──► High-Precision Vector SVG Map          │
+  │                                       │                                │
+  │  [ Live Telemetry Engines ]           ├─► Real-time Dynamic Tinting   │
+  │    ├─ IQAir AirVisual API             ├─► Light Hover Glow & Telemetry │
+  │    ├─ CPCB Central Sensors            └─► Sub-District Drilldowns      │
+  │    └─ WAQI Global Feeds                                                │
+  │                                                                        │
+  │  [ Municipal Command Center ] ──► CCTV Video Analytics & Alerts        │
+  │  [ Predictive AI Engine ]     ──► 72-Hour AQI Forecasting (Gemini 2.5) │
+  │                                                                        │
+  └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ⚙️ Installation & Setup
+## 📊 Comprehensive Pan-India State AQI Ranking
 
-### 1. Prerequisites
-*   Node.js (v18+)
-*   Python (v3.9+)
-*   A Firebase Project (Firestore enabled)
-*   A Gemini API Key (from Google AI Studio)
+| Rank | State / Union Territory | Capital | Representative Average AQI | Status | Monitored Level |
+| :---: | :--- | :--- | :---: | :---: | :--- |
+| **1** | **Delhi (NCT)** | New Delhi | **350** | 🔴 Very Poor | Heavy Particulate Load |
+| **2** | **Haryana** | Chandigarh | **290** | 🟠 Poor | Stubble & Industrial |
+| **3** | **Uttar Pradesh** | Lucknow | **265** | 🟠 Poor | Vehicular Density |
+| **4** | **Punjab** | Chandigarh | **235** | 🟠 Poor | Biomass Combustion |
+| **5** | **Bihar** | Patna | **230** | 🟠 Poor | Topographical Stagnation |
+| **6** | **Rajasthan** | Jaipur | **200** | 🟠 Poor | Mineral & Road Dust |
+| **7** | **West Bengal** | Kolkata | **170** | 🟡 Moderate | Urban Congestion |
+| **8** | **Jharkhand** | Ranchi | **160** | 🟡 Moderate | Mining & Thermal |
+| **9** | **Madhya Pradesh** | Bhopal | **145** | 🟡 Moderate | Central Transit Corridor |
+| **10** | **Gujarat** | Gandhinagar | **135** | 🟡 Moderate | Industrial Belt |
+| **11** | **Maharashtra** | Mumbai | **125** | 🟡 Moderate | Coastal Humidity & Traffic |
+| **12** | **Chhattisgarh** | Raipur | **120** | 🟡 Moderate | Heavy Manufacturing |
+| **13** | **Telangana** | Hyderabad | **105** | 🟡 Moderate | IT Corridors |
+| **14** | **Odisha** | Bhubaneswar | **105** | 🟡 Moderate | Coastal Industrial |
+| **15** | **Andhra Pradesh** | Amaravati | **95** | 🟢 Satisfactory | Coastal Aeration |
+| **16** | **Tamil Nadu** | Chennai | **85** | 🟢 Satisfactory | Maritime Ventilation |
+| **17** | **Karnataka** | Bengaluru | **80** | 🟢 Satisfactory | Plateau Air Currents |
+| **18** | **Uttarakhand** | Dehradun | **80** | 🟢 Satisfactory | Himalayan Foot-hills |
+| **19** | **Jammu & Kashmir** | Srinagar | **72** | 🟢 Satisfactory | Alpine Valleys |
+| **20** | **Himachal Pradesh** | Shimla | **65** | 🟢 Satisfactory | Mountain Breeze |
+| **21** | **Assam** | Dispur | **65** | 🟢 Satisfactory | Riverine Airflow |
+| **22** | **Goa** | Panaji | **55** | 🟢 Satisfactory | Arabian Sea Winds |
+| **23** | **Kerala** | Thiruvananthapuram | **50** | 🟢 Good | High Precipitation & Greenery |
+| **24** | **Tripura** | Agartala | **48** | 🟢 Good | Dense Forest Cover |
+| **25** | **Manipur** | Imphal | **42** | 🟢 Good | Northeast Highlands |
+| **26** | **Meghalaya** | Shillong | **40** | 🟢 Good | Clean Rain Belt |
+| **27** | **Nagaland** | Kohima | **35** | 🟢 Good | Pristine Forest Air |
+| **28** | **Mizoram** | Aizawl | **30** | 🟢 Good | Low Anthropogenic Density |
+| **29** | **Sikkim** | Gangtok | **28** | 🟢 Good | 100% Organic State |
+| **30** | **Arunachal Pradesh** | Itanagar | **22** | 🟢 Good | Pristine Himalayan Ecosystem |
 
-### 2. Configure Environment variables
-Create a `.env` file in the root directory:
-```env
-# Firebase Web Client Configuration
-FIREBASE_API_KEY=your_web_api_key
-FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
-FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-FIREBASE_APP_ID=your_app_id
-FIREBASE_MEASUREMENT_ID=your_measurement_id
+> **National Average AQI:** `~107 (Moderate)`
 
-# Google Gemini API Key
-GEMINI_API_KEY=your_gemini_api_key
+---
 
-# Optional: Firebase Admin Service Account (for writing live backend data to Firestore)
-FIREBASE_SERVICE_ACCOUNT_PATH=path/to/service-account.json
+## 🎨 Interactive Map & Hover Aesthetics
 
-# Server Config
-PORT=3000
-NODE_ENV=development
-```
+- **Authentic Contours**: 36 States/UTs mapped via ultra-precise SVG vectors (`viewBox: "0 0 612 696"`).
+- **Dynamic AQI Coloring**: Every region is tinted proportionally to its AQI severity.
+- **Smart Light Hover Glow**: Hovering triggers a luminous, light translucent tint of the state's exact AQI category with `drop-shadow` and stroke expansion.
+- **Micro-telemetry Tooltips**: Instant floating cards show state rank, capital, live temperature, humidity, and data source.
 
-### 3. Install Server Dependencies
+---
+
+## 🚀 Quick Start & Installation
+
 ```bash
+# 1. Clone or navigate to the directory
+cd "d:/Pratyush Panda/AQI"
+
+# 2. Install dependencies
 npm install
+
+# 3. Configure environment variables in .env
+# Includes: IQAIR_API_KEY, GEMINI_API_KEY, FIREBASE_CONFIG
+
+# 4. Start development server
+npm run dev
 ```
 
-### 4. Install Simulator Dependencies
-```bash
-pip install -r simulator/requirements.txt
-```
-
-### 5. Running the Application
-*   **Start the Web Server**:
-    ```bash
-    npm run dev
-    # Or run index.js directly
-    node server/index.js
-    ```
-    Access the app at `http://localhost:3000/national.html`.
-
-*   **Generate Recommendations via Analytics Cron**:
-    ```bash
-    node server/analytics-cron.js
-    ```
-
-*   **Run CCTV Multi-Camera Simulator**:
-    ```bash
-    python simulator/cctv_simulator.py 3
-    ```
+Open your browser at **`http://localhost:3000/district.html`** or **`http://localhost:3000/national.html`**.
 
 ---
 
-## 🛡️ License
-
-This project is open-source and free for everyone. Built with ❤️ for clean air and a greener India.
+## 📄 Licensing & Credits
+- **Data Providers**: CPCB India, IQAir AirVisual, World Air Quality Index (WAQI).
+- **AI Acceleration**: Google Gemini 2.5 Flash.
+- **Built for**: Clean Air Initiatives & Smart City Governance across India.

@@ -30,12 +30,12 @@ export const MAP_ZOOM = 5;
 
 /** AQI severity thresholds and colors (Corporate Professional style) */
 export const AQI_LEVELS = {
-  GOOD:         { min: 0,   max: 50,  label: 'Good',           color: '#16a34a', bgClass: 'bg-green-600' },
-  SATISFACTORY: { min: 51,  max: 100, label: 'Satisfactory',   color: '#22c55e', bgClass: 'bg-green-500' },
-  MODERATE:     { min: 101, max: 200, label: 'Moderate',       color: '#d97706', bgClass: 'bg-amber-600' },
-  POOR:         { min: 201, max: 300, label: 'Poor',            color: '#dc2626', bgClass: 'bg-red-600' },
-  VERY_POOR:    { min: 301, max: 400, label: 'Very Poor',       color: '#991b1b', bgClass: 'bg-red-800' },
-  SEVERE:       { min: 401, max: 500, label: 'Severe',          color: '#7f1d1d', bgClass: 'bg-red-950' },
+  GOOD:         { min: 0,   max: 50,  label: 'Good',           color: '#10b981', hoverColor: '#34d399', bgClass: 'bg-emerald-500' },
+  SATISFACTORY: { min: 51,  max: 100, label: 'Satisfactory',   color: '#84cc16', hoverColor: '#a3e635', bgClass: 'bg-lime-500' },
+  MODERATE:     { min: 101, max: 200, label: 'Moderate',       color: '#f59e0b', hoverColor: '#fbbf24', bgClass: 'bg-amber-500' },
+  POOR:         { min: 201, max: 300, label: 'Poor',            color: '#f97316', hoverColor: '#fb923c', bgClass: 'bg-orange-500' },
+  VERY_POOR:    { min: 301, max: 400, label: 'Very Poor',       color: '#ef4444', hoverColor: '#f87171', bgClass: 'bg-rose-500' },
+  SEVERE:       { min: 401, max: 500, label: 'Severe',          color: '#7c3aed', hoverColor: '#a78bfa', bgClass: 'bg-purple-600' },
 };
 
 /** Report categories */

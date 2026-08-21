@@ -47,6 +47,7 @@ app.use((req, res, next) => {
     geminiApiKey: "${process.env.GEMINI_API_KEY || ''}",
     windyApiKey: "${process.env.WINDY_API_KEY || ''}",
     waqiApiToken: "${process.env.WAQI_API_TOKEN || ''}",
+    iqairApiKey: "${process.env.IQAIR_API_KEY || ''}",
     apiBaseUrl: ""
   };
 </script>`;
@@ -58,6 +59,77 @@ app.use((req, res, next) => {
     return;
   }
   next();
+});
+
+
+// ── IQAir AirVisual API Cache & Proxy ──
+const iqairCache = new Map();
+const CACHE_TTL = 15 * 60 * 1000; // 15 minutes in ms
+
+app.get('/api/iqair/nearest', async (req, res) => {
+  const { lat, lon } = req.query;
+  const apiKey = process.env.IQAIR_API_KEY;
+
+  if (!apiKey) {
+    return res.status(400).json({ status: 'error', message: 'IQAIR_API_KEY not configured in .env' });
+  }
+
+  if (!lat || !lon) {
+    return res.status(400).json({ status: 'error', message: 'Missing lat or lon coordinates' });
+  }
+
+  const cacheKey = `nearest_${parseFloat(lat).toFixed(2)}_${parseFloat(lon).toFixed(2)}`;
+  const cached = iqairCache.get(cacheKey);
+  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+    return res.json({ status: 'success', source: 'cache', data: cached.data });
+  }
+
+  try {
+    const url = `http://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${apiKey}`;
+    const response = await fetch(url);
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      iqairCache.set(cacheKey, { timestamp: Date.now(), data: result.data });
+      return res.json({ status: 'success', source: 'live', data: result.data });
+    } else {
+      return res.status(502).json({ status: 'fail', message: result.data?.message || 'IQAir API error' });
+    }
+  } catch (error) {
+    console.error('[IQAir Server Proxy Error]', error.message);
+    return res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+app.get('/api/iqair/city', async (req, res) => {
+  const { city, state, country = 'India' } = req.query;
+  const apiKey = process.env.IQAIR_API_KEY;
+
+  if (!apiKey) {
+    return res.status(400).json({ status: 'error', message: 'IQAIR_API_KEY not configured in .env' });
+  }
+
+  const cacheKey = `city_${city}_${state}_${country}`.toLowerCase();
+  const cached = iqairCache.get(cacheKey);
+  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+    return res.json({ status: 'success', source: 'cache', data: cached.data });
+  }
+
+  try {
+    const url = `http://api.airvisual.com/v2/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}&key=${apiKey}`;
+    const response = await fetch(url);
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      iqairCache.set(cacheKey, { timestamp: Date.now(), data: result.data });
+      return res.json({ status: 'success', source: 'live', data: result.data });
+    } else {
+      return res.status(502).json({ status: 'fail', message: result.data?.message || 'IQAir API error' });
+    }
+  } catch (error) {
+    console.error('[IQAir City Proxy Error]', error.message);
+    return res.status(500).json({ status: 'error', message: error.message });
+  }
 });
 
 // ── Serve static files ──
