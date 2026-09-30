@@ -15,8 +15,24 @@ import multer from 'multer';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Pre-reference templates with literal paths so @vercel/nft traces and bundles them automatically
+const TEMPLATE_FILES = {
+  'national.html': join(__dirname, '../templates/national.html'),
+  'district.html': join(__dirname, '../templates/district.html'),
+  'municipality.html': join(__dirname, '../templates/municipality.html'),
+  'forecast.html': join(__dirname, '../templates/forecast.html'),
+  'community.html': join(__dirname, '../templates/community.html'),
+  'methodology.html': join(__dirname, '../templates/methodology.html'),
+  'privacy.html': join(__dirname, '../templates/privacy.html'),
+  'terms.html': join(__dirname, '../templates/terms.html'),
+};
+
 // Helper to reliably find assets across local development and Vercel serverless environments
 function resolveAssetPath(...segments) {
+  if (segments[0] === 'templates' && TEMPLATE_FILES[segments[1]] && fs.existsSync(TEMPLATE_FILES[segments[1]])) {
+    return TEMPLATE_FILES[segments[1]];
+  }
+
   const cwdCandidate = join(process.cwd(), ...segments);
   if (fs.existsSync(cwdCandidate)) return cwdCandidate;
 
@@ -25,6 +41,7 @@ function resolveAssetPath(...segments) {
 
   return cwdCandidate;
 }
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1238,11 +1255,12 @@ app.post('/api/reports', upload.single('image'), async (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    version: '1.0.0',
+    version: '1.0.2',
     mode: process.env.GEMINI_API_KEY ? 'live' : 'demo',
     timestamp: new Date().toISOString(),
   });
 });
+
 
 // ── Start server ──
 if (!process.env.VERCEL) {
