@@ -7,12 +7,24 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import multer from 'multer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Helper to reliably find assets across local development and Vercel serverless environments
+function resolveAssetPath(...segments) {
+  const cwdCandidate = join(process.cwd(), ...segments);
+  if (fs.existsSync(cwdCandidate)) return cwdCandidate;
+
+  const dirnameCandidate = join(__dirname, '..', ...segments);
+  if (fs.existsSync(dirnameCandidate)) return dirnameCandidate;
+
+  return cwdCandidate;
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,23 +33,55 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
+// Map clean URLs and file names to actual template files
+const TEMPLATE_MAP = {
+  '/': 'national.html',
+  '/index.html': 'national.html',
+  '/national': 'national.html',
+  '/national.html': 'national.html',
+  '/district': 'district.html',
+  '/districts': 'district.html',
+  '/district.html': 'district.html',
+  '/districts.html': 'district.html',
+  '/municipality': 'municipality.html',
+  '/municipality.html': 'municipality.html',
+  '/forecast': 'forecast.html',
+  '/forecast.html': 'forecast.html',
+  '/community': 'community.html',
+  '/community.html': 'community.html',
+  '/methodology': 'methodology.html',
+  '/methodology.html': 'methodology.html',
+  '/privacy': 'privacy.html',
+  '/privacy.html': 'privacy.html',
+  '/terms': 'terms.html',
+  '/terms.html': 'terms.html',
+};
+
 // ── Inject config into HTML pages ──
 // This middleware intercepts HTML requests and injects the
 // Firebase/Maps/Gemini config from server-side env vars.
 app.use((req, res, next) => {
-  if (req.path.endsWith('.html') || req.path === '/') {
-    let filePath = req.path === '/' ? 'national.html' : req.path.slice(1);
-    if (filePath === 'districts.html') {
-      filePath = 'district.html';
+  const cleanPath = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
+  let templateFile = TEMPLATE_MAP[cleanPath];
+
+  if (!templateFile && cleanPath.endsWith('.html')) {
+    templateFile = cleanPath.slice(1);
+    if (templateFile === 'districts.html') {
+      templateFile = 'district.html';
     }
-    const fullPath = join(process.cwd(), 'templates', filePath);
+  }
 
-    import('fs').then(fs => {
-      fs.readFile(fullPath, 'utf8', (err, html) => {
-        if (err) { next(); return; }
+  if (templateFile) {
+    const fullPath = resolveAssetPath('templates', templateFile);
 
-        // Inject config script before closing </head>
-        const configScript = `
+    fs.readFile(fullPath, 'utf8', (err, html) => {
+      if (err) {
+        console.error(`[AeroStreet] Error reading template "${templateFile}" at "${fullPath}":`, err.message);
+        return res.status(404).send(`Template not found: ${templateFile}`);
+      }
+
+      // Inject config script before closing </head>
+      const configScript = `
 <script>
   window.__AEROSTREET_CONFIG__ = {
     firebaseApiKey: "${process.env.FIREBASE_API_KEY || ''}",
@@ -55,14 +99,17 @@ app.use((req, res, next) => {
   };
 </script>`;
 
-        const injectedHtml = html.replace('</head>', configScript + '\n</head>');
-        res.type('html').send(injectedHtml);
-      });
+      const injectedHtml = html.includes('</head>')
+        ? html.replace('</head>', configScript + '\n</head>')
+        : html + configScript;
+
+      return res.type('html').send(injectedHtml);
     });
     return;
   }
   next();
 });
+
 
 
 // ── IQAir AirVisual API Cache & Proxy ──
@@ -136,7 +183,8 @@ app.get('/api/iqair/city', async (req, res) => {
 });
 
 // ── Serve static files ──
-app.use(express.static(join(process.cwd(), 'public')));
+const publicDir = resolveAssetPath('public');
+app.use(express.static(publicDir));
 
 // ── API Routes ──
 
