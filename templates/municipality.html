@@ -6,8 +6,10 @@
   <title>Municipality Hub — AeroStreet-AI</title>
   <meta name="description" content="Municipal command panel for review of citizen reports, automated CCTV alert lists, and AI Action planning."/>
   
-  <!-- Fontshare Satoshi Font -->
-  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet"/>
+  <!-- Google Fonts: Inter & Bricolage Grotesque -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
   
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -27,7 +29,9 @@
             error: "#dc2626"
           },
           fontFamily: {
-            sans: ['Satoshi', 'Inter', 'sans-serif']
+            sans: ['Inter', 'sans-serif'],
+            inter: ['Inter', 'sans-serif'],
+            bricolage: ['Bricolage Grotesque', 'sans-serif']
           },
           borderRadius: {
             'card': '12px',
@@ -40,8 +44,19 @@
   
   <style>
     body {
-      font-family: 'Satoshi', 'Inter', sans-serif;
+      font-family: 'Inter', sans-serif;
       color: #334155;
+    }
+    @keyframes muniMarquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    .animate-muni-marquee {
+      animation: muniMarquee 40s linear infinite;
+    }
+    .marquee-mask {
+      mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
     }
     .glass-panel {
       background: rgba(255, 255, 255, 0.7);
@@ -91,42 +106,172 @@
 </head>
 <body class="bg-white text-slate-800 min-h-screen flex flex-col antialiased">
 
-  <!-- Top Navigation Header -->
-  <header class="fixed top-0 left-0 right-0 h-16 z-50 glass-panel border-b border-card-border/60 flex items-center justify-between px-6 lg:px-12">
-    <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-deep-slate flex items-center justify-center text-white font-bold text-lg select-none">I</div>
-      <a href="/national.html" class="font-bold text-lg tracking-tight text-slate-900 select-none">AeroStreet-AI</a>
-      <span class="px-2 py-0.5 bg-blue-50 border border-blue-100 text-primary rounded-full text-[10px] font-bold ml-2">Municipality</span>
-    </div>
-    
-    <nav class="hidden md:flex items-center gap-8">
-      <a href="/national.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">map</span> National Map
-      </a>
-      <a href="/district.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">explore</span> Districts
-      </a>
-      <a href="/municipality.html" class="text-sm font-medium text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">analytics</span> Municipality Hub
-      </a>
-      <a href="/forecast.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">cloud</span> AQI Forecast
-      </a>
-      <a href="#" id="nav-community-link" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">groups</span> Community
-      </a>
-    </nav>
-    
-    <div class="flex items-center gap-4">
-      <button id="nav-report-btn" class="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-4 py-2 border border-card-border hover:bg-slate-50 text-slate-700 rounded-btn transition-colors">
-        <span class="material-symbols-outlined text-[16px]">add_circle</span> Quick Report
+  <!-- ============================================ -->
+  <!-- HERO 05 MOXO HEADER & HERO SECTION           -->
+  <!-- ============================================ -->
+  <section class="w-full bg-white font-inter" style="font-family: 'Inter', sans-serif;">
+    <!-- 1. Header & Navigation -->
+    <header class="w-full max-w-[1410px] mx-auto px-6 py-6 flex items-center justify-between">
+      <!-- Brand Logo (Left) -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#1c3e31] flex items-center justify-center text-white font-bold text-lg shadow-sm select-none">
+          A
+        </div>
+        <a href="/national.html" class="text-2xl font-bold tracking-tight text-[#131313] select-none">
+          AeroStreet-AI
+        </a>
+        <span class="px-2.5 py-0.5 bg-[#d2eac3] text-[#1c3e31] rounded-full text-[11px] font-bold tracking-wide uppercase ml-1">
+          MUNICIPALITY
+        </span>
+      </div>
+
+      <!-- Desktop Nav Links (Center, hidden lg:flex items-center gap-10) -->
+      <nav class="hidden lg:flex items-center gap-10">
+        <a href="/national.html" class="text-[15px] font-medium text-[#131313] hover:text-[#254c3d] transition-colors">
+          National Map
+        </a>
+        <a href="/districts.html" class="text-[15px] font-medium text-[#131313] hover:text-[#254c3d] transition-colors">
+          Districts
+        </a>
+        <a href="/municipality.html" class="text-[15px] font-medium text-[#131313] hover:text-[#254c3d] transition-colors">
+          Municipality Hub
+        </a>
+        <a href="/forecast.html" class="text-[15px] font-medium text-[#131313] hover:text-[#254c3d] transition-colors">
+          AQI Forecast
+        </a>
+        <a href="/community.html" class="text-[15px] font-medium text-[#131313] hover:text-[#254c3d] transition-colors">
+          Community
+        </a>
+      </nav>
+
+      <!-- Desktop Actions (Right, hidden md:flex items-center gap-3) -->
+      <div class="hidden md:flex items-center gap-3">
+        <button id="hero-dispatch-notice-btn" class="px-6 py-3 rounded-full bg-[#d2eac3] text-[#1c3e31] font-semibold text-[15px] hover:bg-[#c5e2b0] transition-all active:scale-95 cursor-pointer">
+          Dispatch Notice
+        </button>
+        <button id="hero-quick-report-btn" class="px-6 py-3 rounded-full bg-[#1c3e31] text-white font-semibold text-[15px] flex items-center gap-2 hover:bg-[#143127] transition-all active:scale-95 group cursor-pointer">
+          Quick Report
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+        </button>
+        <!-- Legacy hook placeholders preserved for scripts -->
+        <button id="nav-report-btn" class="hidden"></button>
+        <img alt="user profile avatar" id="user-avatar" class="hidden" src=""/>
+      </div>
+
+      <!-- Mobile Menu Toggle (lg:hidden p-2 text-[#1c3e31]) -->
+      <button id="muni-mobile-menu-toggle" class="lg:hidden p-2 text-[#1c3e31] cursor-pointer" aria-label="Toggle navigation menu">
+        <svg id="muni-menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
+        <svg id="muni-close-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
       </button>
-      <img alt="user profile avatar" id="user-avatar" class="w-8 h-8 rounded-full border border-card-border/50 object-cover cursor-pointer hidden" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq0NM-3MIfoLB0WYgeMarhquCFzUBTCG3997CleBO-PGN_WtYpT1lpfuBFOzr_jd8AWbUCZ0Jqg0U_3oLAImWndwjJCJt9m2aVwEAoRCaMTezxG0JNJygEdN_N_2EY36cOCD1CRil6Gfh7s_nnpCtKSvgCprI7taiXZXkfT8J-Y6EjoVVCdoXOfdRYQSWk4SfXcJDsMbJaDulJjZVGo9j6fNetMPh2pFAAvWmsQEFoVnhvAZB-hKTCbGVYSsx6t4LtS84p6oyHjrI"/>
+    </header>
+
+    <!-- 2. Mobile Dropdown Menu (Conditional / hidden by default) -->
+    <div id="muni-mobile-menu" class="hidden lg:hidden bg-white border-b border-gray-100 px-6 py-8 overflow-hidden transition-all duration-300">
+      <div class="flex flex-col gap-6 text-lg font-medium text-[#131313] mb-8">
+        <a href="/national.html" class="hover:text-[#254c3d] transition-colors">National Map</a>
+        <a href="/districts.html" class="hover:text-[#254c3d] transition-colors">Districts</a>
+        <a href="/municipality.html" class="hover:text-[#254c3d] transition-colors">Municipality Hub</a>
+        <a href="/forecast.html" class="hover:text-[#254c3d] transition-colors">AQI Forecast</a>
+        <a href="/community.html" class="hover:text-[#254c3d] transition-colors">Community</a>
+      </div>
+      <div class="flex flex-col gap-3">
+        <button id="mobile-dispatch-notice-btn" class="w-full py-3.5 rounded-full bg-[#d2eac3] text-[#1c3e31] font-semibold text-center hover:bg-[#c5e2b0] transition-colors">
+          Dispatch Notice
+        </button>
+        <button id="mobile-quick-report-btn" class="w-full py-3.5 rounded-full bg-[#1c3e31] text-white font-semibold text-center flex items-center justify-center gap-2 hover:bg-[#143127] transition-colors">
+          Quick Report
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+        </button>
+      </div>
     </div>
-  </header>
+
+    <!-- 3. Hero Visual Container (px-4 md:px-10 pb-10) -->
+    <div class="px-4 md:px-10 pb-10">
+      <div class="relative w-full max-w-[1410px] mx-auto h-[600px] md:h-[720px] rounded-[32px] overflow-hidden group shadow-xl">
+        <!-- Background Image -->
+        <img
+          src="https://cdn.jiro.build/Sumon/Hero%205.png"
+          alt="Municipal Field Officers and Clean Air Action"
+          referrerpolicy="no-referrer"
+          class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+        />
+
+        <!-- Dark Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
+
+        <!-- Decorative Plus Icons Layer -->
+        <div class="absolute inset-0 pointer-events-none opacity-30 text-white">
+          <svg class="absolute top-1/4 left-1/4" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+          <svg class="absolute top-1/3 left-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+          <svg class="absolute top-1/2 left-1/3" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+          <svg class="absolute top-2/3 left-2/3" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+          <svg class="absolute top-1/4 left-3/4" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+        </div>
+
+        <!-- Bottom Hero Content Wrapper -->
+        <div class="relative z-10 w-full h-full flex flex-col md:flex-row items-end justify-between p-8 md:p-16 lg:p-20">
+          <!-- Left Content -->
+          <div class="max-w-[680px] flex flex-col gap-6">
+            <h1
+              class="text-[48px] md:text-[64px] lg:text-[72px] font-bold text-white leading-[1.1] tracking-tight"
+              style="font-family: 'Bricolage Grotesque', sans-serif;"
+            >
+              Rapid Action,<br />Zero Smog.
+            </h1>
+            <p class="text-lg md:text-xl text-white/90 leading-relaxed max-w-[540px]">
+              Empowering city municipal teams with automated CCTV hotspot spotting, real-time CPCB telemetry, and instant enforcement dispatch workflows.
+            </p>
+          </div>
+
+          <!-- Right Content / Civic Officer Highlight -->
+          <div class="mt-10 md:mt-0 flex flex-col items-center md:items-end gap-6">
+            <!-- Officer Avatars Cluster -->
+            <div class="flex flex-col items-center md:items-end gap-2">
+              <div class="flex -space-x-3">
+                <img
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop"
+                  alt="Responder 1"
+                  referrerpolicy="no-referrer"
+                  class="w-12 h-12 rounded-full border-2 border-white object-cover shadow"
+                />
+                <img
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop"
+                  alt="Responder 2"
+                  referrerpolicy="no-referrer"
+                  class="w-12 h-12 rounded-full border-2 border-white object-cover shadow"
+                />
+                <img
+                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop"
+                  alt="Responder 3"
+                  referrerpolicy="no-referrer"
+                  class="w-12 h-12 rounded-full border-2 border-white object-cover shadow"
+                />
+                <img
+                  src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop"
+                  alt="Responder 4"
+                  referrerpolicy="no-referrer"
+                  class="w-12 h-12 rounded-full border-2 border-white object-cover shadow"
+                />
+              </div>
+              <span class="text-white font-medium text-base">Active municipal responders on duty</span>
+            </div>
+
+            <!-- Primary CTA Button -->
+            <a
+              href="#operations-log"
+              class="px-8 py-4 rounded-full bg-[#1c3e31] text-white font-bold text-lg flex items-center gap-2 hover:bg-[#143127] transition-all active:scale-95 group shadow-2xl"
+            >
+              Manage Active Incidents
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- Content Workspace Container -->
-  <main class="flex-grow pt-16 flex overflow-hidden">
+  <main class="flex-grow flex overflow-hidden">
     <!-- Left Command Content -->
     <div class="flex-1 overflow-y-auto p-6 lg:p-10 space-y-8 select-none">
       
@@ -363,7 +508,7 @@
       </div>
 
       <!-- High-Density Incident Audit Log Table -->
-      <div class="border border-card-border rounded-card overflow-hidden">
+      <div id="operations-log" class="border border-card-border rounded-card overflow-hidden scroll-mt-8">
         <div class="p-4 bg-slate-50 border-b border-card-border flex items-center justify-between">
           <h3 class="font-bold text-slate-900 text-sm">System Operations & Incident Log</h3>
           <span class="px-2 py-0.5 bg-blue-50 border border-blue-100 text-primary rounded-full text-[9px] font-bold uppercase tracking-wider font-mono">Real-time sync</span>
@@ -447,6 +592,76 @@
 
   <!-- App logic bundle -->
   <script type="module" src="/js/app.js"></script>
+
+  <!-- Hero 05 Moxo Header & Hero Interactions -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Mobile menu toggle
+      const toggleBtn = document.getElementById('muni-mobile-menu-toggle');
+      const mobileMenu = document.getElementById('muni-mobile-menu');
+      const menuIcon = document.getElementById('muni-menu-icon');
+      const closeIcon = document.getElementById('muni-close-icon');
+
+      if (toggleBtn && mobileMenu) {
+        toggleBtn.addEventListener('click', () => {
+          const isHidden = mobileMenu.classList.contains('hidden');
+          if (isHidden) {
+            mobileMenu.classList.remove('hidden');
+            if (menuIcon) menuIcon.classList.add('hidden');
+            if (closeIcon) closeIcon.classList.remove('hidden');
+          } else {
+            mobileMenu.classList.add('hidden');
+            if (menuIcon) menuIcon.classList.remove('hidden');
+            if (closeIcon) closeIcon.classList.add('hidden');
+          }
+        });
+      }
+
+      // Quick Report triggers
+      const triggerReport = () => {
+        if (window.__aerostreet && typeof window.__aerostreet.showReportModal === 'function') {
+          window.__aerostreet.showReportModal();
+        } else if (typeof window.showReportModal === 'function') {
+          window.showReportModal();
+        } else {
+          const btn = document.getElementById('nav-report-btn');
+          if (btn) btn.click();
+        }
+      };
+
+      const heroReportBtn = document.getElementById('hero-quick-report-btn');
+      const mobileReportBtn = document.getElementById('mobile-quick-report-btn');
+      if (heroReportBtn) heroReportBtn.addEventListener('click', triggerReport);
+      if (mobileReportBtn) {
+        mobileReportBtn.addEventListener('click', () => {
+          if (mobileMenu) mobileMenu.classList.add('hidden');
+          triggerReport();
+        });
+      }
+
+      // Dispatch Notice triggers
+      const triggerDispatchNotice = () => {
+        const bulkPanel = document.getElementById('bulk-actions-panel');
+        if (bulkPanel) {
+          bulkPanel.classList.remove('hidden');
+          bulkPanel.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          const logTable = document.getElementById('operations-log');
+          if (logTable) logTable.scrollIntoView({ behavior: 'smooth' });
+        }
+      };
+
+      const heroDispatchBtn = document.getElementById('hero-dispatch-notice-btn');
+      const mobileDispatchBtn = document.getElementById('mobile-dispatch-notice-btn');
+      if (heroDispatchBtn) heroDispatchBtn.addEventListener('click', triggerDispatchNotice);
+      if (mobileDispatchBtn) {
+        mobileDispatchBtn.addEventListener('click', () => {
+          if (mobileMenu) mobileMenu.classList.add('hidden');
+          triggerDispatchNotice();
+        });
+      }
+    });
+  </script>
 
   <!-- Universal AeroStreet-AI Footer -->
   <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 text-xs py-12 px-6 lg:px-12 select-none">

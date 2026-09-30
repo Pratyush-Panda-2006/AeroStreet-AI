@@ -26,7 +26,10 @@ app.use(express.json({ limit: '10mb' }));
 // Firebase/Maps/Gemini config from server-side env vars.
 app.use((req, res, next) => {
   if (req.path.endsWith('.html') || req.path === '/') {
-    const filePath = req.path === '/' ? 'national.html' : req.path.slice(1);
+    let filePath = req.path === '/' ? 'national.html' : req.path.slice(1);
+    if (filePath === 'districts.html') {
+      filePath = 'district.html';
+    }
     const fullPath = join(process.cwd(), 'templates', filePath);
 
     import('fs').then(fs => {

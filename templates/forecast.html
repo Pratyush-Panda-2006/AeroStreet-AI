@@ -120,10 +120,10 @@
   </header>
 
   <!-- Work Area -->
-  <main class="pt-16 flex-1 flex flex-col md:flex-row p-6 gap-6 max-w-[1600px] w-full mx-auto overflow-hidden">
+  <main class="pt-20 pb-8 flex-1 flex flex-col md:flex-row p-6 gap-6 max-w-[1600px] w-full mx-auto">
     
     <!-- Left Sidebar: Controls -->
-    <aside class="w-full md:w-80 flex-shrink-0 flex flex-col gap-6">
+    <aside id="simulation-inputs" class="w-full md:w-80 flex-shrink-0 flex flex-col gap-6 scroll-mt-24">
       <div class="glass-card rounded-2xl p-5 space-y-5">
         <div>
           <h2 class="text-base font-bold text-slate-800 flex items-center gap-1.5">
@@ -209,7 +209,7 @@
     </aside>
     
     <!-- Right Panel: Chart and Policy Guidance -->
-    <div class="flex-grow flex flex-col gap-6 overflow-y-auto pr-1">
+    <div class="flex-grow flex flex-col gap-6">
       
       <!-- Chart Card -->
       <div class="glass-card rounded-3xl p-6 flex flex-col gap-4">
@@ -267,9 +267,226 @@
     
   </main>
 
+  <!-- ============================================ -->
+  <!-- FAQ 01 KELO ACCORDION SECTION               -->
+  <!-- ============================================ -->
+  <section class="w-full bg-white py-20 px-6 md:px-12 lg:px-20 border-t border-gray-100">
+    <div class="max-w-[1320px] mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+        
+        <!-- Left Column: Heading and Action Buttons -->
+        <div class="lg:col-span-5 flex flex-col items-start lg:sticky lg:top-28">
+          <h2 class="text-4xl md:text-5xl lg:text-[54px] font-bold text-[#111827] leading-[1.15] tracking-tight mb-8">
+            We're here to<br />
+            answer<br />
+            your questions..
+          </h2>
+
+          <div class="flex flex-wrap items-center gap-4">
+            <a
+              href="#simulation-inputs"
+              class="bg-[#059669] hover:bg-[#047857] text-white px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-md hover:shadow-emerald-900/10 active:scale-95 cursor-pointer"
+            >
+              Run Simulator
+            </a>
+            <a
+              href="/municipality.html"
+              class="border border-[#059669] text-[#059669] hover:bg-[#059669]/10 px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
+            >
+              View Dispatch Hub
+            </a>
+          </div>
+        </div>
+
+        <!-- Right Column: Accordion Questions -->
+        <div class="lg:col-span-7 flex flex-col divide-y divide-gray-200" id="forecast-faq-accordion">
+          
+          <!-- Item 1 -->
+          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="1">
+            <button
+              type="button"
+              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
+              aria-expanded="true"
+            >
+              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
+                How does the 14-day predictive AQI model calculate future trends?
+              </span>
+              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
+                <svg class="faq-minus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
+                <svg class="faq-plus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
+              </span>
+            </button>
+            <div class="faq-content overflow-hidden transition-all duration-300 ease-in-out">
+              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
+                Our predictive engine combines past 7-day CPCB and IQAir telemetry with diurnal meteorological forecasting. It continuously calculates the interaction between vehicular traffic density, industrial baseline output, ambient temperature, and surface wind speed to model boundary-layer dispersion.
+              </p>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="2">
+            <button
+              type="button"
+              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
+              aria-expanded="false"
+            >
+              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
+                What happens when I adjust the environmental input sliders?
+              </span>
+              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
+                <svg class="faq-minus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
+                <svg class="faq-plus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
+              </span>
+            </button>
+            <div class="faq-content hidden overflow-hidden transition-all duration-300 ease-in-out">
+              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
+                Adjusting traffic density, industrial output, wind speed, or temperature triggers a local heuristic recalculation of PM2.5 and PM10 accumulation rates. This dynamically updates the solid forecast curve for the next 7 days in real time.
+              </p>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="3">
+            <button
+              type="button"
+              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
+              aria-expanded="false"
+            >
+              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
+                How does 'Refine with Gemini AI' improve forecast accuracy?
+              </span>
+              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
+                <svg class="faq-minus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
+                <svg class="faq-plus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
+              </span>
+            </button>
+            <div class="faq-content hidden overflow-hidden transition-all duration-300 ease-in-out">
+              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
+                Clicking 'Refine with Gemini AI' sends your calibrated environmental variables alongside regional satellite inversion data to Google Gemini 2.5. The model detects non-linear weather shifts (e.g., thermal inversions or biomass plume drift) and generates policy-grade municipal mitigation advisories.
+              </p>
+            </div>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="4">
+            <button
+              type="button"
+              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
+              aria-expanded="false"
+            >
+              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
+                Are the historical data points verified by official government monitors?
+              </span>
+              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
+                <svg class="faq-minus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
+                <svg class="faq-plus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
+              </span>
+            </button>
+            <div class="faq-content hidden overflow-hidden transition-all duration-300 ease-in-out">
+              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
+                Yes. The dashed line representing the past 7 days is calibrated against official continuous ambient air quality monitoring stations (CAAQMS) operated by the Central Pollution Control Board (CPCB) and IQAir ground stations.
+              </p>
+            </div>
+          </div>
+
+          <!-- Item 5 -->
+          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="5">
+            <button
+              type="button"
+              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
+              aria-expanded="false"
+            >
+              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
+                Can local municipal bodies use these forecasts for Graded Response Action Plans (GRAP)?
+              </span>
+              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
+                <svg class="faq-minus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
+                <svg class="faq-plus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
+              </span>
+            </button>
+            <div class="faq-content hidden overflow-hidden transition-all duration-300 ease-in-out">
+              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
+                Yes. Urban local bodies and municipal dispatchers use the 72-hour and 7-day inversion curves to preemptively deploy anti-smog water mist canons, issue localized construction bans, and divert diesel transit corridors before critical thresholds are breached.
+              </p>
+            </div>
+          </div>
+
+          <!-- Item 6 -->
+          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="6">
+            <button
+              type="button"
+              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
+              aria-expanded="false"
+            >
+              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
+                How frequently is the live station forecast synchronized?
+              </span>
+              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
+                <svg class="faq-minus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
+                <svg class="faq-plus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
+              </span>
+            </button>
+            <div class="faq-content hidden overflow-hidden transition-all duration-300 ease-in-out">
+              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
+                Telemetry updates every 15 minutes across active monitoring stations in Delhi-NCR and major pan-India metropolitan clusters, recalculating atmospheric moisture and particulate stagnation curves automatically.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Global scripts -->
   <script type="module" src="/js/app.js"></script>
   <script type="module" src="/js/forecast-simulator.js"></script>
+
+  <!-- FAQ 01 Kelo Accordion Interactions -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const faqItems = document.querySelectorAll('#forecast-faq-accordion .faq-item');
+      faqItems.forEach(item => {
+        const trigger = item.querySelector('.faq-trigger');
+        const content = item.querySelector('.faq-content');
+        const plusIcon = item.querySelector('.faq-plus');
+        const minusIcon = item.querySelector('.faq-minus');
+
+        if (trigger && content) {
+          trigger.addEventListener('click', () => {
+            const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+
+            // Collapse all other items
+            faqItems.forEach(otherItem => {
+              if (otherItem !== item) {
+                const otherTrigger = otherItem.querySelector('.faq-trigger');
+                const otherContent = otherItem.querySelector('.faq-content');
+                const otherPlus = otherItem.querySelector('.faq-plus');
+                const otherMinus = otherItem.querySelector('.faq-minus');
+                if (otherTrigger) otherTrigger.setAttribute('aria-expanded', 'false');
+                if (otherContent) otherContent.classList.add('hidden');
+                if (otherPlus) otherPlus.classList.remove('hidden');
+                if (otherMinus) otherMinus.classList.add('hidden');
+              }
+            });
+
+            // Toggle current item
+            if (isExpanded) {
+              trigger.setAttribute('aria-expanded', 'false');
+              content.classList.add('hidden');
+              if (plusIcon) plusIcon.classList.remove('hidden');
+              if (minusIcon) minusIcon.classList.add('hidden');
+            } else {
+              trigger.setAttribute('aria-expanded', 'true');
+              content.classList.remove('hidden');
+              if (plusIcon) plusIcon.classList.add('hidden');
+              if (minusIcon) minusIcon.classList.remove('hidden');
+            }
+          });
+        }
+      });
+    });
+  </script>
 
   <!-- Universal AeroStreet-AI Footer -->
   <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 text-xs py-12 px-6 lg:px-12 select-none">

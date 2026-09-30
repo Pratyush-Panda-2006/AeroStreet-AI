@@ -6,8 +6,11 @@
   <title>AeroStreet-AI — Enterprise Air Quality Monitoring & Analytics Platform</title>
   <meta name="description" content="AeroStreet-AI is a high-performance enterprise dashboard for national-level air quality tracking, automated pollution spotting, and AI-powered municipal action recommendations."/>
   
-  <!-- Fontshare Satoshi Font -->
-  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet"/>
+  <!-- Google Fonts: Inter, DM Sans, Bricolage Grotesque & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
   
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -27,7 +30,7 @@
             error: "#dc2626"
           },
           fontFamily: {
-            sans: ['Satoshi', 'Inter', 'sans-serif']
+            sans: ['Inter', 'sans-serif']
           },
           borderRadius: {
             'card': '12px',
@@ -40,11 +43,42 @@
   
   <style>
     body {
-      font-family: 'Satoshi', 'Inter', sans-serif;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #000000;
+      color: #ffffff;
       line-height: 1.625;
-      color: #334155; /* Slate 600 */
     }
     
+    .liquid-glass {
+      background: rgba(0, 0, 0, 0.4);
+      background-blend-mode: luminosity;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: none;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .liquid-glass::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1.4px;
+      background: linear-gradient(
+        180deg,
+        rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 20%,
+        rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%,
+        rgba(255,255,255,0.1) 80%, rgba(255,255,255,0.3) 100%
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
     .grid-bg {
       background-image: linear-gradient(to right, rgba(226,232,240,0.4) 1px, transparent 1px),
                         linear-gradient(to bottom, rgba(226,232,240,0.4) 1px, transparent 1px);
@@ -58,14 +92,10 @@
       border: 1px solid rgba(226, 232, 240, 0.8);
     }
     
-    /* Smooth transitions */
     .interactive-card {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .interactive-card:hover {
-      background-color: #ffffff;
-      box-shadow: 0 20px 25px -5px rgba(2, 6, 23, 0.05), 0 8px 10px -6px rgba(2, 6, 23, 0.05);
-      border-color: #cbd5e1;
       transform: translateY(-2px);
     }
     
@@ -90,79 +120,197 @@
     }
   </style>
 </head>
-<body class="bg-white antialiased min-h-screen flex flex-col">
+<body class="antialiased min-h-screen flex flex-col bg-black text-white">
 
-  <!-- Fixed Navigation Header -->
-  <header class="fixed top-0 left-0 right-0 h-16 z-50 glass-panel border-b border-card-border/60 flex items-center justify-between px-6 lg:px-12">
-    <!-- Logo -->
-    <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-deep-slate flex items-center justify-center text-white font-bold text-lg select-none">I</div>
-      <a href="/national.html" class="font-bold text-lg tracking-tight text-slate-900 select-none">AeroStreet-AI</a>
-    </div>
-    
-    <!-- Navigation Links -->
-    <nav class="hidden md:flex items-center gap-8">
-      <a href="/national.html" class="text-sm font-medium text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">map</span> National Map
-      </a>
-      <a href="/district.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">explore</span> Districts
-      </a>
-      <a href="/municipality.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">analytics</span> Municipality Hub
-      </a>
-      <a href="/forecast.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">cloud</span> AQI Forecast
-      </a>
-      <a href="#" id="nav-community-link" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">groups</span> Community
-      </a>
-    </nav>
-    
-    <!-- CTA Actions -->
-    <div class="flex items-center gap-4">
-      <button id="nav-report-btn" class="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-4 py-2 border border-card-border hover:bg-slate-50 text-slate-700 rounded-btn transition-colors">
-        <span class="material-symbols-outlined text-[16px]">add_circle</span> Quick Report
-      </button>
-      <img alt="user profile avatar" id="user-avatar" class="w-8 h-8 rounded-full border border-card-border/50 object-cover cursor-pointer hidden" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq0NM-3MIfoLB0WYgeMarhquCFzUBTCG3997CleBO-PGN_WtYpT1lpfuBFOzr_jd8AWbUCZ0Jqg0U_3oLAImWndwjJCJt9m2aVwEAoRCaMTezxG0JNJygEdN_N_2EY36cOCD1CRil6Gfh7s_nnpCtKSvgCprI7taiXZXkfT8J-Y6EjoVVCdoXOfdRYQSWk4SfXcJDsMbJaDulJjZVGo9j6fNetMPh2pFAAvWmsQEFoVnhvAZB-hKTCbGVYSsx6t4LtS84p6oyHjrI"/>
-    </div>
-  </header>
+  <!-- VEX Ventures Video Glass Hero & Floating Navigation -->
+  <section class="relative w-full h-screen overflow-hidden bg-black flex flex-col">
+    <!-- Background Video: Play raw with zero dimming, no overlay -->
+    <video
+      id="hero-video"
+      autoplay
+      loop
+      muted
+      playsinline
+      class="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+      src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4"
+    ></video>
 
-  <!-- Hero Section -->
-  <section class="relative pt-32 pb-20 px-6 lg:px-12 grid-bg flex flex-col items-center text-center overflow-hidden border-b border-card-border/50">
-    <div class="max-w-4xl mx-auto space-y-6 animate-fadeInUp">
-      <!-- Status Badge -->
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-xs font-semibold text-primary">
-        <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
-        Live Monitoring Active — Version 2.5
+    <!-- Floating Navbar -->
+    <div class="relative z-10 w-full pt-6 px-6 md:px-12 lg:px-16">
+      <header class="liquid-glass rounded-xl px-4 py-2 flex items-center justify-between">
+        <!-- Left: Brand wordmark AeroStreet-AI with leading indicator block -->
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-base select-none backdrop-blur-sm">I</div>
+          <a href="/national.html" class="text-2xl font-semibold tracking-tight text-white select-none">AeroStreet-AI</a>
+        </div>
+
+        <!-- Center (hidden on mobile, flex on md+): Links mapped to AeroStreet pages -->
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="/national.html" class="text-sm text-white transition hover:text-gray-300 font-medium">National Map</a>
+          <a href="/districts.html" class="text-sm text-white transition hover:text-gray-300 font-medium">Districts</a>
+          <a href="/municipality.html" class="text-sm text-white transition hover:text-gray-300 font-medium">Municipality Hub</a>
+          <a href="/forecast.html" class="text-sm text-white transition hover:text-gray-300 font-medium">AQI Forecast</a>
+          <a href="/community.html" id="nav-community-link" class="text-sm text-white transition hover:text-gray-300 font-medium">Community</a>
+        </nav>
+
+        <!-- Right: Action button "Quick Report" wired to quick-report modal trigger -->
+        <div class="flex items-center gap-4">
+          <button id="nav-report-btn" class="bg-white text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition">
+            Quick Report
+          </button>
+          <img alt="user profile avatar" id="user-avatar" class="w-8 h-8 rounded-full border border-white/20 object-cover cursor-pointer hidden" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq0NM-3MIfoLB0WYgeMarhquCFzUBTCG3997CleBO-PGN_WtYpT1lpfuBFOzr_jd8AWbUCZ0Jqg0U_3oLAImWndwjJCJt9m2aVwEAoRCaMTezxG0JNJygEdN_N_2EY36cOCD1CRil6Gfh7s_nnpCtKSvgCprI7taiXZXkfT8J-Y6EjoVVCdoXOfdRYQSWk4SfXcJDsMbJaDulJjZVGo9j6fNetMPh2pFAAvWmsQEFoVnhvAZB-hKTCbGVYSsx6t4LtS84p6oyHjrI"/>
+        </div>
+      </header>
+    </div>
+
+    <!-- Bottom Hero Content Container -->
+    <div class="relative z-10 w-full flex-1 flex flex-col justify-end px-6 md:px-12 lg:px-16 pb-12 lg:pb-16">
+      <div class="w-full max-w-4xl">
+        <!-- Status Badge -->
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs text-white mb-4">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Live Monitoring Active — Version 2.5
+        </div>
+
+        <!-- Main Heading (AnimatedHeading) -->
+        <h1 id="hero-animated-heading" class="text-4xl md:text-5xl lg:text-6xl xl:text-7xl mb-4 text-white font-normal" style="letter-spacing: -0.04em;">
+          <span class="block">
+            <span class="inline-block whitespace-nowrap">Spotting</span>
+            <span class="inline-block whitespace-nowrap">and</span>
+            <span class="inline-block whitespace-nowrap">Fixing</span>
+            <span class="inline-block whitespace-nowrap">Local</span>
+          </span>
+          <span class="block">
+            <span class="inline-block whitespace-nowrap">Pollution</span>
+            <span class="inline-block whitespace-nowrap">Hotspots.</span>
+          </span>
+        </h1>
+
+        <!-- Subheading (FadeIn delay=800ms duration=1000ms) -->
+        <div class="fade-in-component" data-delay="800" data-duration="1000">
+          <p class="text-base md:text-lg text-gray-300 mb-5 max-w-xl">
+            Deploying high-performance air quality tracking, real-time citizen reporting, and automated AI command models across India's cities and states.
+          </p>
+        </div>
+
+        <!-- Button Row (FadeIn delay=1200ms duration=1000ms) -->
+        <div class="fade-in-component" data-delay="1200" data-duration="1000">
+          <div class="flex flex-wrap items-center gap-4">
+            <a href="#national-explorer" class="bg-white text-black px-8 py-3 rounded-lg font-medium transition hover:bg-gray-100 inline-flex items-center gap-2">
+              Explore Live Map →
+            </a>
+            <button id="hero-report-btn" class="liquid-glass border border-white/20 text-white px-8 py-3 rounded-lg font-medium transition duration-300 hover:bg-white hover:text-black">
+              Report Violation
+            </button>
+          </div>
+        </div>
       </div>
-      
-      <!-- Main Title -->
-      <h1 class="text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 leading-tight">
-        Spotting and Fixing Local <br/>
-        <span class="text-primary">Pollution Hotspots</span>
-      </h1>
-      
-      <!-- Subtitle -->
-      <p class="text-lg text-slate-500 max-w-2xl mx-auto font-normal">
-        Deploying high-performance air quality tracking, real-time citizen reporting, and automated AI command models across India's cities and states.
-      </p>
-      
-      <!-- Action buttons -->
-      <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
-        <a href="#dashboard-anchor" class="px-6 py-3 bg-primary hover:bg-primary-hover text-white text-sm font-semibold rounded-btn transition-colors inline-flex items-center gap-2 shadow-sm">
-          Explore Live Map <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-        </a>
-        <button id="hero-report-btn" class="px-6 py-3 border border-card-border bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-btn transition-colors inline-flex items-center gap-2">
-          <span class="material-symbols-outlined text-[18px]">add_photo_alternate</span> Report Violation
-        </button>
+    </div>
+  </section>
+
+  <!-- About Us 05 Moxo Section -->
+  <section class="w-full bg-white text-[#111827] py-[80px] px-6 md:px-[70px] relative" style="font-family: 'DM Sans', sans-serif;">
+    <div class="max-w-[1200px] mx-auto">
+      <!-- Row 1 — Header -->
+      <div class="flex flex-col md:flex-row justify-between items-start mb-16 gap-8">
+        <!-- Pill Badge -->
+        <div class="flex items-center gap-2 px-[14px] py-[6px] bg-black/5 border border-black/10 rounded-full">
+          <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+          <span class="text-[13px] text-gray-700 font-medium">About us</span>
+        </div>
+
+        <!-- Headline -->
+        <h2 class="text-[32px] md:text-[42px] font-[800] text-[#111827] leading-[1.2] md:w-[70%] text-left md:text-right ml-auto" style="font-family: 'Bricolage Grotesque', sans-serif;">
+          From real-time sensor grids to AI-powered surveillance for municipal action <br class="hidden md:block"/>to spotting and fixing pollution hotspots across India.
+        </h2>
+      </div>
+
+      <!-- Row 2 — Stats Bar -->
+      <div class="grid grid-cols-2 md:grid-cols-4 w-full mb-20 border-y border-[#e5e7eb] py-10">
+        <!-- Cell 1 -->
+        <div class="flex flex-col px-4 md:px-10 border-r border-[#e5e7eb]">
+          <div class="text-[32px] md:text-[42px] font-[700] text-[#111827] leading-tight">3,240+</div>
+          <div class="text-[13px] text-[#6b7280] font-medium mt-1">Active telemetry sensors</div>
+        </div>
+        <!-- Cell 2 -->
+        <div class="flex flex-col px-4 md:px-10 border-r border-[#e5e7eb]">
+          <div class="text-[32px] md:text-[42px] font-[700] text-[#111827] leading-tight">94.5%</div>
+          <div class="text-[13px] text-[#6b7280] font-medium mt-1">CCTV detection accuracy</div>
+        </div>
+        <!-- Cell 3 -->
+        <div class="flex flex-col px-4 md:px-10 border-r border-[#e5e7eb]">
+          <div class="text-[32px] md:text-[42px] font-[700] text-[#111827] leading-tight">1,120+</div>
+          <div class="text-[13px] text-[#6b7280] font-medium mt-1">Violations resolved</div>
+        </div>
+        <!-- Cell 4 -->
+        <div class="flex flex-col px-4 md:px-10">
+          <div class="text-[32px] md:text-[42px] font-[700] text-[#111827] leading-tight">15.8%</div>
+          <div class="text-[13px] text-[#6b7280] font-medium mt-1">Average AQI reduction</div>
+        </div>
+      </div>
+
+      <!-- Row 3 — Three Feature Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-[20px]">
+        <!-- Card 1 — Dark Green Impact -->
+        <div class="h-[350px] bg-[#1c3e31] rounded-[24px] p-[28px] flex flex-col justify-between shadow-sm">
+          <div class="flex justify-between items-start">
+            <div class="w-[52px] h-[52px] bg-white rounded-full flex items-center justify-center shadow-sm">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="#1c3e31" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C16.4183 22 20 18.4183 20 14C20 8 12 2 12 2C12 2 4 8 4 14C4 18.4183 7.58172 22 12 22Z"/>
+              </svg>
+            </div>
+            <div class="text-[42px] md:text-[48px] font-[800] text-white leading-none">36 States</div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <span class="text-[13px] text-white/80 font-medium">+ 12 regional critical hotspot corridors</span>
+            <p class="text-[18px] text-white leading-snug">
+              Up to <strong class="font-bold">90%</strong> of flagged air spikes <br/>trigger direct municipal dispatches.
+            </p>
+          </div>
+        </div>
+
+        <!-- Card 2 — Photo Card -->
+        <div class="h-[350px] rounded-[24px] overflow-hidden relative group border border-gray-100 shadow-md">
+          <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop" alt="Clean Air Community Outreach" referrerpolicy="no-referrer" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-6 flex flex-col">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-[14px]">⭐</span>
+              <span class="text-[14px] font-bold text-white">Trusted by 500+ local urban bodies</span>
+            </div>
+            <div class="text-[52px] font-[800] text-white leading-none">25,000+</div>
+            <span class="text-[15px] font-[500] text-white/90 mt-1">Citizens actively reporting hotspots</span>
+          </div>
+        </div>
+
+        <!-- Card 3 — Dark Green Telemetry & Action -->
+        <div class="h-[350px] bg-[#1c3e31] rounded-[24px] p-[28px] flex flex-col justify-between shadow-sm">
+          <div class="flex justify-between items-start">
+            <div class="text-[42px] md:text-[48px] font-[800] text-white leading-none">85%</div>
+            <div class="w-[48px] h-[48px] bg-white rounded-full flex items-center justify-center shadow-sm">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3V21M3 12H21M5.63604 5.63604L18.364 18.364M18.364 5.63604L5.63604 18.364" stroke="#1c3e31" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+          <div class="flex flex-col gap-4">
+            <div>
+              <div class="text-[16px] font-[700] text-white mb-1">Automated Spotting CCTV</div>
+              <div class="text-[13px] text-white/70">+ 120 municipal command hubs served</div>
+            </div>
+            <div class="flex gap-2">
+              <a href="/forecast.html" class="px-5 py-2.5 bg-white border-[1.5px] border-white/20 rounded-full text-[13px] font-bold text-[#1c3e31] hover:bg-white/90 transition-colors">View Forecast</a>
+              <a href="/community.html" class="px-5 py-2.5 bg-transparent border-[1.5px] border-white/40 rounded-full text-[13px] font-bold text-white hover:bg-white/10 transition-colors">Initiatives</a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Dashboard Preview & SVG Interactive Map Section -->
-  <section id="dashboard-anchor" class="py-20 px-6 lg:px-12 bg-muted-bg border-b border-card-border/50 flex flex-col items-center">
-    <div class="w-full max-w-[1152px] space-y-6">
+  <section id="dashboard-anchor" class="py-20 px-6 lg:px-12 bg-white flex flex-col items-center border-b border-slate-100 scroll-mt-6">
+    <div id="national-explorer" class="w-full max-w-[1152px] space-y-6">
       <div class="text-center max-w-2xl mx-auto mb-12 space-y-3">
         <h2 class="text-3xl font-bold tracking-tight text-slate-900">National Interactive Explorer</h2>
         <p class="text-sm text-slate-500">
@@ -171,15 +319,15 @@
       </div>
 
       <!-- Simulated Browser Container -->
-      <div class="w-full bg-white rounded-card border border-card-border shadow-2xl overflow-hidden flex flex-col h-[650px] animate-fadeInUp">
+      <div class="w-full bg-white rounded-card border border-slate-200/80 shadow-2xl overflow-hidden flex flex-col h-[650px] animate-fadeInUp">
         <!-- Browser Top Bar -->
-        <div class="h-12 border-b border-card-border bg-slate-50 flex items-center px-4 justify-between select-none">
+        <div class="h-12 border-b border-slate-200 bg-slate-50/80 flex items-center px-4 justify-between select-none">
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full bg-red-400"></span>
             <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
             <span class="w-3 h-3 rounded-full bg-green-400"></span>
           </div>
-          <a href="/national.html" class="px-6 py-1 bg-white hover:bg-slate-50 border border-card-border rounded-md text-[11px] font-mono text-primary w-80 text-center truncate transition-all flex items-center justify-center gap-1">
+          <a href="/national.html" class="px-6 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-md text-[11px] font-mono text-slate-600 w-80 text-center truncate transition-all flex items-center justify-center gap-1">
             https://india-aqi.org/national-map
           </a>
           <div class="w-12"></div>
@@ -188,18 +336,18 @@
         <!-- Dashboard Internal Layout -->
         <div class="flex-1 flex overflow-hidden">
           <!-- Sidebar: State/District List -->
-          <aside class="w-72 bg-slate-50 border-r border-card-border flex flex-col select-none">
-            <div class="p-4 border-b border-card-border bg-white flex flex-col gap-3">
+          <aside class="w-72 bg-slate-50 border-r border-slate-200 flex flex-col select-none">
+            <div class="p-4 border-b border-slate-200 bg-white flex flex-col gap-3">
               <div id="explorer-title-wrapper">
-                <h3 class="font-bold text-slate-800 text-sm">State-level Air Quality</h3>
-                <p class="text-[10px] text-slate-400 mt-0.5">Pan-India regional index</p>
+                <h3 class="font-bold text-slate-900 text-sm">State-level Air Quality</h3>
+                <p class="text-[10px] text-slate-500 mt-0.5">Pan-India regional index</p>
               </div>
               
               <!-- Search bar -->
               <div class="relative">
                 <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">search</span>
                 <input id="map-sidebar-search" type="text" placeholder="Find state or district..." 
-                  class="w-full pl-7 pr-3 py-1.5 border border-card-border bg-white rounded-lg text-xs outline-none focus:border-primary transition-colors placeholder:text-slate-400"/>
+                  class="w-full pl-7 pr-3 py-1.5 border border-slate-200 bg-slate-50 rounded-lg text-xs outline-none text-slate-800 focus:border-indigo-500 transition-colors placeholder:text-slate-400"/>
               </div>
             </div>
             
@@ -210,7 +358,7 @@
           </aside>
 
           <!-- Interactive Map Render Container -->
-          <div class="flex-1 relative bg-white flex items-center justify-center p-4">
+          <div class="flex-1 relative bg-slate-50 flex items-center justify-center p-4">
             <!-- Loader fallback -->
             <div id="interactive-map" class="w-full h-full relative">
               <!-- Rendered via SVG in map.js -->
@@ -222,32 +370,32 @@
   </section>
 
   <!-- Module Grid: Core Capabilities -->
-  <section class="py-24 px-6 lg:px-12 max-w-container-max mx-auto w-full">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+  <section class="py-24 px-6 lg:px-12 w-full bg-slate-50 border-b border-slate-200/60">
+    <div class="max-w-[1152px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
       <!-- Card 1 -->
-      <div class="p-6 rounded-card border border-card-border bg-white interactive-card flex flex-col justify-between">
+      <div class="p-6 rounded-card border border-slate-200/80 bg-white hover:shadow-lg transition-all flex flex-col justify-between">
         <div>
-          <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-primary mb-4">
+          <div class="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 mb-4">
             <span class="material-symbols-outlined text-[20px]">sensors</span>
           </div>
           <h3 class="font-bold text-slate-900 text-base mb-2">Real-time Hotspot Tracking</h3>
-          <p class="text-sm text-slate-500">
+          <p class="text-sm text-slate-600 leading-relaxed">
             Real-time data ingestion pipelines connecting city-wide monitoring grids and air pollution index sensors to a central dashboard.
           </p>
         </div>
-        <div class="text-xs text-primary font-bold mt-4 flex items-center gap-1">
+        <div class="text-xs text-blue-600 font-bold mt-4 flex items-center gap-1">
           Active In 12 major zones <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
         </div>
       </div>
       
       <!-- Card 2 -->
-      <div class="p-6 rounded-card border border-card-border bg-white interactive-card flex flex-col justify-between">
+      <div class="p-6 rounded-card border border-slate-200/80 bg-white hover:shadow-lg transition-all flex flex-col justify-between">
         <div>
-          <div class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-4">
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 mb-4">
             <span class="material-symbols-outlined text-[20px]">smart_toy</span>
           </div>
           <h3 class="font-bold text-slate-900 text-base mb-2">AI-driven Action Insights</h3>
-          <p class="text-sm text-slate-500">
+          <p class="text-sm text-slate-600 leading-relaxed">
             Integrated Gemini models processing regional pollution spikes, construction logs, and traffic peak times to issue actionable mitigation recommendations.
           </p>
         </div>
@@ -257,13 +405,13 @@
       </div>
 
       <!-- Card 3 -->
-      <div class="p-6 rounded-card border border-card-border bg-white interactive-card flex flex-col justify-between">
+      <div class="p-6 rounded-card border border-slate-200/80 bg-white hover:shadow-lg transition-all flex flex-col justify-between">
         <div>
-          <div class="w-10 h-10 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 mb-4">
+          <div class="w-10 h-10 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600 mb-4">
             <span class="material-symbols-outlined text-[20px]">videocam</span>
           </div>
           <h3 class="font-bold text-slate-900 text-base mb-2">Automated Spotting CCTV</h3>
-          <p class="text-sm text-slate-500">
+          <p class="text-sm text-slate-600 leading-relaxed">
             Multimodal AI analysis analyzing mock CCTV feeds to automatically spot trash burning, excessive industrial emission, or construction dust.
           </p>
         </div>
@@ -275,11 +423,11 @@
   </section>
 
   <!-- Uploaded Image Evidence Portal (Realistic & Impressive) -->
-  <section class="py-20 px-6 lg:px-12 bg-slate-50 border-t border-b border-card-border/50">
+  <section class="py-20 px-6 lg:px-12 bg-white border-b border-slate-100">
     <div class="max-w-[1152px] mx-auto space-y-12">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div class="space-y-2">
-          <div class="text-xs font-semibold uppercase tracking-wider text-primary">Citizen Reporting Hub</div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Citizen Reporting Hub</div>
           <h2 class="text-3xl font-bold tracking-tight text-slate-900">High-Fidelity Evidence Feed</h2>
         </div>
         <p class="text-sm text-slate-500 max-w-md">
@@ -290,61 +438,61 @@
       <!-- Photo Grid Showcase -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- Photo 1 -->
-        <div class="bg-white border border-card-border rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
-          <div class="relative h-48 bg-slate-200">
+        <div class="bg-white border border-slate-200/80 rounded-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <div class="relative h-48 bg-slate-100">
             <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&q=80&w=400" alt="Heavy Smoke Emission"/>
             <span class="absolute top-3 left-3 bg-red-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Severe Violation</span>
           </div>
           <div class="p-4 space-y-3">
-            <div class="flex items-center justify-between text-xs text-slate-400">
+            <div class="flex items-center justify-between text-xs text-slate-500">
               <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>2 hours ago</span>
               <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[14px]">location_on</span>Anand Vihar, Delhi</span>
             </div>
             <h4 class="font-bold text-slate-900 text-sm">Industrial Incineration Discharge</h4>
             <p class="text-xs text-slate-500 line-clamp-2">Citizen reported thick black smoke stack discharge violating emissions norms in the local warehousing zone.</p>
             <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
-              <span class="text-slate-400">Status: <strong class="text-red-600">Pending Review</strong></span>
-              <button class="text-primary font-semibold hover:underline">View Case</button>
+              <span class="text-slate-500">Status: <strong class="text-red-600">Pending Review</strong></span>
+              <button class="text-emerald-600 font-semibold hover:underline">View Case</button>
             </div>
           </div>
         </div>
 
         <!-- Photo 2 -->
-        <div class="bg-white border border-card-border rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
-          <div class="relative h-48 bg-slate-200">
+        <div class="bg-white border border-slate-200/80 rounded-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <div class="relative h-48 bg-slate-100">
             <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80&w=400" alt="Construction Dust"/>
             <span class="absolute top-3 left-3 bg-amber-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Warning Limits</span>
           </div>
           <div class="p-4 space-y-3">
-            <div class="flex items-center justify-between text-xs text-slate-400">
+            <div class="flex items-center justify-between text-xs text-slate-500">
               <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>5 hours ago</span>
               <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[14px]">location_on</span>Dwarka Sector 21, Delhi</span>
             </div>
             <h4 class="font-bold text-slate-900 text-sm">Unsprinkled Construction Debris</h4>
             <p class="text-xs text-slate-500 line-clamp-2">Dust cloud generated from active commercial site. Visual feeds confirm lack of mandatory dust control barriers.</p>
             <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
-              <span class="text-slate-400">Status: <strong class="text-amber-600">Under Investigation</strong></span>
-              <button class="text-primary font-semibold hover:underline">View Case</button>
+              <span class="text-slate-500">Status: <strong class="text-amber-600">Under Investigation</strong></span>
+              <button class="text-emerald-600 font-semibold hover:underline">View Case</button>
             </div>
           </div>
         </div>
 
         <!-- Photo 3 -->
-        <div class="bg-white border border-card-border rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
-          <div class="relative h-48 bg-slate-200">
+        <div class="bg-white border border-slate-200/80 rounded-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <div class="relative h-48 bg-slate-100">
             <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=400" alt="Trash Burning"/>
             <span class="absolute top-3 left-3 bg-red-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Severe Violation</span>
           </div>
           <div class="p-4 space-y-3">
-            <div class="flex items-center justify-between text-xs text-slate-400">
+            <div class="flex items-center justify-between text-xs text-slate-500">
               <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>1 day ago</span>
               <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[14px]">location_on</span>Howrah Ghat, West Bengal</span>
             </div>
             <h4 class="font-bold text-slate-900 text-sm">Open Biomass Waste Burning</h4>
             <p class="text-xs text-slate-500 line-clamp-2">Large scale burning of waste plastics and organic scrap detected along riverbank, causing high particulate spikes.</p>
             <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
-              <span class="text-slate-400">Status: <strong class="text-red-600">Pending Review</strong></span>
-              <button class="text-primary font-semibold hover:underline">View Case</button>
+              <span class="text-slate-500">Status: <strong class="text-red-600">Pending Review</strong></span>
+              <button class="text-emerald-600 font-semibold hover:underline">View Case</button>
             </div>
           </div>
         </div>
@@ -391,135 +539,337 @@
     </div>
   </section>
 
-  <!-- Detailed Enterprise Footer -->
-  <footer class="bg-white border-t border-card-border mt-auto pt-16 pb-8 px-6 lg:px-12">
-    <div class="max-w-[1152px] mx-auto grid grid-cols-2 md:grid-cols-6 gap-8 pb-12 border-b border-slate-100">
-      <!-- Logo + Social -->
-      <div class="col-span-2 space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-deep-slate flex items-center justify-center text-white font-bold text-lg select-none">I</div>
-          <span class="font-bold text-lg tracking-tight text-slate-900">AeroStreet-AI</span>
+  <!-- Footer o1 Moxo Editorial Dark Footer -->
+  <section class="w-full bg-[#0a0b0a] text-[#ECEDED] p-8" style="font-family: 'Inter', sans-serif;">
+    <footer class="max-w-[1312px] mx-auto">
+      <!-- 1. Top CTA Banner -->
+      <div class="relative w-full h-[450px] rounded-[32px] overflow-hidden mb-20 group">
+        <img
+          src="https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&q=80&w=1920"
+          alt="Clear skies over Indian urban landscape"
+          referrerpolicy="no-referrer"
+          class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+        />
+        <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-8">
+          <h2
+            class="text-4xl md:text-6xl lg:text-7xl text-white mb-10 max-w-4xl leading-tight"
+            style="font-family: 'Playfair Display', serif;"
+          >
+            Restoring clean air to our cities, one neighborhood at a time.
+          </h2>
+          <div class="flex flex-col sm:flex-row gap-5">
+            <a
+              href="/national.html"
+              class="bg-[#F97317] hover:bg-[#EB580C] text-white px-10 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-[#F97317]/20 flex items-center justify-center"
+            >
+              Report a Violation →
+            </a>
+            <a
+              href="/municipality.html"
+              class="bg-[#FABE24] hover:bg-[#EB580C] hover:text-white text-neutral-900 px-10 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg flex items-center justify-center"
+            >
+              Access Command Hub
+            </a>
+          </div>
         </div>
-        <p class="text-xs text-slate-400 max-w-xs">
-          National air quality monitoring framework delivering automated spotting alert integrations and municipal planning recommendations.
-        </p>
       </div>
 
-      <!-- Links Column 1 -->
-      <div>
-        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Platform</h4>
-        <ul class="space-y-2 text-xs text-slate-500">
-          <li><a href="/national.html" class="hover:text-primary transition-colors">National Map</a></li>
-          <li><a href="/district.html" class="hover:text-primary transition-colors">District Dashboard</a></li>
-          <li><a href="/municipality.html" class="hover:text-primary transition-colors">Municipality Command</a></li>
-        </ul>
+      <!-- 2. Footer Content Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-24">
+        <!-- Column 1 — Municipal Operations & Telemetry -->
+        <div class="lg:col-span-2 space-y-6 text-[#BFBFBE] text-lg">
+          <h3 class="text-white font-bold mb-8 uppercase tracking-[0.2em] text-xs">
+            MUNICIPAL OPERATIONS & TELEMETRY
+          </h3>
+          <p class="leading-relaxed">
+            AeroStreet-AI Command Center<br />
+            Central Pollution Intelligence Cell, CPCB Complex<br />
+            East Arjun Nagar, Delhi 110032
+          </p>
+          <p class="text-white font-medium text-xl">
+            1800-180-AERO (2376)
+          </p>
+          <div>
+            <a
+              href="mailto:telemetry@aerostreet.ai"
+              class="text-white hover:text-[#FABE24] transition-colors cursor-pointer block"
+            >
+              telemetry@aerostreet.ai
+            </a>
+            <span class="text-sm italic opacity-50 block mt-1">
+              (Real-time CPCB, IQAir &amp; automated CCTV ingestion active)
+            </span>
+          </div>
+        </div>
+
+        <!-- Column 2 — Platform Hubs -->
+        <div>
+          <h3 class="text-white font-bold mb-8 uppercase tracking-[0.2em] text-xs">
+            PLATFORM HUBS
+          </h3>
+          <ul class="space-y-4 text-[#BFBFBE]">
+            <li>
+              <a
+                href="/national.html"
+                class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
+              >
+                National AQI Explorer
+              </a>
+            </li>
+            <li>
+              <a
+                href="/districts.html"
+                class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
+              >
+                District Hotspots
+              </a>
+            </li>
+            <li>
+              <a
+                href="/municipality.html"
+                class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
+              >
+                Municipality Console
+              </a>
+            </li>
+            <li>
+              <a
+                href="/forecast.html"
+                class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
+              >
+                72-Hour Inversion Forecast
+              </a>
+            </li>
+            <li>
+              <a
+                href="/community.html"
+                class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
+              >
+                Citizen Reporting Feed
+              </a>
+            </li>
+            <li>
+              <a
+                href="/national.html#analytics"
+                class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
+              >
+                Gemini 2.5 Mitigation Insights
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Column 3 — Governance & Standards -->
+        <div>
+          <h3 class="text-white font-bold mb-8 uppercase tracking-[0.2em] text-xs">
+            GOVERNANCE & DATA
+          </h3>
+          <ul class="space-y-4 text-[#BFBFBE]">
+            <li>
+              <a
+                href="#"
+                class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
+              >
+                CPCB AQI Calibration
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
+              >
+                Camera Webhook Integration
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
+              >
+                Sensor Network Logs
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
+              >
+                Enforcement Transparency
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
 
-      <!-- Links Column 2 -->
-      <div>
-        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Resources</h4>
-        <ul class="space-y-2 text-xs text-slate-500">
-          <li><a href="#" class="hover:text-primary transition-colors">API Docs</a></li>
-          <li><a href="#" class="hover:text-primary transition-colors">CPCB Standards</a></li>
-          <li><a href="#" class="hover:text-primary transition-colors">System Status</a></li>
-        </ul>
+      <!-- 3. Bottom Bar -->
+      <div class="pt-12 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
+        <!-- Logo Group -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-[#F97317] rounded-xl flex items-center justify-center transform rotate-3 shadow-md">
+            <span class="text-white font-bold text-2xl">A</span>
+          </div>
+          <span
+            class="text-white text-3xl font-bold tracking-tight"
+            style="font-family: 'Playfair Display', serif;"
+          >
+            AeroStreet-AI
+          </span>
+        </div>
+
+        <!-- Social Icons -->
+        <div class="flex items-center gap-8 text-[#BFBFBE]">
+          <a
+            href="#"
+            aria-label="Instagram"
+            class="hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+              <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+            </svg>
+          </a>
+          <a
+            href="#"
+            aria-label="Facebook"
+            class="hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+            </svg>
+          </a>
+          <a
+            href="#"
+            aria-label="Music"
+            class="hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="18" r="4"/>
+              <path d="M12 18V2l7 4"/>
+            </svg>
+          </a>
+          <a
+            href="#"
+            aria-label="YouTube"
+            class="hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/>
+              <path d="m10 15 5-3-5-3z"/>
+            </svg>
+          </a>
+        </div>
       </div>
 
-      <!-- Links Column 3 -->
-      <div>
-        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Organization</h4>
-        <ul class="space-y-2 text-xs text-slate-500">
-          <li><a href="#" class="hover:text-primary transition-colors">About Us</a></li>
-          <li><a href="#" class="hover:text-primary transition-colors">Partners</a></li>
-          <li><a href="#" class="hover:text-primary transition-colors">Contact</a></li>
-        </ul>
+      <!-- 4. Copyright Row -->
+      <div class="mt-12 text-center text-[#BFBFBE]/30 text-xs">
+        © 2026 AeroStreet-AI Platform. Built for cleaner skies and transparent municipal governance. All rights reserved.
       </div>
-
-      <!-- Links Column 4 -->
-      <div>
-        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Legal</h4>
-        <ul class="space-y-2 text-xs text-slate-500">
-          <li><a href="#" class="hover:text-primary transition-colors">Privacy Policy</a></li>
-          <li><a href="#" class="hover:text-primary transition-colors">Terms of Use</a></li>
-          <li><a href="#" class="hover:text-primary transition-colors">Security Certs</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Bottom Status Bar -->
-    <div class="max-w-[1152px] mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-      <div>© 2026 AeroStreet-AI. All rights reserved. Built securely on the Google ecosystem.</div>
-      <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-success animate-pulse"></span>
-        <span class="text-slate-500 font-medium">All Systems Operational</span>
-      </div>
-    </div>
-  </footer>
+    </footer>
+  </section>
 
   <!-- Backend App Integration -->
   <script type="module" src="/js/app.js"></script>
 
-  <!-- Universal AeroStreet-AI Footer -->
-  <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 text-xs py-12 px-6 lg:px-12 select-none">
-    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
-      <div class="space-y-3">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">I</div>
-          <span class="font-bold text-base text-white tracking-tight">AeroStreet-AI</span>
-        </div>
-        <p class="text-slate-400 text-xs leading-relaxed">
-          National Environmental Air Quality Intelligence Platform. Providing real-time monitoring, predictive telemetry, and municipal action planning across India.
-        </p>
-        <div class="flex items-center gap-2 text-[11px] text-emerald-400 pt-1">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Live CPCB &amp; IQAir Telemetry Active</span>
-        </div>
-      </div>
+  <!-- VEX Ventures Micro-Components Animation Logic -->
+  <script>
+    (function() {
+      // FadeIn Micro-Component Execution
+      function initFadeInComponents() {
+        const fadeElements = document.querySelectorAll('.fade-in-component');
+        fadeElements.forEach(function(el) {
+          const delay = parseInt(el.getAttribute('data-delay') || '0', 10);
+          const duration = parseInt(el.getAttribute('data-duration') || '1000', 10);
+          el.style.opacity = '0';
+          el.style.transition = 'opacity ' + duration + 'ms cubic-bezier(0.16, 1, 0.3, 1)';
+          setTimeout(function() {
+            el.style.opacity = '1';
+          }, delay);
+        });
+      }
 
-      <div>
-        <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Platform Navigation</h4>
-        <ul class="space-y-2">
-          <li><a href="/national.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">map</span> National Interactive Map</a></li>
-          <li><a href="/district.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">explore</span> District Dashboard</a></li>
-          <li><a href="/municipality.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">analytics</span> Municipality Hub</a></li>
-          <li><a href="/forecast.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">cloud</span> 72-Hour AQI Forecast</a></li>
-          <li><a href="/community.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">groups</span> Community Citizen Hub</a></li>
-        </ul>
-      </div>
+      // AnimatedHeading Micro-Component Execution
+      function initAnimatedHeading(targetSelector, text) {
+        const heading = document.querySelector(targetSelector);
+        if (!heading) return;
 
-      <div>
-        <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Data &amp; Governance</h4>
-        <ul class="space-y-2">
-          <li><a href="/methodology.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">science</span> AQI Standards &amp; Methodology</a></li>
-          <li><a href="/privacy.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">security</span> Privacy Policy</a></li>
-          <li><a href="/terms.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">gavel</span> Terms of Service</a></li>
-          <li><a href="https://cpcb.nic.in" target="_blank" rel="noreferrer" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">open_in_new</span> CPCB Official Portal</a></li>
-        </ul>
-      </div>
+        heading.style.letterSpacing = '-0.04em';
+        heading.style.fontWeight = 'normal';
+        heading.innerHTML = '';
 
-      <div>
-        <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">National Index Legend</h4>
-        <div class="grid grid-cols-2 gap-1.5 text-[10px]">
-          <span class="px-2 py-1 rounded bg-emerald-950/80 border border-emerald-800 text-emerald-300 font-medium">0-50 Good</span>
-          <span class="px-2 py-1 rounded bg-lime-950/80 border border-lime-800 text-lime-300 font-medium">51-100 Satisfactory</span>
-          <span class="px-2 py-1 rounded bg-amber-950/80 border border-amber-800 text-amber-300 font-medium">101-200 Moderate</span>
-          <span class="px-2 py-1 rounded bg-orange-950/80 border border-orange-800 text-orange-300 font-medium">201-300 Poor</span>
-          <span class="px-2 py-1 rounded bg-rose-950/80 border border-rose-800 text-rose-300 font-medium">301-400 Very Poor</span>
-          <span class="px-2 py-1 rounded bg-purple-950/80 border border-purple-800 text-purple-300 font-medium">401+ Severe</span>
-        </div>
-      </div>
-    </div>
+        const lines = text.split('\n');
+        const globalStartDelay = 200; // 200ms
+        const charDuration = 500; // 500ms
 
-    <div class="max-w-7xl mx-auto mt-8 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-      <p>&copy; 2026 AeroStreet-AI. Made for cleaner urban skies across India.</p>
-      <div class="flex items-center gap-6">
-        <a href="/privacy.html" class="hover:text-slate-300 transition-colors">Privacy</a>
-        <a href="/terms.html" class="hover:text-slate-300 transition-colors">Terms</a>
-        <a href="/methodology.html" class="hover:text-slate-300 transition-colors">Methodology</a>
-        <a href="/community.html" class="hover:text-slate-300 transition-colors">Community</a>
-      </div>
-    </div>
-  </footer>
+        lines.forEach(function(line, lineIndex) {
+          const lineWrapper = document.createElement('span');
+          lineWrapper.style.display = 'block';
+          const lineLength = line.length;
+          const words = line.split(' ');
+          let runningCharCount = 0;
 
+          words.forEach(function(word, wordIndex) {
+            const wordSpan = document.createElement('span');
+            wordSpan.className = 'inline-block whitespace-nowrap';
+            wordSpan.style.display = 'inline-block';
+            wordSpan.style.whiteSpace = 'nowrap';
+
+            const wordStartCharIndex = runningCharCount;
+            runningCharCount += word.length + 1;
+
+            Array.from(word).forEach(function(char, charIdx) {
+              const charSpan = document.createElement('span');
+              charSpan.style.display = 'inline-block';
+              charSpan.style.opacity = '0';
+              charSpan.style.transform = 'translateX(-18px)';
+              charSpan.style.transition = 'opacity ' + charDuration + 'ms cubic-bezier(0.16, 1, 0.3, 1), transform ' + charDuration + 'ms cubic-bezier(0.16, 1, 0.3, 1)';
+              charSpan.textContent = char;
+
+              const charDelay = (lineIndex * lineLength * 30) + ((wordStartCharIndex + charIdx) * 30);
+              setTimeout(function() {
+                charSpan.style.opacity = '1';
+                charSpan.style.transform = 'translateX(0px)';
+              }, globalStartDelay + charDelay);
+
+              wordSpan.appendChild(charSpan);
+            });
+
+            lineWrapper.appendChild(wordSpan);
+
+            if (wordIndex < words.length - 1) {
+              const spaceSpan = document.createElement('span');
+              spaceSpan.style.display = 'inline-block';
+              spaceSpan.textContent = '\u00A0';
+              const spaceDelay = (lineIndex * lineLength * 30) + ((wordStartCharIndex + word.length) * 30);
+              setTimeout(function() {
+                spaceSpan.style.opacity = '1';
+              }, globalStartDelay + spaceDelay);
+              lineWrapper.appendChild(spaceSpan);
+            }
+          });
+
+          heading.appendChild(lineWrapper);
+        });
+      }
+
+      function startVexAnimations() {
+        initAnimatedHeading('#hero-animated-heading', "Spotting and Fixing Local\nPollution Hotspots.");
+        initFadeInComponents();
+
+        // Autoplay background video if not already playing
+        const video = document.getElementById('hero-video');
+        if (video) {
+          video.muted = true;
+          video.play().catch(function() {});
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startVexAnimations);
+      } else {
+        startVexAnimations();
+      }
+    })();
+  </script>
 </body>
 </html>
