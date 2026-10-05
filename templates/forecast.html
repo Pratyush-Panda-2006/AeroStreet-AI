@@ -72,6 +72,20 @@
     .loading-ring {
       animation: pulse-ring 1.5s ease-in-out infinite;
     }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -143,21 +157,21 @@
     <div id="dashboard-content" class="hidden flex-col gap-6">
        
        <!-- Delhi NCR Search Bar -->
-       <div id="delhi-search-container" class="relative w-full max-w-2xl mx-auto">
-         <div class="glass-card rounded-2xl flex items-center gap-3 px-5 py-3 border-blue-100/80 shadow-sm hover:shadow-md transition-shadow focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40">
+       <div id="delhi-search-container" class="relative w-full max-w-3xl mx-auto flex flex-col sm:flex-row gap-3">
+         <div class="relative flex-1 glass-card rounded-2xl flex items-center gap-3 px-5 py-3.5 border-blue-100/80 shadow-sm hover:shadow-md transition-shadow focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40 bg-white/90">
            <span class="material-symbols-outlined text-primary text-[22px] shrink-0">search</span>
            <input id="delhi-search-input" type="text" placeholder="Search a place in Delhi NCR..." autocomplete="off"
-                  class="flex-1 bg-transparent border-0 outline-none text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-0 p-0" />
+                  class="flex-1 bg-transparent border-0 outline-none text-base font-medium text-slate-800 placeholder:text-slate-400 focus:ring-0 p-0" />
            <button id="delhi-search-clear" class="hidden text-slate-400 hover:text-slate-600 transition-colors" type="button">
              <span class="material-symbols-outlined text-[20px]">close</span>
            </button>
-           <button id="btn-my-location" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-primary hover:bg-blue-50 transition-colors border border-blue-100 shrink-0" type="button" title="Use my location">
-             <span class="material-symbols-outlined text-[16px]">my_location</span>
-             <span class="hidden sm:inline">My Location</span>
-           </button>
+           <!-- Autocomplete Dropdown -->
+           <div id="delhi-search-dropdown" class="hidden absolute left-0 right-0 top-full mt-2 glass-card rounded-xl overflow-hidden z-40 shadow-lg border-slate-200/80"></div>
          </div>
-         <!-- Autocomplete Dropdown -->
-         <div id="delhi-search-dropdown" class="hidden absolute left-0 right-0 top-full mt-2 glass-card rounded-xl overflow-hidden z-40 shadow-lg border-slate-200/80"></div>
+         <button id="btn-my-location" class="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all border border-slate-200 shadow-sm shrink-0 active:scale-95" type="button">
+           <span class="material-symbols-outlined text-[18px] text-primary">my_location</span>
+           <span>My Location</span>
+         </button>
        </div>
 
        <!-- Dashboard Loading Overlay -->
@@ -195,58 +209,77 @@
 
           <!-- Environmental Cards -->
           <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-4">
-             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
-               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-slate-400">scatter_plot</span> PM2.5</p>
-               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-pm25">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">µg/m³</span></p>
+             <div class="glass-card rounded-2xl p-4 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-slate-400">scatter_plot</span> PM2.5</p>
+               <p class="text-2xl font-black text-slate-800 tracking-tight"><span id="ui-pm25">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">µg/m³</span></p>
+               <p id="ui-pm25-status" class="text-[11px] font-bold text-slate-500 mt-1 uppercase tracking-wider">--</p>
              </div>
-             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
-               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-slate-400">grain</span> PM10</p>
-               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-pm10">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">µg/m³</span></p>
+             <div class="glass-card rounded-2xl p-4 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-slate-400">grain</span> PM10</p>
+               <p class="text-2xl font-black text-slate-800 tracking-tight"><span id="ui-pm10">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">µg/m³</span></p>
+               <p id="ui-pm10-status" class="text-[11px] font-bold text-slate-500 mt-1 uppercase tracking-wider">--</p>
              </div>
-             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
-               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-orange-400">device_thermostat</span> Temperature</p>
-               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-temp">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">°C</span></p>
+             <div class="glass-card rounded-2xl p-4 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-orange-400">device_thermostat</span> Temperature</p>
+               <p class="text-2xl font-black text-slate-800 tracking-tight"><span id="ui-temp">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">°C</span></p>
+               <p id="ui-temp-status" class="text-[11px] font-bold text-slate-500 mt-1 uppercase tracking-wider">--</p>
              </div>
-             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
-               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-blue-400">humidity_percentage</span> Humidity</p>
-               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-humidity">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">%</span></p>
+             <div class="glass-card rounded-2xl p-4 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-blue-400">humidity_percentage</span> Humidity</p>
+               <p class="text-2xl font-black text-slate-800 tracking-tight"><span id="ui-humidity">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">%</span></p>
+               <p id="ui-humidity-status" class="text-[11px] font-bold text-slate-500 mt-1 uppercase tracking-wider">--</p>
              </div>
-             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
-               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-teal-400">air</span> Wind Speed</p>
-               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-wind">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">km/h</span></p>
+             <div class="glass-card rounded-2xl p-4 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-teal-400">air</span> Wind Speed</p>
+               <p class="text-2xl font-black text-slate-800 tracking-tight"><span id="ui-wind">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">km/h</span></p>
+               <p id="ui-wind-status" class="text-[11px] font-bold text-slate-500 mt-1 uppercase tracking-wider">--</p>
              </div>
-             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
-               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-indigo-400">compress</span> Pressure</p>
-               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-pressure">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">hPa</span></p>
+             <div class="glass-card rounded-2xl p-4 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-indigo-400">compress</span> Pressure</p>
+               <p class="text-2xl font-black text-slate-800 tracking-tight"><span id="ui-pressure">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">hPa</span></p>
+               <p id="ui-pressure-status" class="text-[11px] font-bold text-slate-500 mt-1 uppercase tracking-wider">--</p>
              </div>
           </div>
        </div>
 
        <!-- AI Insight Section -->
-       <div class="glass-card rounded-3xl p-8 bg-slate-900 text-white relative overflow-hidden shadow-lg">
+       <div class="glass-card rounded-3xl p-6 md:p-8 bg-slate-900 text-white relative overflow-hidden shadow-lg mt-2">
           <div class="absolute -right-4 -bottom-12 opacity-5 mix-blend-overlay">
-            <span class="material-symbols-outlined" style="font-size: 300px;">psychology</span>
+            <span class="material-symbols-outlined pointer-events-none select-none" style="font-size: 300px;">psychology</span>
           </div>
-          <div class="relative z-10">
-            <h3 id="ui-ai-title" class="text-xl font-bold flex items-center gap-2 mb-4 tracking-tight">
-              <span class="material-symbols-outlined text-amber-400">auto_awesome</span>
-              AI Environmental Analysis
-            </h3>
-            <p id="ui-ai-analysis" class="text-slate-300 text-[15px] leading-relaxed max-w-5xl mb-8 font-medium">
-              Initializing AI context analyzer...
-            </p>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-slate-800 pt-6 mt-2">
-               <div class="flex flex-col gap-1">
-                 <p class="text-[11px] uppercase font-bold text-slate-500 tracking-widest flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">trending_up</span> Predicted Trend</p>
-                 <p id="ui-ai-trend" class="text-lg font-bold capitalize text-white">--</p>
-               </div>
-               <div class="flex flex-col gap-1">
-                 <p class="text-[11px] uppercase font-bold text-slate-500 tracking-widest flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">fact_check</span> AI Confidence</p>
-                 <p id="ui-ai-confidence" class="text-lg font-bold text-white">--</p>
-               </div>
-               <div class="flex flex-col gap-1 sm:border-l sm:border-slate-800 sm:pl-6">
-                 <p class="text-[11px] uppercase font-bold text-slate-500 tracking-widest flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">health_and_safety</span> Health Advisory</p>
-                 <p id="ui-ai-health" class="text-sm font-medium text-amber-100">--</p>
+          <div class="relative z-10 flex flex-col gap-6">
+            <div class="flex flex-col md:flex-row justify-between md:items-start gap-5">
+              <div id="ui-ai-title">
+                <span class="text-xl font-bold flex items-center gap-2 tracking-tight text-white">
+                  <span class="material-symbols-outlined text-amber-400 animate-pulse">auto_awesome</span>
+                  Analyzing...
+                </span>
+              </div>
+              <div class="bg-white/10 px-5 py-3 rounded-2xl border border-white/10 shrink-0 shadow-inner">
+                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-1">72-Hour Outlook Trend</p>
+                <div class="flex items-center gap-4">
+                  <span id="ui-ai-trend" class="text-lg font-bold capitalize text-white">--</span>
+                  <div class="h-5 w-[1px] bg-white/20"></div>
+                  <div class="flex items-center gap-1.5 text-sm font-medium text-slate-300">
+                    <span class="material-symbols-outlined text-[16px] text-slate-400">fact_check</span>
+                    <span id="ui-ai-confidence">--</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-white/5 rounded-2xl p-5 md:p-6 border border-white/5">
+              <p class="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-3">Environmental Reasoning</p>
+              <p id="ui-ai-analysis" class="text-slate-200 text-[15px] leading-relaxed font-medium whitespace-pre-wrap max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                Initializing AI context analyzer...
+              </p>
+            </div>
+            
+            <div class="bg-amber-500/10 rounded-2xl p-5 border border-amber-500/20 flex gap-4 items-start">
+               <span class="material-symbols-outlined text-amber-400 text-[24px] shrink-0 mt-0.5">health_and_safety</span>
+               <div class="flex flex-col gap-1.5">
+                 <p class="text-[11px] uppercase font-bold text-amber-500/80 tracking-widest">Health Advisory</p>
+                 <p id="ui-ai-health" class="text-sm font-medium text-amber-100/90 leading-relaxed">--</p>
                </div>
             </div>
           </div>

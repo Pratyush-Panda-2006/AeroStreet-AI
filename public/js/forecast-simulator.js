@@ -193,6 +193,52 @@ function renderDashboard(data) {
   document.getElementById('ui-wind').textContent = curr.wind_speed || '--';
   document.getElementById('ui-pressure').textContent = curr.pressure || '--';
 
+  // Status mapping
+  const setStatus = (id, val, thresholds) => {
+    const el = document.getElementById(id);
+    if (!el || val === undefined || val === null) return;
+    for (const t of thresholds) {
+      if (val <= t.max) {
+        el.textContent = t.label;
+        el.className = `text-[11px] font-bold mt-1 uppercase tracking-wider ${t.color}`;
+        return;
+      }
+    }
+    el.textContent = 'High';
+    el.className = `text-[11px] font-bold text-red-500 mt-1 uppercase tracking-wider`;
+  };
+
+  setStatus('ui-pm25-status', curr.pm25, [
+    {max: 12, label: 'Good', color: 'text-emerald-500'},
+    {max: 35.4, label: 'Moderate', color: 'text-amber-500'},
+    {max: 55.4, label: 'Poor', color: 'text-orange-500'}
+  ]);
+  setStatus('ui-pm10-status', curr.pm10, [
+    {max: 54, label: 'Good', color: 'text-emerald-500'},
+    {max: 154, label: 'Moderate', color: 'text-amber-500'},
+    {max: 254, label: 'Poor', color: 'text-orange-500'}
+  ]);
+  setStatus('ui-temp-status', curr.temperature, [
+    {max: 15, label: 'Cool', color: 'text-blue-500'},
+    {max: 30, label: 'Warm', color: 'text-amber-500'},
+    {max: 100, label: 'Hot', color: 'text-red-500'}
+  ]);
+  setStatus('ui-humidity-status', curr.humidity, [
+    {max: 30, label: 'Dry', color: 'text-amber-500'},
+    {max: 60, label: 'Comfortable', color: 'text-emerald-500'},
+    {max: 100, label: 'Humid', color: 'text-blue-500'}
+  ]);
+  setStatus('ui-wind-status', curr.wind_speed, [
+    {max: 5, label: 'Calm', color: 'text-slate-500'},
+    {max: 20, label: 'Breezy', color: 'text-blue-500'},
+    {max: 100, label: 'Windy', color: 'text-indigo-500'}
+  ]);
+  setStatus('ui-pressure-status', curr.pressure, [
+    {max: 1000, label: 'Low', color: 'text-slate-500'},
+    {max: 1020, label: 'Normal', color: 'text-emerald-500'},
+    {max: 2000, label: 'High', color: 'text-blue-500'}
+  ]);
+
   // 3. AI Insights
   const ai = data.ai_analysis;
   
@@ -200,9 +246,27 @@ function renderDashboard(data) {
   
   const titleEl = document.getElementById('ui-ai-title');
   if (titleEl) {
-    titleEl.innerHTML = isFallback ? 
-      `<span class="material-symbols-outlined text-slate-400">analytics</span> Fallback Baseline Analysis` : 
-      `<span class="material-symbols-outlined text-amber-400">auto_awesome</span> AI Environmental Analysis`;
+    if (isFallback) {
+      titleEl.innerHTML = `
+        <div class="flex flex-col">
+          <span class="text-xl font-bold flex items-center gap-2 tracking-tight text-white">
+            <span class="material-symbols-outlined text-slate-400">analytics</span>
+            Baseline Forecast
+          </span>
+          <span class="text-xs font-medium text-slate-400 mt-1">Open-Meteo baseline</span>
+        </div>
+      `;
+    } else {
+      titleEl.innerHTML = `
+        <div class="flex flex-col">
+          <span class="text-xl font-bold flex items-center gap-2 tracking-tight text-white">
+            <span class="material-symbols-outlined text-amber-400">auto_awesome</span>
+            AI-Assisted Forecast
+          </span>
+          <span class="text-xs font-medium text-amber-200/70 mt-1">Powered by environmental + weather analysis</span>
+        </div>
+      `;
+    }
   }
   
   const chartSub = document.getElementById('ui-chart-subtitle');
