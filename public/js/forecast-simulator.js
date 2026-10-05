@@ -124,9 +124,18 @@ async function manualSearch(cityName) {
   }
 }
 
+let currentForecastController = null;
+
 async function fetchEnvironmentData(lat, lng) {
+  if (currentForecastController) {
+    currentForecastController.abort();
+  }
+  currentForecastController = new AbortController();
+
   try {
-    const res = await fetch(`/api/environment/forecast?lat=${lat}&lng=${lng}`);
+    const res = await fetch(`/api/environment/forecast?lat=${lat}&lng=${lng}`, {
+      signal: currentForecastController.signal
+    });
     if(!res.ok) throw new Error("API failed");
     const data = await res.json();
     
@@ -140,6 +149,7 @@ async function fetchEnvironmentData(lat, lng) {
     hideDashboardLoading();
     renderDashboard(data);
   } catch (error) {
+    if (error.name === 'AbortError') return; // Cancelled, ignore
     console.error(error);
     hideDashboardLoading();
     const statusDiv = document.getElementById('location-status');
@@ -185,6 +195,23 @@ function renderDashboard(data) {
 
   // 3. AI Insights
   const ai = data.ai_analysis;
+  
+  const isFallback = ai.analysis_text.includes('Gemini API not configured');
+  
+  const titleEl = document.getElementById('ui-ai-title');
+  if (titleEl) {
+    titleEl.innerHTML = isFallback ? 
+      `<span class="material-symbols-outlined text-slate-400">analytics</span> Fallback Baseline Analysis` : 
+      `<span class="material-symbols-outlined text-amber-400">auto_awesome</span> AI Environmental Analysis`;
+  }
+  
+  const chartSub = document.getElementById('ui-chart-subtitle');
+  if (chartSub) {
+    chartSub.textContent = isFallback ? 
+      `Historical (Open-Meteo US AQI) vs. Next 72 Hours (Open-Meteo Baseline)` : 
+      `Historical (Open-Meteo US AQI) vs. Next 72 Hours (AI-Assisted Forecast)`;
+  }
+  
   document.getElementById('ui-ai-analysis').innerHTML = ai.analysis_text;
   
   const trendEl = document.getElementById('ui-ai-trend');
@@ -201,11 +228,12 @@ function renderDashboard(data) {
   document.getElementById('ui-ai-health').textContent = ai.health_advisory;
 
   // 4. Render Charts
-  renderAqiChart(data.historical, ai.hourly_forecast);
+  renderAqiChart(data.historical, ai);
   renderWeatherChart(data.weather_forecast);
 }
 
-function renderAqiChart(historical, forecast) {
+function renderAqiChart(historical, ai) {
+  const forecast = ai.hourly_forecast;
   const ctx = document.getElementById('aqi-chart').getContext('2d');
   
   // Prepare data: limit to last 24h historical + full forecast
@@ -241,7 +269,7 @@ function renderAqiChart(historical, forecast) {
           pointHoverRadius: 6
         },
         {
-          label: 'Predicted AQI (AI-Assisted Forecast)',
+          label: ai.analysis_text.includes('Gemini API not configured') ? 'Forecast AQI (Open-Meteo Baseline)' : 'Predicted AQI (AI-Assisted Forecast)',
           data: foreData,
           borderColor: '#2563eb',
           backgroundColor: 'rgba(37, 99, 235, 0.1)',

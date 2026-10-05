@@ -1316,7 +1316,9 @@ app.get('/api/environment/forecast', async (req, res) => {
     // Parse historical and forecast
     const aqiHourly = aqiData.hourly || {};
     const weatherHourly = weatherData.hourly || {};
-    const now = new Date();
+    
+    // Use the API's reported current time to avoid server UTC vs location timezone mismatches
+    const currentLocalTime = weatherData.current?.time ? new Date(weatherData.current.time) : new Date();
 
     const historical = [];
     const forecast = [];
@@ -1334,7 +1336,8 @@ app.get('/api/environment/forecast', async (req, res) => {
           wind_speed: weatherHourly.wind_speed_10m?.[i],
           precipitation: weatherHourly.precipitation_probability?.[i]
         };
-        if (time < now) {
+        // Use <= so the current hour is included in historical, and strictly > is future
+        if (time <= currentLocalTime) {
           historical.push(pt);
         } else {
           forecast.push(pt);
