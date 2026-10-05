@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AeroStreet-AI — 14-Day AQI Forecast Simulator</title>
+  <title>AeroStreet-AI — Location-Aware 72-Hour Forecast</title>
+  <meta name="description" content="AeroStreet-AI provides real-time AQI monitoring and AI-assisted 72-hour environmental forecasts for Delhi NCR locations.">
   
-  <!-- Fontshare Satoshi Font -->
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
   
@@ -42,7 +42,6 @@
       font-family: 'Satoshi', 'Inter', sans-serif;
       background: #f8fafc;
     }
-    
     .glass-card {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(16px);
@@ -50,37 +49,28 @@
       border: 1px solid rgba(226, 232, 240, 0.8);
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     }
-    
-    .forecast-grid {
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 24px;
-      height: calc(100vh - 64px);
+    #delhi-search-dropdown {
+      max-height: 320px;
+      overflow-y: auto;
     }
-    
-    @media (max-width: 900px) {
-      .forecast-grid {
-        grid-template-columns: 1fr;
-        height: auto;
-        overflow-y: auto;
-      }
+    #delhi-search-dropdown::-webkit-scrollbar {
+      width: 4px;
     }
-    
-    .slider-thumb::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #2563eb;
-      cursor: pointer;
-      border: 2px solid #ffffff;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-      transition: transform 0.1s, background-color 0.1s;
+    #delhi-search-dropdown::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
     }
-    .slider-thumb::-webkit-slider-thumb:hover {
-      transform: scale(1.2);
-      background: #1d4ed8;
+    #dashboard-loading {
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.05); opacity: 0.3; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+    .loading-ring {
+      animation: pulse-ring 1.5s ease-in-out infinite;
     }
   </style>
 </head>
@@ -91,7 +81,7 @@
     <div class="flex items-center gap-3">
       <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-lg select-none">A</div>
       <a href="/national.html" class="font-bold text-lg tracking-tight text-slate-900 select-none">AeroStreet-AI</a>
-      <span class="px-2 py-0.5 bg-blue-50 border border-blue-100 text-primary rounded-full text-[10px] font-bold ml-2">Predictive Sim</span>
+      <span class="px-2 py-0.5 bg-blue-50 border border-blue-100 text-primary rounded-full text-[10px] font-bold ml-2">Local Forecast</span>
     </div>
     
     <nav class="hidden md:flex items-center gap-8">
@@ -105,9 +95,9 @@
         <span class="material-symbols-outlined text-[18px]">analytics</span> Municipality Hub
       </a>
       <a href="/forecast.html" class="text-sm font-medium text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">cloud</span> AQI Forecast
+        <span class="material-symbols-outlined text-[18px]">cloud</span> Local Forecast
       </a>
-      <a href="#" id="nav-community-link" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
+      <a href="/community.html" id="nav-community-link" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
         <span class="material-symbols-outlined text-[18px]">groups</span> Community
       </a>
     </nav>
@@ -120,435 +110,183 @@
   </header>
 
   <!-- Work Area -->
-  <main class="pt-20 pb-8 flex-1 flex flex-col md:flex-row p-6 gap-6 max-w-[1600px] w-full mx-auto">
+  <main class="pt-24 pb-8 px-6 max-w-[1400px] w-full mx-auto flex flex-col gap-6 flex-1">
     
-    <!-- Left Sidebar: Controls -->
-    <aside id="simulation-inputs" class="w-full md:w-80 flex-shrink-0 flex flex-col gap-6 scroll-mt-24">
-      <div class="glass-card rounded-2xl p-5 space-y-5">
-        <div>
-          <h2 class="text-base font-bold text-slate-800 flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-primary">tune</span>
-            Simulation Inputs
-          </h2>
-          <p class="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wide font-medium">diurnal environmental factors</p>
-        </div>
-        
-        <!-- Controls Sliders -->
-        <div class="space-y-4">
-          <div>
-            <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
-              <span>Traffic Density</span>
-              <span id="val-traffic" class="font-mono text-primary">50%</span>
-            </div>
-            <input id="slider-traffic" type="range" min="0" max="100" value="50" 
-              class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer slider-thumb outline-none"/>
-          </div>
-          
-          <div>
-            <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
-              <span>Industrial Output</span>
-              <span id="val-industry" class="font-mono text-primary">40%</span>
-            </div>
-            <input id="slider-industry" type="range" min="0" max="100" value="40" 
-              class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer slider-thumb outline-none"/>
-          </div>
-          
-          <div>
-            <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
-              <span>Wind Speed</span>
-              <span id="val-wind" class="font-mono text-primary">12 km/h</span>
-            </div>
-            <input id="slider-wind" type="range" min="0" max="50" value="12" 
-              class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer slider-thumb outline-none"/>
-          </div>
-          
-          <div>
-            <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
-              <span>Temperature</span>
-              <span id="val-temp" class="font-mono text-primary">28 °C</span>
-            </div>
-            <input id="slider-temp" type="range" min="0" max="50" value="28" 
-              class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer slider-thumb outline-none"/>
-          </div>
-        </div>
-        
-        <div class="pt-2">
-          <button id="trigger-gemini-prediction" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow flex items-center justify-center gap-1.5">
-            <span class="material-symbols-outlined text-[16px] text-amber-400">psychology</span>
-            Refine with Gemini AI
-          </button>
-        </div>
+    <!-- Initial Loader / Location Prompt -->
+    <div id="location-prompt" class="glass-card rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-[500px]">
+      <span class="material-symbols-outlined text-[80px] text-primary mb-6 animate-bounce">location_on</span>
+      <h2 class="text-4xl font-bold text-slate-800 mb-3 tracking-tight">Discover Your Local Environment</h2>
+      <p class="text-slate-500 mb-8 max-w-lg mx-auto text-lg leading-relaxed">
+        AeroStreet-AI uses your location to provide local AQI, weather conditions, and a highly personalized 72-hour environmental forecast.
+      </p>
+      
+      <div id="location-status">
+         <button id="btn-locate" class="bg-primary hover:bg-primary-hover text-white px-8 py-3.5 rounded-full font-bold shadow-lg shadow-blue-500/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px]">my_location</span> Detect My Location
+         </button>
       </div>
       
-      <!-- Legend Index -->
-      <div class="glass-card rounded-2xl p-5">
-        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">Forecast Index Bands</p>
-        <div class="space-y-2 text-xs">
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded bg-green-500"></span>
-            <span class="text-slate-600 font-medium">Good (0-50)</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded bg-green-600"></span>
-            <span class="text-slate-600 font-medium">Satisfactory (51-100)</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded bg-amber-500"></span>
-            <span class="text-slate-600 font-medium">Moderate (101-200)</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded bg-red-500"></span>
-            <span class="text-slate-600 font-medium">Poor / Severe (201-400)</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded bg-red-950"></span>
-            <span class="text-slate-600 font-medium">Severe / Hazardous (401+)</span>
-          </div>
-        </div>
+      <!-- Fallback Search -->
+      <div id="fallback-search" class="hidden mt-10 max-w-md mx-auto w-full bg-slate-50 p-6 rounded-2xl border border-slate-200">
+         <p class="text-xs font-bold uppercase text-slate-500 tracking-wider mb-3 flex items-center justify-center gap-1.5">
+           <span class="material-symbols-outlined text-[16px]">search_off</span> Location access denied
+         </p>
+         <p class="text-sm text-slate-600 mb-4">Please search for a city manually to view the forecast.</p>
+         <div class="flex gap-2">
+           <input type="text" id="manual-city" placeholder="e.g. Delhi, Mumbai, Pune..." class="flex-1 rounded-xl border-slate-300 px-4 py-2.5 text-sm focus:ring-primary focus:border-primary shadow-sm" />
+           <button id="btn-search" class="bg-slate-800 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-slate-700 shadow-sm transition-colors">Search</button>
+         </div>
       </div>
-    </aside>
-    
-    <!-- Right Panel: Chart and Policy Guidance -->
-    <div class="flex-grow flex flex-col gap-6">
-      
-      <!-- Chart Card -->
-      <div class="glass-card rounded-3xl p-6 flex flex-col gap-4">
-        <div class="flex justify-between items-center">
-          <div>
-            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <span class="material-symbols-outlined text-primary">query_stats</span>
-              14-Day Historical & Predictive AQI Curve
-            </h2>
-            <p class="text-xs text-slate-400 mt-0.5">Dashed line plots past 7 days, solid line forecasts next 7 days</p>
-          </div>
-          
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200/50 text-[10px] font-bold text-slate-500" id="forecast-target-city">
-              Station: Delhi Central
-            </span>
-          </div>
-        </div>
-        
-        <!-- Interactive Chart Visualizer -->
-        <div id="chart-viewport" class="w-full bg-slate-50/50 rounded-2xl border border-slate-100 p-4 relative" style="height: 320px;">
-          <!-- SVG Container -->
-          <svg id="forecast-svg-chart" width="100%" height="100%" class="overflow-visible">
-            <!-- Grid Lines pattern -->
-            <defs>
-              <linearGradient id="chart-area-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15" />
-                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
-              </linearGradient>
-            </defs>
-            
-            <!-- Lines will be dynamically generated by JS -->
-          </svg>
-        </div>
-      </div>
-      
-      <!-- Dynamic AI Action Panel -->
-      <div class="glass-card rounded-3xl p-6 space-y-4">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-primary">
-            <span class="material-symbols-outlined">smart_toy</span>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-slate-800">AeroStreet-AI Action Insights</h3>
-            <p class="text-[10px] text-slate-400">diurnal prediction analysis & policies</p>
-          </div>
-        </div>
-        
-        <div id="forecast-ai-insights" class="text-xs text-slate-600 leading-relaxed bg-blue-50/20 border border-blue-100/40 p-4 rounded-xl space-y-2">
-          <p>Analyzing parameters to generate specific mitigation guidelines...</p>
-        </div>
-      </div>
-      
     </div>
-    
+
+    <!-- Dashboard Content (Hidden initially) -->
+    <div id="dashboard-content" class="hidden flex-col gap-6">
+       
+       <!-- Delhi NCR Search Bar -->
+       <div id="delhi-search-container" class="relative w-full max-w-2xl mx-auto">
+         <div class="glass-card rounded-2xl flex items-center gap-3 px-5 py-3 border-blue-100/80 shadow-sm hover:shadow-md transition-shadow focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40">
+           <span class="material-symbols-outlined text-primary text-[22px] shrink-0">search</span>
+           <input id="delhi-search-input" type="text" placeholder="Search a place in Delhi NCR..." autocomplete="off"
+                  class="flex-1 bg-transparent border-0 outline-none text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-0 p-0" />
+           <button id="delhi-search-clear" class="hidden text-slate-400 hover:text-slate-600 transition-colors" type="button">
+             <span class="material-symbols-outlined text-[20px]">close</span>
+           </button>
+           <button id="btn-my-location" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-primary hover:bg-blue-50 transition-colors border border-blue-100 shrink-0" type="button" title="Use my location">
+             <span class="material-symbols-outlined text-[16px]">my_location</span>
+             <span class="hidden sm:inline">My Location</span>
+           </button>
+         </div>
+         <!-- Autocomplete Dropdown -->
+         <div id="delhi-search-dropdown" class="hidden absolute left-0 right-0 top-full mt-2 glass-card rounded-xl overflow-hidden z-40 shadow-lg border-slate-200/80"></div>
+       </div>
+
+       <!-- Dashboard Loading Overlay -->
+       <div id="dashboard-loading" class="hidden fixed inset-0 z-30 bg-white/60 flex items-center justify-center">
+         <div class="flex flex-col items-center gap-4">
+           <div class="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary loading-ring"></div>
+           <p class="text-sm font-bold text-slate-600">Loading environmental data...</p>
+         </div>
+       </div>
+
+       <!-- Top Bar: Location & AI Insights -->
+       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="glass-card rounded-3xl p-8 lg:col-span-1 bg-gradient-to-br from-blue-50 to-white flex flex-col justify-between relative overflow-hidden border-blue-100/60 shadow-sm">
+             <div class="absolute -right-16 -top-16 opacity-5 rotate-12">
+                <span class="material-symbols-outlined text-[250px]">explore</span>
+             </div>
+             <!-- Location Info -->
+             <div class="relative z-10">
+               <p id="location-source-label" class="text-[11px] font-bold text-primary uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                 <span class="material-symbols-outlined text-[14px]">location_on</span> Your Location
+               </p>
+               <h2 id="ui-city" class="text-4xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight">Unknown</h2>
+               <p id="ui-region" class="text-base font-medium text-slate-500 mt-1">District, State</p>
+             </div>
+             
+             <!-- Current AQI Badge -->
+             <div class="mt-8 relative z-10 flex flex-col">
+               <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Live US EPA AQI (Open-Meteo)</p>
+               <div class="flex items-end gap-3">
+                 <span id="ui-aqi" class="text-7xl font-black text-slate-800 tracking-tighter leading-none">--</span>
+                 <span id="ui-aqi-cat" class="px-3.5 py-1.5 rounded-lg text-[11px] font-bold tracking-wider uppercase mb-1 shadow-sm border border-black/5">Unknown</span>
+               </div>
+             </div>
+          </div>
+
+          <!-- Environmental Cards -->
+          <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-4">
+             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-slate-400">scatter_plot</span> PM2.5</p>
+               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-pm25">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">µg/m³</span></p>
+             </div>
+             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-slate-400">grain</span> PM10</p>
+               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-pm10">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">µg/m³</span></p>
+             </div>
+             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-orange-400">device_thermostat</span> Temperature</p>
+               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-temp">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">°C</span></p>
+             </div>
+             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-blue-400">humidity_percentage</span> Humidity</p>
+               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-humidity">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">%</span></p>
+             </div>
+             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-teal-400">air</span> Wind Speed</p>
+               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-wind">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">km/h</span></p>
+             </div>
+             <div class="glass-card rounded-2xl p-5 flex flex-col justify-center border-slate-200/60 hover:shadow-md transition-shadow">
+               <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-indigo-400">compress</span> Pressure</p>
+               <p class="text-3xl font-black text-slate-800 tracking-tight"><span id="ui-pressure">--</span> <span class="text-xs font-bold text-slate-400 tracking-normal">hPa</span></p>
+             </div>
+          </div>
+       </div>
+
+       <!-- AI Insight Section -->
+       <div class="glass-card rounded-3xl p-8 bg-slate-900 text-white relative overflow-hidden shadow-lg">
+          <div class="absolute -right-4 -bottom-12 opacity-5 mix-blend-overlay">
+            <span class="material-symbols-outlined" style="font-size: 300px;">psychology</span>
+          </div>
+          <div class="relative z-10">
+            <h3 class="text-xl font-bold flex items-center gap-2 mb-4 tracking-tight">
+              <span class="material-symbols-outlined text-amber-400">auto_awesome</span>
+              AI Environmental Analysis
+            </h3>
+            <p id="ui-ai-analysis" class="text-slate-300 text-[15px] leading-relaxed max-w-5xl mb-8 font-medium">
+              Initializing AI context analyzer...
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-slate-800 pt-6 mt-2">
+               <div class="flex flex-col gap-1">
+                 <p class="text-[11px] uppercase font-bold text-slate-500 tracking-widest flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">trending_up</span> Predicted Trend</p>
+                 <p id="ui-ai-trend" class="text-lg font-bold capitalize text-white">--</p>
+               </div>
+               <div class="flex flex-col gap-1">
+                 <p class="text-[11px] uppercase font-bold text-slate-500 tracking-widest flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">fact_check</span> AI Confidence</p>
+                 <p id="ui-ai-confidence" class="text-lg font-bold text-white">--</p>
+               </div>
+               <div class="flex flex-col gap-1 sm:border-l sm:border-slate-800 sm:pl-6">
+                 <p class="text-[11px] uppercase font-bold text-slate-500 tracking-widest flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">health_and_safety</span> Health Advisory</p>
+                 <p id="ui-ai-health" class="text-sm font-medium text-amber-100">--</p>
+               </div>
+            </div>
+          </div>
+       </div>
+
+       <!-- Charts -->
+       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div class="glass-card rounded-3xl p-6 flex flex-col gap-4">
+            <div class="px-2">
+              <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 tracking-tight">
+                <span class="material-symbols-outlined text-primary">ssid_chart</span>
+                72-Hour AQI Curve
+              </h2>
+              <p class="text-xs font-medium text-slate-400 mt-0.5">Historical (Open-Meteo US AQI) vs. Next 72 Hours (AI-Assisted Forecast)</p>
+            </div>
+            <div class="w-full rounded-2xl p-2 relative h-[320px]">
+              <canvas id="aqi-chart"></canvas>
+            </div>
+          </div>
+
+          <div class="glass-card rounded-3xl p-6 flex flex-col gap-4">
+            <div class="px-2">
+              <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 tracking-tight">
+                <span class="material-symbols-outlined text-primary">thermostat</span>
+                72-Hour Weather & Wind
+              </h2>
+              <p class="text-xs font-medium text-slate-400 mt-0.5">Forecasted Temperature and Wind Speed influence</p>
+            </div>
+            <div class="w-full rounded-2xl p-2 relative h-[320px]">
+              <canvas id="weather-chart"></canvas>
+            </div>
+          </div>
+       </div>
+
+    </div>
   </main>
-
-  <!-- ============================================ -->
-  <!-- FAQ 01 KELO ACCORDION SECTION               -->
-  <!-- ============================================ -->
-  <section class="w-full bg-white py-20 px-6 md:px-12 lg:px-20 border-t border-gray-100">
-    <div class="max-w-[1320px] mx-auto">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-        
-        <!-- Left Column: Heading and Action Buttons -->
-        <div class="lg:col-span-5 flex flex-col items-start lg:sticky lg:top-28">
-          <h2 class="text-4xl md:text-5xl lg:text-[54px] font-bold text-[#111827] leading-[1.15] tracking-tight mb-8">
-            We're here to<br />
-            answer<br />
-            your questions..
-          </h2>
-
-          <div class="flex flex-wrap items-center gap-4">
-            <a
-              href="#simulation-inputs"
-              class="bg-[#059669] hover:bg-[#047857] text-white px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-md hover:shadow-emerald-900/10 active:scale-95 cursor-pointer"
-            >
-              Run Simulator
-            </a>
-            <a
-              href="/municipality.html"
-              class="border border-[#059669] text-[#059669] hover:bg-[#059669]/10 px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
-            >
-              View Dispatch Hub
-            </a>
-          </div>
-        </div>
-
-        <!-- Right Column: Accordion Questions -->
-        <div class="lg:col-span-7 flex flex-col divide-y divide-gray-200" id="forecast-faq-accordion">
-          
-          <!-- Item 1 -->
-          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="1">
-            <button
-              type="button"
-              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
-              aria-expanded="true"
-            >
-              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
-                How does the 14-day predictive AQI model calculate future trends?
-              </span>
-              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
-                <svg class="faq-minus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
-                <svg class="faq-plus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
-              </span>
-            </button>
-            <div class="faq-content overflow-hidden transition-all duration-300 ease-in-out">
-              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
-                Our predictive engine combines past 7-day CPCB and IQAir telemetry with diurnal meteorological forecasting. It continuously calculates the interaction between vehicular traffic density, industrial baseline output, ambient temperature, and surface wind speed to model boundary-layer dispersion.
-              </p>
-            </div>
-          </div>
-
-          <!-- Item 2 -->
-          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="2">
-            <button
-              type="button"
-              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
-              aria-expanded="false"
-            >
-              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
-                What happens when I adjust the environmental input sliders?
-              </span>
-              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
-                <svg class="faq-minus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
-                <svg class="faq-plus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
-              </span>
-            </button>
-            <div class="faq-content hidden overflow-hidden transition-all duration-300 ease-in-out">
-              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
-                Adjusting traffic density, industrial output, wind speed, or temperature triggers a local heuristic recalculation of PM2.5 and PM10 accumulation rates. This dynamically updates the solid forecast curve for the next 7 days in real time.
-              </p>
-            </div>
-          </div>
-
-          <!-- Item 3 -->
-          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="3">
-            <button
-              type="button"
-              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
-              aria-expanded="false"
-            >
-              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
-                How does 'Refine with Gemini AI' improve forecast accuracy?
-              </span>
-              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
-                <svg class="faq-minus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
-                <svg class="faq-plus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
-              </span>
-            </button>
-            <div class="faq-content hidden overflow-hidden transition-all duration-300 ease-in-out">
-              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
-                Clicking 'Refine with Gemini AI' sends your calibrated environmental variables alongside regional satellite inversion data to Google Gemini 2.5. The model detects non-linear weather shifts (e.g., thermal inversions or biomass plume drift) and generates policy-grade municipal mitigation advisories.
-              </p>
-            </div>
-          </div>
-
-          <!-- Item 4 -->
-          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="4">
-            <button
-              type="button"
-              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
-              aria-expanded="false"
-            >
-              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
-                Are the historical data points verified by official government monitors?
-              </span>
-              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
-                <svg class="faq-minus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
-                <svg class="faq-plus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
-              </span>
-            </button>
-            <div class="faq-content hidden overflow-hidden transition-all duration-300 ease-in-out">
-              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
-                Yes. The dashed line representing the past 7 days is calibrated against official continuous ambient air quality monitoring stations (CAAQMS) operated by the Central Pollution Control Board (CPCB) and IQAir ground stations.
-              </p>
-            </div>
-          </div>
-
-          <!-- Item 5 -->
-          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="5">
-            <button
-              type="button"
-              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
-              aria-expanded="false"
-            >
-              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
-                Can local municipal bodies use these forecasts for Graded Response Action Plans (GRAP)?
-              </span>
-              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
-                <svg class="faq-minus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
-                <svg class="faq-plus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
-              </span>
-            </button>
-            <div class="faq-content hidden overflow-hidden transition-all duration-300 ease-in-out">
-              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
-                Yes. Urban local bodies and municipal dispatchers use the 72-hour and 7-day inversion curves to preemptively deploy anti-smog water mist canons, issue localized construction bans, and divert diesel transit corridors before critical thresholds are breached.
-              </p>
-            </div>
-          </div>
-
-          <!-- Item 6 -->
-          <div class="faq-item py-6 first:pt-0 last:pb-0" data-faq-id="6">
-            <button
-              type="button"
-              class="faq-trigger w-full flex items-center justify-between text-left group py-2 focus:outline-none cursor-pointer"
-              aria-expanded="false"
-            >
-              <span class="text-lg md:text-xl font-semibold text-[#111827] group-hover:text-[#059669] transition-colors pr-6">
-                How frequently is the live station forecast synchronized?
-              </span>
-              <span class="faq-icon-wrapper text-gray-500 group-hover:text-[#059669] transition-colors flex-shrink-0">
-                <svg class="faq-minus hidden w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>
-                <svg class="faq-plus w-[22px] h-[22px] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"></path></svg>
-              </span>
-            </button>
-            <div class="faq-content hidden overflow-hidden transition-all duration-300 ease-in-out">
-              <p class="text-base text-gray-600 leading-relaxed pt-3 pb-2 pr-6">
-                Telemetry updates every 15 minutes across active monitoring stations in Delhi-NCR and major pan-India metropolitan clusters, recalculating atmospheric moisture and particulate stagnation curves automatically.
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </section>
-
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Global scripts -->
   <script type="module" src="/js/app.js"></script>
   <script type="module" src="/js/forecast-simulator.js"></script>
-
-  <!-- FAQ 01 Kelo Accordion Interactions -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const faqItems = document.querySelectorAll('#forecast-faq-accordion .faq-item');
-      faqItems.forEach(item => {
-        const trigger = item.querySelector('.faq-trigger');
-        const content = item.querySelector('.faq-content');
-        const plusIcon = item.querySelector('.faq-plus');
-        const minusIcon = item.querySelector('.faq-minus');
-
-        if (trigger && content) {
-          trigger.addEventListener('click', () => {
-            const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
-
-            // Collapse all other items
-            faqItems.forEach(otherItem => {
-              if (otherItem !== item) {
-                const otherTrigger = otherItem.querySelector('.faq-trigger');
-                const otherContent = otherItem.querySelector('.faq-content');
-                const otherPlus = otherItem.querySelector('.faq-plus');
-                const otherMinus = otherItem.querySelector('.faq-minus');
-                if (otherTrigger) otherTrigger.setAttribute('aria-expanded', 'false');
-                if (otherContent) otherContent.classList.add('hidden');
-                if (otherPlus) otherPlus.classList.remove('hidden');
-                if (otherMinus) otherMinus.classList.add('hidden');
-              }
-            });
-
-            // Toggle current item
-            if (isExpanded) {
-              trigger.setAttribute('aria-expanded', 'false');
-              content.classList.add('hidden');
-              if (plusIcon) plusIcon.classList.remove('hidden');
-              if (minusIcon) minusIcon.classList.add('hidden');
-            } else {
-              trigger.setAttribute('aria-expanded', 'true');
-              content.classList.remove('hidden');
-              if (plusIcon) plusIcon.classList.add('hidden');
-              if (minusIcon) minusIcon.classList.remove('hidden');
-            }
-          });
-        }
-      });
-    });
-  </script>
-
-  <!-- Universal AeroStreet-AI Footer -->
-  <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 text-xs py-12 px-6 lg:px-12 select-none">
-    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
-      <div class="space-y-3">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">I</div>
-          <span class="font-bold text-base text-white tracking-tight">AeroStreet-AI</span>
-        </div>
-        <p class="text-slate-400 text-xs leading-relaxed">
-          National Environmental Air Quality Intelligence Platform. Providing real-time monitoring, predictive telemetry, and municipal action planning across India.
-        </p>
-        <div class="flex items-center gap-2 text-[11px] text-emerald-400 pt-1">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Live CPCB &amp; IQAir Telemetry Active</span>
-        </div>
-      </div>
-
-      <div>
-        <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Platform Navigation</h4>
-        <ul class="space-y-2">
-          <li><a href="/national.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">map</span> National Interactive Map</a></li>
-          <li><a href="/district.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">explore</span> District Dashboard</a></li>
-          <li><a href="/municipality.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">analytics</span> Municipality Hub</a></li>
-          <li><a href="/forecast.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">cloud</span> 72-Hour AQI Forecast</a></li>
-          <li><a href="/community.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">groups</span> Community Citizen Hub</a></li>
-        </ul>
-      </div>
-
-      <div>
-        <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Data &amp; Governance</h4>
-        <ul class="space-y-2">
-          <li><a href="/methodology.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">science</span> AQI Standards &amp; Methodology</a></li>
-          <li><a href="/privacy.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">security</span> Privacy Policy</a></li>
-          <li><a href="/terms.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">gavel</span> Terms of Service</a></li>
-          <li><a href="https://cpcb.nic.in" target="_blank" rel="noreferrer" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">open_in_new</span> CPCB Official Portal</a></li>
-        </ul>
-      </div>
-
-      <div>
-        <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">National Index Legend</h4>
-        <div class="grid grid-cols-2 gap-1.5 text-[10px]">
-          <span class="px-2 py-1 rounded bg-emerald-950/80 border border-emerald-800 text-emerald-300 font-medium">0-50 Good</span>
-          <span class="px-2 py-1 rounded bg-lime-950/80 border border-lime-800 text-lime-300 font-medium">51-100 Satisfactory</span>
-          <span class="px-2 py-1 rounded bg-amber-950/80 border border-amber-800 text-amber-300 font-medium">101-200 Moderate</span>
-          <span class="px-2 py-1 rounded bg-orange-950/80 border border-orange-800 text-orange-300 font-medium">201-300 Poor</span>
-          <span class="px-2 py-1 rounded bg-rose-950/80 border border-rose-800 text-rose-300 font-medium">301-400 Very Poor</span>
-          <span class="px-2 py-1 rounded bg-purple-950/80 border border-purple-800 text-purple-300 font-medium">401+ Severe</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="max-w-7xl mx-auto mt-8 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-      <p>&copy; 2026 AeroStreet-AI. Made for cleaner urban skies across India.</p>
-      <div class="flex items-center gap-6">
-        <a href="/privacy.html" class="hover:text-slate-300 transition-colors">Privacy</a>
-        <a href="/terms.html" class="hover:text-slate-300 transition-colors">Terms</a>
-        <a href="/methodology.html" class="hover:text-slate-300 transition-colors">Methodology</a>
-        <a href="/community.html" class="hover:text-slate-300 transition-colors">Community</a>
-      </div>
-    </div>
-  </footer>
-
 </body>
 </html>

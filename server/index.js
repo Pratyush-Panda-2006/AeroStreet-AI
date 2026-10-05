@@ -379,7 +379,7 @@ app.post('/api/recommendations/:districtId', async (req, res) => {
   const weather = req.body.weather || { aqi: 345, windSpeed: 12, windDirection: 'North-East', temp: 28 };
 
   // Format incidents details for Gemini AI prompt context
-  const incidentsText = incidents.map(inc => 
+  const incidentsText = incidents.map(inc =>
     `- ID: ${inc.id}, Event: ${inc.type}, Location: ${inc.location}, Confidence: ${inc.confidence}, Status: ${inc.status}`
   ).join('\n');
 
@@ -399,10 +399,10 @@ Live Environmental Conditions:
 - Temperature: ${weather.temp}°C
 
 Your recommendations should be hyper-specific to these live weather and environmental conditions. For instance, if wind speed is high, highlight dust containment. If wind is low and AQI is extremely high, focus on immediate road wetting/sprinkling and industrial shutdown protocols. Focus on immediately implementable actions with measurable impact.`,
-      context: { 
-        districtId, 
-        avgAQI: weather.aqi, 
-        hotspotCount: pendingCount, 
+      context: {
+        districtId,
+        avgAQI: weather.aqi,
+        hotspotCount: pendingCount,
         cctvAlertsCount: cctvCount,
         peakHours: ['8:00-10:00', '17:00-20:00'],
         weatherInfo: weather
@@ -447,7 +447,7 @@ Your recommendations should be hyper-specific to these live weather and environm
         icon: 'factory'
       });
     }
-    
+
     // Default fallback if no matches or no pending
     if (mockRecs.length === 0) {
       mockRecs.push(
@@ -699,21 +699,21 @@ app.get('/api/live-aqi', async (req, res) => {
 
     const mapped = results.map(loc => {
       // Find PM2.5 sensor if available
-      const pm25Sensor = loc.sensors?.find(s => 
-        s.parameter?.name?.toLowerCase() === 'pm25' || 
+      const pm25Sensor = loc.sensors?.find(s =>
+        s.parameter?.name?.toLowerCase() === 'pm25' ||
         s.parameter?.displayName?.toLowerCase() === 'pm2.5'
       );
-      
+
       const activeSensor = pm25Sensor || loc.sensors?.[0];
       let val = activeSensor?.latest?.value || 0;
-      
+
       // Fallback coordinate-based calculation if value is zero/invalid
       if (val <= 0) {
         val = Math.floor(Math.sin(loc.coordinates?.latitude || 0) * 100 + 150) % 250 + 35;
       }
-      
+
       const aqi = calculateIndianAQI(val);
-      
+
       return {
         id: `openaq-${loc.id}`,
         name: loc.name || loc.locality || 'Station',
@@ -731,8 +731,8 @@ app.get('/api/live-aqi', async (req, res) => {
           }
           if (city) {
             city = city.replace(/\b(DPCC|MPCB|WBPCB|KSPCB|HSPCB|UPPCB|PCB|CPCB|APPCB|GPCB|SPCB|TSPCD|OSPCB)\b/gi, '')
-                       .replace(/[-–—,]/g, '')
-                       .trim();
+              .replace(/[-–—,]/g, '')
+              .trim();
           }
           if (!city || city.toLowerCase() === 'india') {
             city = 'Delhi';
@@ -801,7 +801,7 @@ Return ONLY the raw JSON array inside a \`\`\`json block. Do not write any expla
 
     const result = await model.generateContent(fullPrompt);
     const text = result.response.text();
-    
+
     let predictions;
     try {
       const jsonMatch = text.match(/\[[\s\S]*\]/);
@@ -887,7 +887,7 @@ app.get('/api/drives', async (req, res) => {
       if (Array.isArray(data) && data.length > 0) {
         return res.json({ success: true, drives: data });
       }
-      
+
       // If table exists but is empty, let's insert the default seed drives
       if (Array.isArray(data) && data.length === 0) {
         console.log('[Supabase] Table "drives" is empty. Seeding defaults...');
@@ -906,7 +906,7 @@ app.get('/api/drives', async (req, res) => {
   } catch (err) {
     console.warn('[Supabase] Failed to fetch drives, using memory fallback:', err.message);
   }
-  
+
   res.json({ success: true, drives: memoryDrives });
 });
 
@@ -921,7 +921,7 @@ app.post('/api/drives/:id/rsvp', async (req, res) => {
       method: 'GET',
       headers: supabaseHeaders
     });
-    
+
     if (getRes.ok) {
       const data = await getRes.json();
       if (Array.isArray(data) && data.length > 0) {
@@ -932,10 +932,10 @@ app.post('/api/drives/:id/rsvp', async (req, res) => {
         if (drive.slotsFilled >= drive.maxSlots) {
           return res.status(400).json({ success: false, error: 'Event is full!' });
         }
-        
+
         const newSlotsFilled = (drive.slotsFilled || 0) + 1;
         const newAttendees = Array.isArray(drive.attendees) ? [...drive.attendees, userId] : [userId];
-        
+
         const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/drives?id=eq.${driveId}`, {
           method: 'PATCH',
           headers: {
@@ -947,10 +947,10 @@ app.post('/api/drives/:id/rsvp', async (req, res) => {
             attendees: newAttendees
           })
         });
-        
+
         if (patchRes.ok) {
           const patchData = await patchRes.json();
-          
+
           // Get all drives to recalculate total volunteer count
           const allDrivesRes = await fetch(`${SUPABASE_URL}/rest/v1/drives?select=slotsFilled`, {
             method: 'GET',
@@ -961,7 +961,7 @@ app.post('/api/drives/:id/rsvp', async (req, res) => {
             const allDrives = await allDrivesRes.json();
             totalCount = allDrives.reduce((sum, d) => sum + (d.slotsFilled || 0), 0);
           }
-          
+
           console.log(`[Supabase] RSVP successful for ${driveId}. New volunteerCount: ${totalCount}`);
           return res.json({ success: true, slotsFilled: newSlotsFilled, volunteerCount: totalCount });
         }
@@ -985,7 +985,7 @@ app.post('/api/drives/:id/rsvp', async (req, res) => {
 
   drive.slotsFilled += 1;
   drive.attendees.push(userId);
-  
+
   const totalCount = memoryDrives.reduce((sum, d) => sum + (d.slotsFilled || 0), 0);
   console.log(`[MemoryStore] RSVP successful for ${driveId}. New volunteerCount: ${totalCount}`);
   res.json({ success: true, slotsFilled: drive.slotsFilled, volunteerCount: totalCount });
@@ -1040,7 +1040,7 @@ app.post('/api/drives', async (req, res) => {
 // Endpoint: Predictive Heatmap Coordinates
 app.get('/api/predictive-heatmap', (req, res) => {
   const hotspots = [];
-  
+
   // Seed coordinates across major Indian cities
   const centers = [
     { name: 'Delhi NCR', lat: 28.6139, lng: 77.2090, weight: 340 },
@@ -1180,9 +1180,9 @@ app.post('/api/reports', upload.single('image'), async (req, res) => {
       // Multimodal contents array
       let contents = [];
       let prompt = `Analyze this citizen pollution description: "${description}". Does it actually contain environmental pollution or a violation (like trash burning, excessive industrial emission, litter dumping, or construction dust)? Respond with a single confidence score between 0 and 100 as a single integer number. Return ONLY the integer, no markdown, no other text.`;
-      
+
       contents.push(prompt);
-      
+
       if (req.file) {
         contents.push({
           inlineData: {
@@ -1211,7 +1211,7 @@ app.post('/api/reports', upload.single('image'), async (req, res) => {
   const reportId = 'rep-' + Date.now();
   const timeString = new Date().toLocaleTimeString('en-IN', { hour12: false });
   const categoryLabel = category.charAt(0).toUpperCase() + category.slice(1);
-  
+
   const reportData = {
     id: `👤 Report #${reportId.slice(-4)}`,
     type: `${categoryLabel} Pollution`,
@@ -1249,6 +1249,199 @@ app.post('/api/reports', upload.single('image'), async (req, res) => {
   }
 
   res.json({ success: true, report: reportData });
+});
+
+// ── Location-Aware Environment Forecast ──
+const forecastCache = new Map();
+
+app.get('/api/environment/forecast', async (req, res) => {
+  const { lat, lng } = req.query;
+  if (!lat || !lng) return res.status(400).json({ error: 'Missing lat or lng' });
+
+  const cacheKey = `${parseFloat(lat).toFixed(2)}_${parseFloat(lng).toFixed(2)}`;
+  if (forecastCache.has(cacheKey)) {
+    const cached = forecastCache.get(cacheKey);
+    if (Date.now() - cached.timestamp < 30 * 60 * 1000) { // 30 min cache
+      return res.json(cached.data);
+    }
+  }
+
+  try {
+    // 1. Reverse Geocode via Nominatim
+    let locationData = { city: 'Unknown', district: 'Unknown', state: 'Unknown', country: 'Unknown' };
+    try {
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, {
+        headers: { 'User-Agent': 'AeroStreet-AI/1.0' }
+      });
+      if (geoRes.ok) {
+        const geoJson = await geoRes.json();
+        const addr = geoJson.address || {};
+        locationData = {
+          city: addr.city || addr.town || addr.village || addr.county || 'Unknown',
+          district: addr.county || addr.state_district || 'Unknown',
+          state: addr.state || 'Unknown',
+          country: addr.country || 'Unknown'
+        };
+      } else {
+        console.warn('Nominatim HTTP error:', geoRes.status, await geoRes.text());
+      }
+    } catch (e) { console.warn('Nominatim error', e.message); }
+
+    // 2. Fetch Open-Meteo Air Quality (past 3 days, current, forecast 3 days)
+    const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone&hourly=us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone&past_days=3&forecast_days=3&timezone=auto`;
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m,surface_pressure&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,surface_pressure&past_days=3&forecast_days=3&timezone=auto`;
+
+    const [aqiRes, weatherRes] = await Promise.all([fetch(aqiUrl), fetch(weatherUrl)]);
+    const aqiData = await aqiRes.json();
+    const weatherData = await weatherRes.json();
+
+    // Parse current
+    const current = {
+      aqi: aqiData.current?.us_aqi || 0,
+      pm25: aqiData.current?.pm2_5 || 0,
+      pm10: aqiData.current?.pm10 || 0,
+      no2: aqiData.current?.nitrogen_dioxide || 0,
+      so2: aqiData.current?.sulphur_dioxide || 0,
+      co: aqiData.current?.carbon_monoxide || 0,
+      o3: aqiData.current?.ozone || 0,
+      temperature: weatherData.current?.temperature_2m || 0,
+      humidity: weatherData.current?.relative_humidity_2m || 0,
+      wind_speed: weatherData.current?.wind_speed_10m || 0,
+      wind_direction: weatherData.current?.wind_direction_10m || 0,
+      pressure: weatherData.current?.surface_pressure || 0,
+      precipitation: weatherData.current?.precipitation || 0,
+      timestamp: weatherData.current?.time
+    };
+
+    // Parse historical and forecast
+    const aqiHourly = aqiData.hourly || {};
+    const weatherHourly = weatherData.hourly || {};
+    const now = new Date();
+
+    const historical = [];
+    const forecast = [];
+
+    if (aqiHourly.time) {
+      for (let i = 0; i < aqiHourly.time.length; i++) {
+        const time = new Date(aqiHourly.time[i]);
+        const pt = {
+          timestamp: aqiHourly.time[i],
+          aqi: aqiHourly.us_aqi[i],
+          pm25: aqiHourly.pm2_5[i],
+          pm10: aqiHourly.pm10[i],
+          temperature: weatherHourly.temperature_2m?.[i],
+          humidity: weatherHourly.relative_humidity_2m?.[i],
+          wind_speed: weatherHourly.wind_speed_10m?.[i],
+          precipitation: weatherHourly.precipitation_probability?.[i]
+        };
+        if (time < now) {
+          historical.push(pt);
+        } else {
+          forecast.push(pt);
+        }
+      }
+    }
+
+    const recentHistory = historical.slice(-72);
+    const futureForecast = forecast.slice(0, 72);
+
+    function sanitizeFutureWeatherForGemini(fData) {
+      return fData.map(item => ({
+        timestamp: item.timestamp,
+        temperature: item.temperature,
+        humidity: item.humidity,
+        wind_speed: item.wind_speed,
+        precipitation: item.precipitation
+      }));
+    }
+    const geminiWeatherForecast = sanitizeFutureWeatherForGemini(futureForecast);
+
+    // 3. Call Gemini
+    const geminiKey = process.env.GEMINI_API_KEY;
+    let ai_analysis = {
+      predicted_trend: 'stable',
+      confidence: 'Medium',
+      health_advisory: 'Monitor conditions.',
+      analysis_text: 'Gemini API not configured.',
+      hourly_forecast: futureForecast.map(f => ({
+        timestamp: f.timestamp,
+        predicted_aqi: f.aqi || 50,
+        aqi_category: 'Moderate',
+        predicted_pm25: f.pm25 || 15,
+        predicted_temperature: f.temperature,
+        predicted_humidity: f.humidity,
+        predicted_wind_speed: f.wind_speed,
+        predicted_weather: 'Clear',
+        confidence: 0.8,
+        reason: 'Fallback baseline.'
+      }))
+    };
+
+    if (geminiKey) {
+      try {
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(geminiKey);
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+        const prompt = `You are an environmental forecasting analyst. Analyze the following real-world air-quality and meteorological data for ${locationData.city}.
+        
+        Current Conditions: ${JSON.stringify(current)}
+        
+        Recent Historical Trends (last 24h summary): ${JSON.stringify(recentHistory.slice(-24))}
+        Forecasted Weather (next 72h summary): ${JSON.stringify(geminiWeatherForecast)}
+        
+        Based on this data, provide a reasoned 72-hour forecast and analysis.
+        Output MUST be a raw JSON object with the following structure, no markdown backticks:
+        {
+          "predicted_trend": "improving" | "worsening" | "stable" | "fluctuating",
+          "confidence": "High" | "Medium" | "Low",
+          "health_advisory": "String",
+          "analysis_text": "Detailed paragraph explaining what is happening, why, and weather influence.",
+          "hourly_forecast": [
+            {
+              "timestamp": "ISO-8601",
+              "predicted_aqi": integer,
+              "aqi_category": "Good|Satisfactory|Moderate|Poor|Very Poor|Severe",
+              "predicted_pm25": number,
+              "predicted_temperature": number,
+              "predicted_humidity": number,
+              "predicted_wind_speed": number,
+              "predicted_weather": "String",
+              "confidence": number(0-1),
+              "reason": "String"
+            }
+          ]
+        }
+        Generate exactly ${futureForecast.length} hourly forecast items in the array for the next 72 hours, aligned with the input forecasted timestamps. NEVER invent data as actual historical observations, only forecast.`;
+
+        const result = await model.generateContent(prompt);
+        let text = result.response.text().trim();
+        text = text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+        const parsed = JSON.parse(text);
+        if (parsed.hourly_forecast) {
+          ai_analysis = parsed;
+        }
+      } catch (err) {
+        console.warn('Gemini forecast error:', err);
+      }
+    }
+
+    const payload = {
+      location: locationData,
+      current,
+      historical: recentHistory,
+      weather_forecast: futureForecast,
+      ai_analysis,
+      generated_at: new Date().toISOString()
+    };
+
+    forecastCache.set(cacheKey, { timestamp: Date.now(), data: payload });
+    res.json(payload);
+
+  } catch (err) {
+    console.error('Forecast endpoint error:', err);
+    res.status(500).json({ error: 'Failed to generate forecast' });
+  }
 });
 
 // ── Health check ──

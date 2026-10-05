@@ -1,418 +1,345 @@
-// ============================================
-// AeroStreet-AI — 14-Day AQI Forecast Simulator
-// ============================================
-
 import { getAQILevel } from './config.js';
+import { initDelhiSearch, setLocationSourceAuto } from './delhi-search.js';
 
-let baselineAqi = 210; // Default Delhi Central average
-let historicalData = [185, 198, 220, 205, 190, 235, 215]; // Last 7 days
-let forecastData = [225, 230, 245, 260, 250, 240, 230];   // Simulated next 7 days
+let chartAqiInstance = null;
+let chartWeatherInstance = null;
+let currentUserCoords = null; // Store browser geolocation coords
 
-// Dates array builder
-const dateLabels = [];
-const today = new Date();
+document.addEventListener('DOMContentLoaded', () => {
+  const btnLocate = document.getElementById('btn-locate');
+  const btnSearch = document.getElementById('btn-search');
+  
+  if(btnLocate) {
+    btnLocate.addEventListener('click', requestLocation);
+  }
+  if(btnSearch) {
+    btnSearch.addEventListener('click', () => {
+      const city = document.getElementById('manual-city').value.trim();
+      if (city) manualSearch(city);
+    });
+  }
 
-// Last 7 days
-for (let i = 7; i > 0; i--) {
-  const d = new Date(today);
-  d.setDate(today.getDate() - i);
-  dateLabels.push({
-    dateStr: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-    type: 'Historical'
-  });
-}
-// Today
-dateLabels.push({
-  dateStr: today.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' (Today)',
-  type: 'Historical'
-});
-// Next 7 days
-for (let i = 1; i <= 7; i++) {
-  const d = new Date(today);
-  d.setDate(today.getDate() + i);
-  dateLabels.push({
-    dateStr: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
-    type: 'Simulated Forecast'
-  });
-}
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(initForecastSimulatorPage, 100);
-  });
-} else {
-  // DOM already loaded (module scripts are deferred)
-  setTimeout(initForecastSimulatorPage, 100);
-}
-
-function initForecastSimulatorPage() {
-  console.log('[ForecastSimulator] Init Page');
-
-  const trafficSlider = document.getElementById('slider-traffic');
-  const industrySlider = document.getElementById('slider-industry');
-  const windSlider = document.getElementById('slider-wind');
-  const tempSlider = document.getElementById('slider-temp');
-  const refineBtn = document.getElementById('trigger-gemini-prediction');
-
-  if (!trafficSlider) return;
-
-  // Bind Slider Value Displays
-  const updateDisplays = () => {
-    document.getElementById('val-traffic').textContent = `${trafficSlider.value}%`;
-    document.getElementById('val-industry').textContent = `${industrySlider.value}%`;
-    document.getElementById('val-wind').textContent = `${windSlider.value} km/h`;
-    document.getElementById('val-temp').textContent = `${tempSlider.value} °C`;
-  };
-
-  const handleSliderChange = () => {
-    updateDisplays();
-    calculateLocalForecast();
-    draw14DayChart();
-  };
-
-  [trafficSlider, industrySlider, windSlider, tempSlider].forEach(slider => {
-    slider.addEventListener('input', handleSliderChange);
-  });
-
-  // Refine with Gemini AI Click Handler
-  if (refineBtn) {
-    refineBtn.addEventListener('click', async () => {
-      refineBtn.disabled = true;
-      refineBtn.innerHTML = `
-        <span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-        Computing AI Models...
-      `;
-
-      try {
-        const response = await fetch('/api/gemini-forecast-insights', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            traffic: parseInt(trafficSlider.value),
-            industry: parseInt(industrySlider.value),
-            wind: parseInt(windSlider.value),
-            temp: parseInt(tempSlider.value),
-            baseline: baselineAqi
-          })
-        });
-
-        if (!response.ok) throw new Error('API request failed');
-        const result = await response.json();
-
-        if (result.success && result.forecast) {
-          forecastData = result.forecast;
-          
-          const insightsDiv = document.getElementById('forecast-ai-insights');
-          if (insightsDiv && result.insights) {
-            insightsDiv.innerHTML = `
-              <div class="flex gap-2">
-                <span class="material-symbols-outlined text-amber-500 text-[18px]">verified</span>
-                <div>
-                  <p class="font-bold text-slate-800">Gemini Prediction Alert</p>
-                  <p class="mt-1">${result.insights}</p>
-                </div>
-              </div>
-            `;
-          }
-          
-          window.__aerostreet?.showToast?.('Forecast models updated using Gemini AI!', 'success');
-          draw14DayChart();
-        }
-      } catch (err) {
-        console.error('[ForecastSimulator] Gemini sync failed:', err);
-        window.__aerostreet?.showToast?.('AI forecast refinement failed. Kept heuristic models.', 'warning');
-      } finally {
-        refineBtn.disabled = false;
-        refineBtn.innerHTML = `
-          <span class="material-symbols-outlined text-[16px] text-amber-400">psychology</span>
-          Refine with Gemini AI
-        `;
+  // Handle enter key in fallback search box
+  const searchInput = document.getElementById('manual-city');
+  if(searchInput) {
+    searchInput.addEventListener('keypress', (e) => {
+      if(e.key === 'Enter') {
+        const city = e.target.value.trim();
+        if (city) manualSearch(city);
       }
     });
   }
 
-  // Initial Draw
-  updateDisplays();
-  calculateLocalForecast();
-  draw14DayChart();
-}
-
-/**
- * Heuristic prediction model (Frontend math algorithm)
- */
-function calculateLocalForecast() {
-  const traffic = parseInt(document.getElementById('slider-traffic').value);
-  const industry = parseInt(document.getElementById('slider-industry').value);
-  const wind = parseInt(document.getElementById('slider-wind').value);
-  const temp = parseInt(document.getElementById('slider-temp').value);
-
-  // Compute 7 days of values progressively influenced by factors
-  const computed = [];
-  for (let day = 1; day <= 7; day++) {
-    // Basic regression algorithm modeling pollution stacking
-    let change = (traffic - 50) * 1.2 + (industry - 40) * 1.8 - (wind - 12) * 2.8 + (temp - 28) * 0.5;
-    
-    // Add progressive decay or buildup noise
-    let accumulation = (day * (change * 0.15));
-    let base = historicalData[historicalData.length - 1]; // start from today's value
-    
-    let aqiVal = Math.round(base + change + accumulation);
-    computed.push(Math.max(10, Math.min(500, aqiVal)));
+  // "Use my location" button on the dashboard
+  const btnMyLocation = document.getElementById('btn-my-location');
+  if (btnMyLocation) {
+    btnMyLocation.addEventListener('click', () => {
+      if (currentUserCoords) {
+        setLocationSourceAuto();
+        showDashboardLoading();
+        fetchEnvironmentData(currentUserCoords.lat, currentUserCoords.lng);
+      } else {
+        // Re-request geolocation
+        requestLocationForDashboard();
+      }
+    });
   }
-  forecastData = computed;
 
-  // Local Insights Generator
-  const insightsDiv = document.getElementById('forecast-ai-insights');
-  if (insightsDiv) {
-    const avgForecast = Math.round(computed.reduce((s,v) => s+v, 0) / 7);
-    const level = getAQILevel(avgForecast);
-    
-    let advice = 'Inputs suggest normal atmospheric operations. No emergency restrictions required.';
-    if (avgForecast > 300) {
-      advice = '🔴 CRITICAL ADVISORY: Predicted Severe AQI. Recommend municipal ban on construction, deployment of anti-smog water sprinklers, and odd-even traffic rules.';
-    } else if (avgForecast > 150) {
-      advice = '🟠 MODERATE WARNING: Stacking particulate density detected. High industrial outputs coupled with low wind speeds are impeding dispersion. Recommend active watering of arterial roads.';
-    }
-    
-    insightsDiv.innerHTML = `
-      <div class="space-y-1">
-        <p class="font-bold text-slate-800">Heuristic Advisory (Responsive Simulation):</p>
-        <p>Predicted 7-Day Average AQI is <strong class="text-${level.bgClass.replace('bg-', '')}">${avgForecast} (${level.label})</strong>. ${advice}</p>
-        <p class="text-[10px] text-slate-400 mt-1 italic">Click "Refine with Gemini AI" to sync these variables with the LLM forecast analyzer.</p>
-      </div>
-    `;
-  }
-}
+  // Listen for Delhi search selections
+  window.addEventListener('delhiSearchSelected', (e) => {
+    const { lat, lng } = e.detail;
+    showDashboardLoading();
+    fetchEnvironmentData(lat, lng);
+  });
 
-/**
- * Render 14-Day interactive SVG line chart (combining 7-day past history + 7-day prediction)
- */
-function draw14DayChart() {
-  const svg = document.getElementById('forecast-svg-chart');
-  if (!svg) return;
+  // Initialize Delhi search module
+  initDelhiSearch();
 
-  // Clear previous content
-  svg.innerHTML = '';
+  // Automatically ask for location on load
+  requestLocation();
+});
 
-  const container = document.getElementById('chart-viewport');
-  const width = container ? container.clientWidth - 32 : 800;  // subtract padding
-  const height = container ? container.clientHeight - 32 : 288;
-
-  // Set explicit viewBox so SVG scales properly
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  svg.setAttribute('width', width);
-  svg.setAttribute('height', height);
-
-  const paddingLeft = 40;
-  const paddingRight = 30;
-  const paddingTop = 30;
-  const paddingBottom = 40;
-
-  const chartWidth = width - paddingLeft - paddingRight;
-  const chartHeight = height - paddingTop - paddingBottom;
-
-  // Total points: 15 (7 days historical + Today + 7 days forecast)
-  const fullData = [...historicalData, forecastData[0], ...forecastData];
+function requestLocation() {
+  const statusDiv = document.getElementById('location-status');
+  const fallbackDiv = document.getElementById('fallback-search');
   
-  const minVal = 0;
-  const maxVal = Math.max(300, ...fullData) + 40;
-  const range = maxVal - minVal;
+  statusDiv.innerHTML = '<p class="text-sm font-bold text-slate-500 animate-pulse bg-slate-100 px-6 py-3 rounded-full inline-block mt-2">Requesting location permissions...</p>';
+  fallbackDiv.classList.add('hidden');
 
-  const getX = (idx) => paddingLeft + (idx / 14) * chartWidth;
-  const getY = (val) => paddingTop + chartHeight - ((val - minVal) / range) * chartHeight;
-
-  const svgNS = "http://www.w3.org/2000/svg";
-
-  // Re-create gradient defs (they get cleared with innerHTML)
-  const defs = document.createElementNS(svgNS, "defs");
-  defs.innerHTML = `
-    <linearGradient id="chart-area-grad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15" />
-      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
-    </linearGradient>
-  `;
-  svg.appendChild(defs);
-
-  // 1. Draw horizontal gridlines and y-axis labels
-  const steps = 4;
-  for (let i = 0; i <= steps; i++) {
-    const val = Math.round(minVal + (i / steps) * range);
-    const y = getY(val);
-
-    // Gridline
-    const line = document.createElementNS(svgNS, "line");
-    line.setAttribute("x1", paddingLeft);
-    line.setAttribute("y1", y);
-    line.setAttribute("x2", width - paddingRight);
-    line.setAttribute("y2", y);
-    line.setAttribute("stroke", "#f1f5f9");
-    line.setAttribute("stroke-width", "1");
-    svg.appendChild(line);
-
-    // Label
-    const txt = document.createElementNS(svgNS, "text");
-    txt.setAttribute("x", paddingLeft - 8);
-    txt.setAttribute("y", y + 4);
-    txt.setAttribute("text-anchor", "end");
-    txt.setAttribute("fill", "#94a3b8");
-    txt.setAttribute("font-size", "9px");
-    txt.setAttribute("font-family", "monospace");
-    txt.textContent = val;
-    svg.appendChild(txt);
+  if (!navigator.geolocation) {
+    statusDiv.innerHTML = '<p class="text-sm font-bold text-red-500 bg-red-50 px-6 py-3 rounded-full inline-block mt-2">Geolocation is not supported by your browser.</p>';
+    fallbackDiv.classList.remove('hidden');
+    return;
   }
 
-  // 2. Demarcation line (Today marker)
-  const todayIdx = 7;
-  const todayX = getX(todayIdx);
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      currentUserCoords = { lat, lng };
+      setLocationSourceAuto();
+      statusDiv.innerHTML = '<p class="text-sm font-bold text-emerald-600 bg-emerald-50 px-6 py-3 rounded-full inline-block mt-2 flex items-center gap-2"><span class="material-symbols-outlined animate-spin text-[16px]">sync</span> Location found. Analyzing environment...</p>';
+      fetchEnvironmentData(lat, lng);
+    },
+    (error) => {
+      console.warn("Geolocation Error:", error.message);
+      statusDiv.innerHTML = '<p class="text-sm font-bold text-red-500 bg-red-50 px-6 py-3 rounded-full inline-block mt-2">Location access denied or failed.</p>';
+      fallbackDiv.classList.remove('hidden');
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
 
-  const todayLine = document.createElementNS(svgNS, "line");
-  todayLine.setAttribute("x1", todayX);
-  todayLine.setAttribute("y1", paddingTop);
-  todayLine.setAttribute("x2", todayX);
-  todayLine.setAttribute("y2", height - paddingBottom);
-  todayLine.setAttribute("stroke", "#3b82f6");
-  todayLine.setAttribute("stroke-width", "1.5");
-  todayLine.setAttribute("stroke-dasharray", "4 4");
-  svg.appendChild(todayLine);
+function requestLocationForDashboard() {
+  if (!navigator.geolocation) return;
+  showDashboardLoading();
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      currentUserCoords = { lat: position.coords.latitude, lng: position.coords.longitude };
+      setLocationSourceAuto();
+      fetchEnvironmentData(currentUserCoords.lat, currentUserCoords.lng);
+    },
+    () => {
+      hideDashboardLoading();
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
 
-  const todayText = document.createElementNS(svgNS, "text");
-  todayText.setAttribute("x", todayX);
-  todayText.setAttribute("y", paddingTop - 8);
-  todayText.setAttribute("text-anchor", "middle");
-  todayText.setAttribute("fill", "#2563eb");
-  todayText.setAttribute("font-size", "9px");
-  todayText.setAttribute("font-weight", "bold");
-  todayText.textContent = "TODAY";
-  svg.appendChild(todayText);
-
-  // 3. Render Historical Path (Dashed Blue Line, indexes 0 to 7)
-  let histPoints = [];
-  for (let i = 0; i <= todayIdx; i++) {
-    histPoints.push(`${getX(i)},${getY(fullData[i])}`);
+async function manualSearch(cityName) {
+  const statusDiv = document.getElementById('location-status');
+  statusDiv.innerHTML = '<p class="text-sm font-bold text-slate-500 animate-pulse bg-slate-100 px-6 py-3 rounded-full inline-block mt-2 flex items-center justify-center mx-auto gap-2"><span class="material-symbols-outlined animate-spin text-[16px]">sync</span> Searching coordinates for city...</p>';
+  
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`);
+    const data = await res.json();
+    if(data && data.length > 0) {
+      statusDiv.innerHTML = '<p class="text-sm font-bold text-emerald-600 bg-emerald-50 px-6 py-3 rounded-full inline-block mt-2 mx-auto flex items-center justify-center gap-2"><span class="material-symbols-outlined animate-spin text-[16px]">sync</span> City found. Analyzing environment...</p>';
+      fetchEnvironmentData(data[0].lat, data[0].lon);
+    } else {
+      statusDiv.innerHTML = '<p class="text-sm font-bold text-red-500 bg-red-50 px-6 py-3 rounded-full inline-block mt-2 mx-auto">City not found. Please try another name.</p>';
+    }
+  } catch(e) {
+    statusDiv.innerHTML = '<p class="text-sm font-bold text-red-500 bg-red-50 px-6 py-3 rounded-full inline-block mt-2 mx-auto">Search failed.</p>';
   }
-  const histPath = document.createElementNS(svgNS, "path");
-  histPath.setAttribute("d", `M ${histPoints.join(' L ')}`);
-  histPath.setAttribute("fill", "none");
-  histPath.setAttribute("stroke", "#64748b");
-  histPath.setAttribute("stroke-width", "2.5");
-  histPath.setAttribute("stroke-dasharray", "5 5");
-  svg.appendChild(histPath);
+}
 
-  // 4. Render Forecast Path (Solid blue line, indexes 7 to 14)
-  let forePoints = [];
-  for (let i = todayIdx; i < 15; i++) {
-    forePoints.push(`${getX(i)},${getY(fullData[i])}`);
+async function fetchEnvironmentData(lat, lng) {
+  try {
+    const res = await fetch(`/api/environment/forecast?lat=${lat}&lng=${lng}`);
+    if(!res.ok) throw new Error("API failed");
+    const data = await res.json();
+    
+    // Hide prompt, show dashboard
+    document.getElementById('location-prompt').classList.add('hidden');
+    
+    const dash = document.getElementById('dashboard-content');
+    dash.classList.remove('hidden');
+    dash.classList.add('flex');
+    
+    hideDashboardLoading();
+    renderDashboard(data);
+  } catch (error) {
+    console.error(error);
+    hideDashboardLoading();
+    const statusDiv = document.getElementById('location-status');
+    statusDiv.innerHTML = '<p class="text-sm font-bold text-red-500 bg-red-50 px-6 py-3 rounded-full inline-block mt-2">Failed to fetch environmental data.</p>';
+    document.getElementById('fallback-search').classList.remove('hidden');
   }
-  const forePath = document.createElementNS(svgNS, "path");
-  forePath.setAttribute("d", `M ${forePoints.join(' L ')}`);
-  forePath.setAttribute("fill", "none");
-  forePath.setAttribute("stroke", "#2563eb");
-  forePath.setAttribute("stroke-width", "3");
-  svg.appendChild(forePath);
+}
 
-  // Area filling for forecast section
-  const areaPoints = [
-    `${getX(todayIdx)},${getY(0)}`,
-    ...forePoints,
-    `${getX(14)},${getY(0)}`
-  ];
-  const foreArea = document.createElementNS(svgNS, "path");
-  foreArea.setAttribute("d", `M ${areaPoints.join(' L ')} Z`);
-  foreArea.setAttribute("fill", "url(#chart-area-grad)");
-  svg.appendChild(foreArea);
+function showDashboardLoading() {
+  const overlay = document.getElementById('dashboard-loading');
+  if (overlay) overlay.classList.remove('hidden');
+}
 
-  // 5. Draw data points circles & hover trackers
-  fullData.forEach((val, idx) => {
-    const cx = getX(idx);
-    const cy = getY(val);
-    const level = getAQILevel(val);
+function hideDashboardLoading() {
+  const overlay = document.getElementById('dashboard-loading');
+  if (overlay) overlay.classList.add('hidden');
+}
 
-    // Inner Circle Core
-    const circle = document.createElementNS(svgNS, "circle");
-    circle.setAttribute("cx", cx);
-    circle.setAttribute("cy", cy);
-    circle.setAttribute("r", idx === todayIdx ? "5" : "3.5");
-    circle.setAttribute("fill", level.color);
-    circle.setAttribute("stroke", "#ffffff");
-    circle.setAttribute("stroke-width", "1.5");
-    circle.setAttribute("class", "chart-dot transition-all");
-    circle.style.cursor = "pointer";
-    svg.appendChild(circle);
+function renderDashboard(data) {
+  // 1. Location
+  document.getElementById('ui-city').textContent = data.location.city;
+  document.getElementById('ui-region').textContent = `${data.location.district}, ${data.location.state}, ${data.location.country}`;
 
-    // Invisible Interactive Circle for easier hovering
-    const trigger = document.createElementNS(svgNS, "circle");
-    trigger.setAttribute("cx", cx);
-    trigger.setAttribute("cy", cy);
-    trigger.setAttribute("r", "16");
-    trigger.setAttribute("fill", "transparent");
-    trigger.style.cursor = "pointer";
+  // 2. Current Conditions
+  const curr = data.current;
+  const level = getAQILevel(curr.aqi);
+  
+  const aqiEl = document.getElementById('ui-aqi');
+  aqiEl.textContent = curr.aqi;
+  aqiEl.style.color = level.color;
 
-    trigger.addEventListener('mouseenter', (e) => {
-      circle.setAttribute("r", "7");
-      showChartTooltip(e, idx, val);
-    });
-    trigger.addEventListener('mouseleave', () => {
-      circle.setAttribute("r", idx === todayIdx ? "5" : "3.5");
-      hideChartTooltip();
-    });
+  const catEl = document.getElementById('ui-aqi-cat');
+  catEl.textContent = level.label;
+  catEl.style.backgroundColor = level.color;
+  catEl.style.color = '#fff';
 
-    svg.appendChild(trigger);
-  });
+  document.getElementById('ui-pm25').textContent = curr.pm25 || '--';
+  document.getElementById('ui-pm10').textContent = curr.pm10 || '--';
+  document.getElementById('ui-temp').textContent = curr.temperature || '--';
+  document.getElementById('ui-humidity').textContent = curr.humidity || '--';
+  document.getElementById('ui-wind').textContent = curr.wind_speed || '--';
+  document.getElementById('ui-pressure').textContent = curr.pressure || '--';
 
-  // 6. Draw X-axis labels
-  fullData.forEach((val, idx) => {
-    // Only label odd indexes to avoid overlapping on smaller displays
-    if (idx % 2 === 0 || idx === todayIdx) {
-      const cx = getX(idx);
-      const label = dateLabels[idx];
+  // 3. AI Insights
+  const ai = data.ai_analysis;
+  document.getElementById('ui-ai-analysis').innerHTML = ai.analysis_text;
+  
+  const trendEl = document.getElementById('ui-ai-trend');
+  trendEl.textContent = ai.predicted_trend;
+  if(ai.predicted_trend.toLowerCase() === 'improving') {
+      trendEl.className = 'text-lg font-bold capitalize text-emerald-400';
+  } else if(ai.predicted_trend.toLowerCase() === 'worsening') {
+      trendEl.className = 'text-lg font-bold capitalize text-red-400';
+  } else {
+      trendEl.className = 'text-lg font-bold capitalize text-amber-400';
+  }
 
-      const txt = document.createElementNS(svgNS, "text");
-      txt.setAttribute("x", cx);
-      txt.setAttribute("y", height - paddingBottom + 16);
-      txt.setAttribute("text-anchor", "middle");
-      txt.setAttribute("fill", idx === todayIdx ? "#2563eb" : "#64748b");
-      txt.setAttribute("font-size", "9px");
-      txt.setAttribute("font-weight", idx === todayIdx ? "bold" : "normal");
-      txt.textContent = label.dateStr.replace(' (Today)', '');
-      svg.appendChild(txt);
+  document.getElementById('ui-ai-confidence').textContent = ai.confidence;
+  document.getElementById('ui-ai-health').textContent = ai.health_advisory;
+
+  // 4. Render Charts
+  renderAqiChart(data.historical, ai.hourly_forecast);
+  renderWeatherChart(data.weather_forecast);
+}
+
+function renderAqiChart(historical, forecast) {
+  const ctx = document.getElementById('aqi-chart').getContext('2d');
+  
+  // Prepare data: limit to last 24h historical + full forecast
+  const hist = historical.slice(-24);
+  
+  const labels = [...hist.map(h => new Date(h.timestamp).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'})), 
+                  ...forecast.map(f => new Date(f.timestamp).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'}))];
+  
+  const histData = [...hist.map(h => h.aqi), ...Array(forecast.length).fill(null)];
+  
+  // To make a continuous line, the first forecast point should overlap the last historical point
+  const lastHistVal = hist.length > 0 ? hist[hist.length-1].aqi : 50;
+  const foreData = [...Array(hist.length-1).fill(null), lastHistVal, ...forecast.map(f => f.predicted_aqi)];
+
+  if (chartAqiInstance) chartAqiInstance.destroy();
+
+  Chart.defaults.font.family = "'Satoshi', 'Inter', sans-serif";
+  Chart.defaults.color = '#94a3b8';
+
+  chartAqiInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Observed US EPA AQI (Open-Meteo)',
+          data: histData,
+          borderColor: '#64748b',
+          borderDash: [5, 5],
+          tension: 0.4,
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 6
+        },
+        {
+          label: 'Predicted AQI (AI-Assisted Forecast)',
+          data: foreData,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.1)',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 3,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#2563eb'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 6, font: { size: 11, weight: '600' } } },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          titleFont: { size: 12 },
+          bodyFont: { size: 12, weight: 'bold' },
+          padding: 10,
+          cornerRadius: 8,
+          displayColors: true,
+          callbacks: {
+            label: function(context) {
+              if (context.raw !== null) {
+                return ` ${context.dataset.label}: ${context.raw}`;
+              }
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 12, font: { size: 10 } } },
+        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, border: { dash: [4, 4] } }
+      }
     }
   });
 }
 
-function showChartTooltip(e, idx, val) {
-  let tooltip = document.getElementById('chart-hover-tooltip');
-  if (!tooltip) {
-    tooltip = document.createElement('div');
-    tooltip.id = 'chart-hover-tooltip';
-    tooltip.className = 'fixed z-[999] pointer-events-none p-3 rounded-xl border border-slate-200 bg-white/95 backdrop-blur-md shadow-xl text-slate-700 text-xs font-sans transition-opacity duration-150 opacity-0';
-    document.body.appendChild(tooltip);
-  }
+function renderWeatherChart(weather_forecast) {
+  const ctx = document.getElementById('weather-chart').getContext('2d');
+  
+  const labels = weather_forecast.map(w => new Date(w.timestamp).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'}));
+  const temps = weather_forecast.map(w => w.temperature);
+  const winds = weather_forecast.map(w => w.wind_speed);
 
-  const label = dateLabels[idx];
-  const level = getAQILevel(val);
+  if (chartWeatherInstance) chartWeatherInstance.destroy();
 
-  tooltip.innerHTML = `
-    <div class="font-bold text-slate-900">${label.dateStr}</div>
-    <div class="text-[10px] text-slate-400 font-medium uppercase mt-0.5">${label.type}</div>
-    <div class="flex items-center gap-1.5 mt-2 pt-1 border-t border-slate-100">
-      <span class="w-2.5 h-2.5 rounded-full" style="background: ${level.color}"></span>
-      <span class="font-bold text-slate-700">AQI ${val}</span>
-      <span class="text-[10px] uppercase font-bold text-slate-400 font-mono">(${level.label})</span>
-    </div>
-  `;
-
-  tooltip.style.opacity = '1';
-
-  // Position tooltip
-  const rect = tooltip.getBoundingClientRect();
-  tooltip.style.left = `${e.clientX + 12}px`;
-  tooltip.style.top = `${e.clientY - rect.height - 8}px`;
-}
-
-function hideChartTooltip() {
-  const tooltip = document.getElementById('chart-hover-tooltip');
-  if (tooltip) {
-    tooltip.style.opacity = '0';
-  }
+  chartWeatherInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Temperature (°C)',
+          data: temps,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          yAxisID: 'y',
+          tension: 0.4,
+          fill: true,
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 5
+        },
+        {
+          label: 'Wind Speed (km/h)',
+          data: winds,
+          borderColor: '#06b6d4',
+          yAxisID: 'y1',
+          tension: 0.4,
+          borderDash: [4, 4],
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 6, font: { size: 11, weight: '600' } } },
+        tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            padding: 10,
+            cornerRadius: 8
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 12, font: { size: 10 } } },
+        y: { type: 'linear', display: true, position: 'left', grid: { color: '#f1f5f9' }, title: { display: true, text: 'Temp °C', font: {size: 10, weight: 'bold'} } },
+        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Wind km/h', font: {size: 10, weight: 'bold'} } }
+      }
+    }
+  });
 }
