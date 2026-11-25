@@ -25,9 +25,10 @@ export const FooterMoxo: React.FC = () => {
         {/* 1. Top CTA Banner */}
         <div className="relative w-full h-[450px] rounded-[32px] overflow-hidden mb-20 group">
           <img
-            src="https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&q=80&w=1920"
+            src="/images/clear-skies-banner.svg"
             alt="Clear skies over Indian urban landscape"
-            referrerPolicy="no-referrer"
+            width={1920}
+            height={600}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-8">
@@ -147,7 +148,7 @@ export const FooterMoxo: React.FC = () => {
             <ul className="space-y-4 text-[#BFBFBE]">
               <li>
                 <a
-                  href="#"
+                  href="/methodology.html"
                   className="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
                 >
                   CPCB AQI Calibration
@@ -155,7 +156,7 @@ export const FooterMoxo: React.FC = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/municipality.html"
                   className="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
                 >
                   Camera Webhook Integration
@@ -163,7 +164,7 @@ export const FooterMoxo: React.FC = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/district.html"
                   className="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
                 >
                   Sensor Network Logs
@@ -171,7 +172,7 @@ export const FooterMoxo: React.FC = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/terms.html"
                   className="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
                 >
                   Enforcement Transparency
@@ -199,28 +200,36 @@ export const FooterMoxo: React.FC = () => {
           {/* Social Icons */}
           <div className="flex items-center gap-8">
             <a
-              href="#"
+              href="https://instagram.com/aerostreetai"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="Instagram"
               className="text-[#BFBFBE] hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
             >
               <Instagram size={22} />
             </a>
             <a
-              href="#"
+              href="https://facebook.com/aerostreetai"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="Facebook"
               className="text-[#BFBFBE] hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
             >
               <Facebook size={22} />
             </a>
             <a
-              href="#"
+              href="https://open.spotify.com"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="Music"
               className="text-[#BFBFBE] hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
             >
               <Music2 size={22} />
             </a>
             <a
-              href="#"
+              href="https://youtube.com/@aerostreetai"
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label="YouTube"
               className="text-[#BFBFBE] hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
             >

@@ -190,7 +190,7 @@ export function showAuthModal(mode = 'login') {
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-bold text-slate-800">${isLogin ? 'Welcome Back' : 'Join AeroStreet AI'}</h2>
           <button id="auth-close-btn" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-slate-500">close</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-slate-500">close</span>
           </button>
         </div>
         <p class="text-xs text-slate-400 mt-1">${isLogin ? 'Sign in to report issues and join community actions' : 'Create an account to start making a difference'}</p>
@@ -231,7 +231,7 @@ export function showAuthModal(mode = 'login') {
         <div id="auth-error" class="hidden text-red-600 text-xs bg-red-50 border border-red-100 p-3 rounded-lg"></div>
 
         <button type="submit" class="w-full py-2.5 bg-primary text-white font-semibold text-xs rounded-btn hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
-          <span class="material-symbols-outlined text-[18px]">${isLogin ? 'login' : 'person_add'}</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-[18px]">${isLogin ? 'login' : 'person_add'}</span>
           ${isLogin ? 'Sign In' : 'Create Account'}
         </button>
       </form>

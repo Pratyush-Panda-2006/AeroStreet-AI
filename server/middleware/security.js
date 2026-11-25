@@ -27,6 +27,7 @@ export function securityHeadersMiddleware(req, res, next) {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com",
     "font-src 'self' https://fonts.gstatic.com https://api.fontshare.com data:",
     "img-src 'self' data: blob: https: http:",
+    "media-src 'self' data: blob: https: https://d8j0ntlcm91z4.cloudfront.net",
     "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.airvisual.com https://api.waqi.info https://api.openaq.org https://air-quality-api.open-meteo.com https://api.open-meteo.com https://nominatim.openstreetmap.org https://njeeunzyfsgjmuzoronq.supabase.co https://*.supabase.co",
     "frame-ancestors 'none'",
     "base-uri 'self'",

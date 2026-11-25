@@ -78,7 +78,7 @@ function requestLocation() {
       const lng = position.coords.longitude;
       currentUserCoords = { lat, lng };
       setLocationSourceAuto();
-      statusDiv.innerHTML = '<p class="text-sm font-bold text-emerald-600 bg-emerald-50 px-6 py-3 rounded-full inline-block mt-2 flex items-center gap-2"><span class="material-symbols-outlined animate-spin text-[16px]">sync</span> Location found. Analyzing environment...</p>';
+      statusDiv.innerHTML = '<p class="text-sm font-bold text-emerald-600 bg-emerald-50 px-6 py-3 rounded-full inline-block mt-2 flex items-center gap-2"><span aria-hidden="true" class="material-symbols-outlined animate-spin text-[16px]">sync</span> Location found. Analyzing environment...</p>';
       fetchEnvironmentData(lat, lng);
     },
     (error) => {
@@ -108,13 +108,13 @@ function requestLocationForDashboard() {
 
 async function manualSearch(cityName) {
   const statusDiv = document.getElementById('location-status');
-  statusDiv.innerHTML = '<p class="text-sm font-bold text-slate-500 animate-pulse bg-slate-100 px-6 py-3 rounded-full inline-block mt-2 flex items-center justify-center mx-auto gap-2"><span class="material-symbols-outlined animate-spin text-[16px]">sync</span> Searching coordinates for city...</p>';
+  statusDiv.innerHTML = '<p class="text-sm font-bold text-slate-500 animate-pulse bg-slate-100 px-6 py-3 rounded-full inline-block mt-2 flex items-center justify-center mx-auto gap-2"><span aria-hidden="true" class="material-symbols-outlined animate-spin text-[16px]">sync</span> Searching coordinates for city...</p>';
   
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`);
     const data = await res.json();
     if(data && data.length > 0) {
-      statusDiv.innerHTML = '<p class="text-sm font-bold text-emerald-600 bg-emerald-50 px-6 py-3 rounded-full inline-block mt-2 mx-auto flex items-center justify-center gap-2"><span class="material-symbols-outlined animate-spin text-[16px]">sync</span> City found. Analyzing environment...</p>';
+      statusDiv.innerHTML = '<p class="text-sm font-bold text-emerald-600 bg-emerald-50 px-6 py-3 rounded-full inline-block mt-2 mx-auto flex items-center justify-center gap-2"><span aria-hidden="true" class="material-symbols-outlined animate-spin text-[16px]">sync</span> City found. Analyzing environment...</p>';
       fetchEnvironmentData(data[0].lat, data[0].lon);
     } else {
       statusDiv.innerHTML = '<p class="text-sm font-bold text-red-500 bg-red-50 px-6 py-3 rounded-full inline-block mt-2 mx-auto">City not found. Please try another name.</p>';
@@ -250,7 +250,7 @@ function renderDashboard(data) {
       titleEl.innerHTML = `
         <div class="flex flex-col">
           <span class="text-xl font-bold flex items-center gap-2 tracking-tight text-white">
-            <span class="material-symbols-outlined text-slate-400">analytics</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-slate-400">analytics</span>
             Baseline Forecast
           </span>
           <span class="text-xs font-medium text-slate-400 mt-1">Open-Meteo baseline</span>
@@ -260,7 +260,7 @@ function renderDashboard(data) {
       titleEl.innerHTML = `
         <div class="flex flex-col">
           <span class="text-xl font-bold flex items-center gap-2 tracking-tight text-white">
-            <span class="material-symbols-outlined text-amber-400">auto_awesome</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-amber-400">auto_awesome</span>
             AI-Assisted Forecast
           </span>
           <span class="text-xs font-medium text-amber-200/70 mt-1">Powered by environmental + weather analysis</span>

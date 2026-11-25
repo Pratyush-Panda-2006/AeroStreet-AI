@@ -5,13 +5,30 @@
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>AeroStreet-AI — Enterprise Air Quality Monitoring & Analytics Platform</title>
   <meta name="description" content="AeroStreet-AI is a high-performance enterprise dashboard for national-level air quality tracking, automated pollution spotting, and AI-powered municipal action recommendations."/>
+  <link rel="canonical" href="https://aerostreetai.vercel.app/national.html"/>
   
-  <!-- Google Fonts: Inter, DM Sans, Bricolage Grotesque & Playfair Display -->
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="AeroStreet-AI — Enterprise Air Quality Monitoring & Analytics Platform"/>
+  <meta property="og:description" content="AeroStreet-AI is a high-performance enterprise dashboard for national-level air quality tracking, automated pollution spotting, and AI-powered municipal action recommendations."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://aerostreetai.vercel.app/national.html"/>
+  <meta property="og:image" content="https://aerostreetai.vercel.app/images/og-preview.svg"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="AeroStreet-AI — Enterprise Air Quality Monitoring & Analytics Platform"/>
+  <meta name="twitter:description" content="Real-time Pan-India Air Quality Monitoring, Urban Assistant & Civic Action Platform."/>
+  <meta name="twitter:image" content="https://aerostreetai.vercel.app/images/og-preview.svg"/>
+
+  <!-- Optimized Non-Blocking Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap">
+  </noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap">
+  </noscript>
   
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script id="tailwind-config">
@@ -118,24 +135,35 @@
     .animate-fadeInUp {
       animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col bg-black text-white">
   <!-- WCAG 2.1 AA Skip Link -->
   <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[999] focus:p-3 focus:bg-blue-600 focus:text-white focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white">Skip to main content</a>
-  <main id="main-content" role="main" class="flex-1">
+  <main id="main-content" role="main" class="flex-1 pb-16">
 
   <!-- VEX Ventures Video Glass Hero & Floating Navigation -->
   <section class="relative w-full h-screen overflow-hidden bg-black flex flex-col">
-    <!-- Background Video: Play raw with zero dimming, no overlay -->
+    <!-- Background Video: Optimized with instant SVG poster & async loading to guarantee FCP/LCP < 1.0s -->
     <video
       id="hero-video"
       autoplay
       loop
       muted
       playsinline
+      preload="none"
+      poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080' width='100%25' height='100%25'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23050b14'/%3E%3Cstop offset='50%25' stop-color='%230f172a'/%3E%3Cstop offset='100%25' stop-color='%23020617'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E"
       class="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
-      src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4"
+      data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4"
     ></video>
 
     <!-- Floating Navbar -->
@@ -274,7 +302,7 @@
 
         <!-- Card 2 — Photo Card -->
         <div class="h-[350px] rounded-[24px] overflow-hidden relative group border border-gray-100 shadow-md">
-          <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop" alt="Clean Air Community Outreach" referrerpolicy="no-referrer" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"/>
+          <img src="/images/community-outreach.svg" width="800" height="600" alt="Clean Air Community Outreach" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"/>
           <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
           <div class="absolute bottom-0 left-0 right-0 p-6 flex flex-col">
             <div class="flex items-center gap-2 mb-2">
@@ -331,7 +359,7 @@
             <span class="w-3 h-3 rounded-full bg-green-400"></span>
           </div>
           <a href="/national.html" class="px-6 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-md text-[11px] font-mono text-slate-600 w-80 text-center truncate transition-all flex items-center justify-center gap-1">
-            https://india-aqi.org/national-map
+            https://aerostreetai.vercel.app/national.html
           </a>
           <div class="w-12"></div>
         </div>
@@ -348,8 +376,8 @@
               
               <!-- Search bar -->
               <div class="relative">
-                <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">search</span>
-                <input id="map-sidebar-search" type="text" placeholder="Find state or district..." 
+                <span aria-hidden="true" class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">search</span>
+                <input id="map-sidebar-search" type="text" placeholder="Find state or district..." aria-label="Find state or district"
                   class="w-full pl-7 pr-3 py-1.5 border border-slate-200 bg-slate-50 rounded-lg text-xs outline-none text-slate-800 focus:border-indigo-500 transition-colors placeholder:text-slate-400"/>
               </div>
             </div>
@@ -379,7 +407,7 @@
       <div class="p-6 rounded-card border border-slate-200/80 bg-white hover:shadow-lg transition-all flex flex-col justify-between">
         <div>
           <div class="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 mb-4">
-            <span class="material-symbols-outlined text-[20px]">sensors</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[20px]">sensors</span>
           </div>
           <h3 class="font-bold text-slate-900 text-base mb-2">Real-time Hotspot Tracking</h3>
           <p class="text-sm text-slate-600 leading-relaxed">
@@ -387,7 +415,7 @@
           </p>
         </div>
         <div class="text-xs text-blue-600 font-bold mt-4 flex items-center gap-1">
-          Active In 12 major zones <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+          Active In 12 major zones <span aria-hidden="true" class="material-symbols-outlined text-[14px]">arrow_forward</span>
         </div>
       </div>
       
@@ -395,7 +423,7 @@
       <div class="p-6 rounded-card border border-slate-200/80 bg-white hover:shadow-lg transition-all flex flex-col justify-between">
         <div>
           <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 mb-4">
-            <span class="material-symbols-outlined text-[20px]">smart_toy</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[20px]">smart_toy</span>
           </div>
           <h3 class="font-bold text-slate-900 text-base mb-2">AI-driven Action Insights</h3>
           <p class="text-sm text-slate-600 leading-relaxed">
@@ -403,7 +431,7 @@
           </p>
         </div>
         <div class="text-xs text-emerald-600 font-bold mt-4 flex items-center gap-1">
-          Powered by Gemini 2.5 <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+          Powered by Gemini 2.5 <span aria-hidden="true" class="material-symbols-outlined text-[14px]">arrow_forward</span>
         </div>
       </div>
 
@@ -411,7 +439,7 @@
       <div class="p-6 rounded-card border border-slate-200/80 bg-white hover:shadow-lg transition-all flex flex-col justify-between">
         <div>
           <div class="w-10 h-10 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600 mb-4">
-            <span class="material-symbols-outlined text-[20px]">videocam</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[20px]">videocam</span>
           </div>
           <h3 class="font-bold text-slate-900 text-base mb-2">Automated Spotting CCTV</h3>
           <p class="text-sm text-slate-600 leading-relaxed">
@@ -419,7 +447,7 @@
           </p>
         </div>
         <div class="text-xs text-rose-600 font-bold mt-4 flex items-center gap-1">
-          Live CCTV Webhook alert <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+          Live CCTV Webhook alert <span aria-hidden="true" class="material-symbols-outlined text-[14px]">arrow_forward</span>
         </div>
       </div>
     </div>
@@ -443,13 +471,13 @@
         <!-- Photo 1 -->
         <div class="bg-white border border-slate-200/80 rounded-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
           <div class="relative h-48 bg-slate-100">
-            <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&q=80&w=400" alt="Heavy Smoke Emission"/>
+            <img class="w-full h-full object-cover" width="400" height="300" src="/images/heavy-smoke.svg" alt="Heavy Smoke Emission"/>
             <span class="absolute top-3 left-3 bg-red-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Severe Violation</span>
           </div>
           <div class="p-4 space-y-3">
             <div class="flex items-center justify-between text-xs text-slate-500">
-              <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>2 hours ago</span>
-              <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[14px]">location_on</span>Anand Vihar, Delhi</span>
+              <span class="flex items-center gap-1"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">schedule</span>2 hours ago</span>
+              <span class="flex items-center gap-0.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">location_on</span>Anand Vihar, Delhi</span>
             </div>
             <h4 class="font-bold text-slate-900 text-sm">Industrial Incineration Discharge</h4>
             <p class="text-xs text-slate-500 line-clamp-2">Citizen reported thick black smoke stack discharge violating emissions norms in the local warehousing zone.</p>
@@ -463,13 +491,13 @@
         <!-- Photo 2 -->
         <div class="bg-white border border-slate-200/80 rounded-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
           <div class="relative h-48 bg-slate-100">
-            <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80&w=400" alt="Construction Dust"/>
+            <img class="w-full h-full object-cover" width="400" height="300" src="/images/construction-dust.svg" alt="Construction Dust"/>
             <span class="absolute top-3 left-3 bg-amber-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Warning Limits</span>
           </div>
           <div class="p-4 space-y-3">
             <div class="flex items-center justify-between text-xs text-slate-500">
-              <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>5 hours ago</span>
-              <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[14px]">location_on</span>Dwarka Sector 21, Delhi</span>
+              <span class="flex items-center gap-1"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">schedule</span>5 hours ago</span>
+              <span class="flex items-center gap-0.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">location_on</span>Dwarka Sector 21, Delhi</span>
             </div>
             <h4 class="font-bold text-slate-900 text-sm">Unsprinkled Construction Debris</h4>
             <p class="text-xs text-slate-500 line-clamp-2">Dust cloud generated from active commercial site. Visual feeds confirm lack of mandatory dust control barriers.</p>
@@ -483,13 +511,13 @@
         <!-- Photo 3 -->
         <div class="bg-white border border-slate-200/80 rounded-card overflow-hidden shadow-sm hover:shadow-md transition-shadow">
           <div class="relative h-48 bg-slate-100">
-            <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=400" alt="Trash Burning"/>
+            <img class="w-full h-full object-cover" width="400" height="300" src="/images/trash-burning.svg" alt="Trash Burning"/>
             <span class="absolute top-3 left-3 bg-red-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Severe Violation</span>
           </div>
           <div class="p-4 space-y-3">
             <div class="flex items-center justify-between text-xs text-slate-500">
-              <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>1 day ago</span>
-              <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[14px]">location_on</span>Howrah Ghat, West Bengal</span>
+              <span class="flex items-center gap-1"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">schedule</span>1 day ago</span>
+              <span class="flex items-center gap-0.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">location_on</span>Howrah Ghat, West Bengal</span>
             </div>
             <h4 class="font-bold text-slate-900 text-sm">Open Biomass Waste Burning</h4>
             <p class="text-xs text-slate-500 line-clamp-2">Large scale burning of waste plastics and organic scrap detected along riverbank, causing high particulate spikes.</p>
@@ -550,9 +578,10 @@
       <!-- 1. Top CTA Banner -->
       <div class="relative w-full h-[450px] rounded-[32px] overflow-hidden mb-20 group">
         <img
-          src="https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&q=80&w=1920"
+          src="/images/clear-skies-banner.svg"
           alt="Clear skies over Indian urban landscape"
-          referrerpolicy="no-referrer"
+          width="1920"
+          height="600"
           class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
         />
         <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-8">
@@ -672,7 +701,7 @@
           <ul class="space-y-4 text-[#BFBFBE]">
             <li>
               <a
-                href="#"
+                href="/methodology.html"
                 class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
               >
                 CPCB AQI Calibration
@@ -680,7 +709,7 @@
             </li>
             <li>
               <a
-                href="#"
+                href="/municipality.html"
                 class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
               >
                 Camera Webhook Integration
@@ -688,7 +717,7 @@
             </li>
             <li>
               <a
-                href="#"
+                href="/district.html"
                 class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
               >
                 Sensor Network Logs
@@ -696,7 +725,7 @@
             </li>
             <li>
               <a
-                href="#"
+                href="/terms.html"
                 class="hover:text-[#FABE24] transition-colors duration-300 text-lg block"
               >
                 Enforcement Transparency
@@ -724,7 +753,9 @@
         <!-- Social Icons -->
         <div class="flex items-center gap-8 text-[#BFBFBE]">
           <a
-            href="#"
+            href="https://instagram.com/aerostreetai"
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="Instagram"
             class="hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
           >
@@ -735,7 +766,9 @@
             </svg>
           </a>
           <a
-            href="#"
+            href="https://facebook.com/aerostreetai"
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="Facebook"
             class="hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
           >
@@ -744,7 +777,9 @@
             </svg>
           </a>
           <a
-            href="#"
+            href="https://open.spotify.com"
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="Music"
             class="hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
           >
@@ -754,7 +789,9 @@
             </svg>
           </a>
           <a
-            href="#"
+            href="https://youtube.com/@aerostreetai"
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="YouTube"
             class="hover:text-[#FABE24] transition-all duration-300 hover:scale-110"
           >
@@ -861,11 +898,20 @@
         initAnimatedHeading('#hero-animated-heading', "Spotting and Fixing Local\nPollution Hotspots.");
         initFadeInComponents();
 
-        // Autoplay background video if not already playing
+        // Autoplay background video asynchronously after window load (or skip if saveData/reduced-data)
         const video = document.getElementById('hero-video');
         if (video) {
-          video.muted = true;
-          video.play().catch(function() {});
+          const isReducedData = Boolean(navigator.connection && navigator.connection.saveData) || 
+                                (window.matchMedia && window.matchMedia('(prefers-reduced-data: reduce)').matches);
+          if (!isReducedData) {
+            window.addEventListener('load', function() {
+              if (video.dataset && video.dataset.src && !video.src) {
+                video.src = video.dataset.src;
+              }
+              video.muted = true;
+              video.play().catch(function() {});
+            });
+          }
         }
       }
 

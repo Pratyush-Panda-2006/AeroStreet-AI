@@ -3,11 +3,37 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Community Citizen Hub — AeroStreet-AI</title>
+  <title>Community Citizen Watch — AeroStreet-AI</title>
+  <meta name="description" content="Report local air pollution spikes, open burning, and construction dust. Empower municipal clean air enforcement."/>
+  <link rel="canonical" href="https://aerostreetai.vercel.app/community.html"/>
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Community Citizen Watch — AeroStreet-AI"/>
+  <meta property="og:description" content="Report local air pollution spikes, open burning, and construction dust. Empower municipal clean air enforcement."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://aerostreetai.vercel.app/community.html"/>
+  <meta property="og:image" content="https://aerostreetai.vercel.app/images/og-preview.svg"/>
+
+  <!-- Optimized Non-Blocking Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+  </noscript>
   <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-  <style>body { font-family: 'Satoshi', sans-serif; }</style>
+  <style>
+    body { font-family: 'Satoshi', sans-serif; }
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
   <!-- WCAG 2.1 AA Skip Link -->
@@ -34,7 +60,7 @@
         </p>
       </div>
       <a href="/district.html" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-500/20 transition-all shrink-0 flex items-center gap-2">
-        <span class="material-symbols-outlined text-[20px]">add_circle</span> Report Incident
+        <span aria-hidden="true" class="material-symbols-outlined text-[20px]">add_circle</span> Report Incident
       </a>
     </div>
 
@@ -42,7 +68,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex items-center gap-2 text-rose-600 mb-2 font-bold text-sm">
-          <span class="material-symbols-outlined">local_fire_department</span> Open Burning Detected
+          <span aria-hidden="true" class="material-symbols-outlined">local_fire_department</span> Open Burning Detected
         </div>
         <p class="text-xs text-slate-600">Reported near Anand Vihar, East Delhi. Municipal tanker dispatched for dust suppression.</p>
         <span class="text-[10px] text-slate-400 mt-3 block font-mono">15 minutes ago &bull; Verified</span>
@@ -50,7 +76,7 @@
 
       <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex items-center gap-2 text-amber-600 mb-2 font-bold text-sm">
-          <span class="material-symbols-outlined">construction</span> Construction Dust Issue
+          <span aria-hidden="true" class="material-symbols-outlined">construction</span> Construction Dust Issue
         </div>
         <p class="text-xs text-slate-600">Uncovered debris transport near Whitefield, Bengaluru. Automated warning issued.</p>
         <span class="text-[10px] text-slate-400 mt-3 block font-mono">1 hour ago &bull; In Progress</span>
@@ -58,7 +84,7 @@
 
       <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex items-center gap-2 text-emerald-600 mb-2 font-bold text-sm">
-          <span class="material-symbols-outlined">check_circle</span> Smog Gun Deployed
+          <span aria-hidden="true" class="material-symbols-outlined">check_circle</span> Smog Gun Deployed
         </div>
         <p class="text-xs text-slate-600">Anti-smog guns operational at Salt Lake Sector V, Kolkata. Local AQI lowered by 18 points.</p>
         <span class="text-[10px] text-slate-400 mt-3 block font-mono">3 hours ago &bull; Resolved</span>
@@ -87,21 +113,21 @@
       <div>
         <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Platform Navigation</h4>
         <ul class="space-y-2">
-          <li><a href="/national.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">map</span> National Interactive Map</a></li>
-          <li><a href="/district.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">explore</span> District Dashboard</a></li>
-          <li><a href="/municipality.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">analytics</span> Municipality Hub</a></li>
-          <li><a href="/forecast.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">cloud</span> 72-Hour AQI Forecast</a></li>
-          <li><a href="/community.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">groups</span> Community Citizen Hub</a></li>
+          <li><a href="/national.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">map</span> National Interactive Map</a></li>
+          <li><a href="/district.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">explore</span> District Dashboard</a></li>
+          <li><a href="/municipality.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">analytics</span> Municipality Hub</a></li>
+          <li><a href="/forecast.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">cloud</span> 72-Hour AQI Forecast</a></li>
+          <li><a href="/community.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">groups</span> Community Citizen Hub</a></li>
         </ul>
       </div>
 
       <div>
         <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Data &amp; Governance</h4>
         <ul class="space-y-2">
-          <li><a href="/methodology.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">science</span> AQI Standards &amp; Methodology</a></li>
-          <li><a href="/privacy.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">security</span> Privacy Policy</a></li>
-          <li><a href="/terms.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">gavel</span> Terms of Service</a></li>
-          <li><a href="https://cpcb.nic.in" target="_blank" rel="noreferrer" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">open_in_new</span> CPCB Official Portal</a></li>
+          <li><a href="/methodology.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">science</span> AQI Standards &amp; Methodology</a></li>
+          <li><a href="/privacy.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">security</span> Privacy Policy</a></li>
+          <li><a href="/terms.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">gavel</span> Terms of Service</a></li>
+          <li><a href="https://cpcb.nic.in" target="_blank" rel="noreferrer" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">open_in_new</span> CPCB Official Portal</a></li>
         </ul>
       </div>
 

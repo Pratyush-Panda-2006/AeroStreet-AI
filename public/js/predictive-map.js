@@ -182,7 +182,7 @@ export async function initPredictiveHeatmap(containerId) {
       warningBanner.className = 'absolute top-16 left-4 right-4 z-20 pointer-events-none flex justify-center';
       warningBanner.innerHTML = `
         <div class="pointer-events-auto bg-amber-500/90 backdrop-blur-sm text-slate-900 text-[11px] font-bold px-4 py-2 rounded-lg shadow-lg flex items-center gap-1.5 border border-amber-600/35">
-          <span class="material-symbols-outlined text-[16px]">info</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-[16px]">info</span>
           Demo mode: Add a GOOGLE_MAPS_API_KEY in your .env file for a fully licensed production map.
         </div>
       `;
@@ -193,7 +193,7 @@ export async function initPredictiveHeatmap(containerId) {
     console.error('[Heatmap] Initialization failed:', err);
     container.innerHTML = `
       <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 p-6 text-center text-slate-300">
-        <span class="material-symbols-outlined text-[48px] text-red-500 mb-4 animate-bounce">error</span>
+        <span aria-hidden="true" class="material-symbols-outlined text-[48px] text-red-500 mb-4 animate-bounce">error</span>
         <h4 class="font-bold text-sm text-white">Heatmap Rendering Failed</h4>
         <p class="text-xs text-slate-400 max-w-sm mt-1">${err.message || 'Check browser console or terminal logs'}</p>
         <button id="heatmap-retry-btn" class="mt-4 px-4 py-2 bg-primary text-white text-xs font-semibold rounded-btn hover:bg-primary-hover transition-colors">

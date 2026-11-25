@@ -3,14 +3,28 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Municipality Hub — AeroStreet-AI</title>
+  <title>Municipality Command Hub — AeroStreet-AI</title>
   <meta name="description" content="Municipal command panel for review of citizen reports, automated CCTV alert lists, and AI Action planning."/>
-  
-  <!-- Google Fonts: Inter & Bricolage Grotesque -->
+  <link rel="canonical" href="https://aerostreetai.vercel.app/municipality.html"/>
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Municipality Command Hub — AeroStreet-AI"/>
+  <meta property="og:description" content="Review citizen violation reports, automated CCTV incidents, and generate legal notices citing environmental protection acts."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://aerostreetai.vercel.app/municipality.html"/>
+  <meta property="og:image" content="https://aerostreetai.vercel.app/images/og-preview.svg"/>
+
+  <!-- Optimized Non-Blocking Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap">
+  </noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+  </noscript>
   
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script id="tailwind-config">
@@ -101,6 +115,14 @@
     }
     .toggle-pill.active .toggle-thumb {
       transform: translateX(20px);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     }
   </style>
 </head>
@@ -231,27 +253,31 @@
             <div class="flex flex-col items-center md:items-end gap-2">
               <div class="flex -space-x-3">
                 <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop"
-                  alt="Responder 1"
-                  referrerpolicy="no-referrer"
+                  src="/images/avatar.svg"
+                  width="48"
+                  height="48"
+                  alt="Municipal Responder 1"
                   class="w-12 h-12 rounded-full border-2 border-white object-cover shadow"
                 />
                 <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop"
-                  alt="Responder 2"
-                  referrerpolicy="no-referrer"
+                  src="/images/avatar.svg"
+                  width="48"
+                  height="48"
+                  alt="Municipal Responder 2"
                   class="w-12 h-12 rounded-full border-2 border-white object-cover shadow"
                 />
                 <img
-                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop"
-                  alt="Responder 3"
-                  referrerpolicy="no-referrer"
+                  src="/images/avatar.svg"
+                  width="48"
+                  height="48"
+                  alt="Municipal Responder 3"
                   class="w-12 h-12 rounded-full border-2 border-white object-cover shadow"
                 />
                 <img
-                  src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop"
-                  alt="Responder 4"
-                  referrerpolicy="no-referrer"
+                  src="/images/avatar.svg"
+                  width="48"
+                  height="48"
+                  alt="Municipal Responder 4"
                   class="w-12 h-12 rounded-full border-2 border-white object-cover shadow"
                 />
               </div>
@@ -289,7 +315,7 @@
               <p class="text-[10px] text-slate-400 mt-0.5">4 reported today</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center text-error">
-              <span class="material-symbols-outlined text-[20px]">pending_actions</span>
+              <span aria-hidden="true" class="material-symbols-outlined text-[20px]">pending_actions</span>
             </div>
           </div>
 
@@ -300,7 +326,7 @@
               <p class="text-[10px] text-slate-400 mt-0.5">AI automated spotting</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-primary">
-              <span class="material-symbols-outlined text-[20px]">videocam</span>
+              <span aria-hidden="true" class="material-symbols-outlined text-[20px]">videocam</span>
             </div>
           </div>
 
@@ -311,7 +337,7 @@
               <p class="text-[10px] text-slate-400 mt-0.5">↑ 15% this week</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-green-50 border border-green-100 flex items-center justify-center text-success">
-              <span class="material-symbols-outlined text-[20px]">check_circle</span>
+              <span aria-hidden="true" class="material-symbols-outlined text-[20px]">check_circle</span>
             </div>
           </div>
 
@@ -322,7 +348,7 @@
               <p class="text-[10px] text-slate-400 mt-0.5">Across 3 active drives</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500">
-              <span class="material-symbols-outlined text-[20px]">group</span>
+              <span aria-hidden="true" class="material-symbols-outlined text-[20px]">group</span>
             </div>
           </div>
 
@@ -333,7 +359,7 @@
               <p id="muni-kpi-waqi-name" class="text-[10px] text-slate-400 mt-0.5 truncate max-w-[120px]">Connecting...</p>
             </div>
             <div id="muni-kpi-waqi-indicator" class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500">
-              <span class="material-symbols-outlined text-[20px]">rss_feed</span>
+              <span aria-hidden="true" class="material-symbols-outlined text-[20px]">rss_feed</span>
             </div>
           </div>
         </div>
@@ -467,7 +493,7 @@
               </div>
 
               <div class="col-span-2 md:col-span-1 p-2.5 bg-blue-50/50 rounded-lg border border-blue-100/50 text-[11px] text-slate-600 flex items-start gap-1.5">
-                <span class="material-symbols-outlined text-primary text-[16px] mt-0.5">info</span>
+                <span aria-hidden="true" class="material-symbols-outlined text-primary text-[16px] mt-0.5">info</span>
                 <div>
                   <span class="font-bold text-slate-700 block">AI Policy Alert</span>
                   <span id="forecast-action-rec">Loading prediction metrics...</span>
@@ -483,7 +509,7 @@
       <div class="border border-card-border rounded-card overflow-hidden bg-white mb-6">
         <div class="p-4 bg-slate-50 border-b border-card-border flex items-center justify-between">
           <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-[18px] text-error animate-pulse">distance</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[18px] text-error animate-pulse">distance</span>
             Delhi District - Local Pollution Heatmap
           </h3>
           <span class="px-2 py-0.5 bg-green-50 border border-green-100 text-success rounded-full text-[9px] font-bold uppercase tracking-wider font-mono">Live Density</span>
@@ -496,15 +522,15 @@
       <!-- Bulk Actions Panel (Hidden by default) -->
       <div id="bulk-actions-panel" class="hidden mb-3 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between text-xs transition-all animate-[slideDown_0.2s_ease-out]">
         <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-[18px] text-primary">check_box</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-[18px] text-primary">check_box</span>
           <span id="bulk-selected-count" class="font-bold text-slate-800">0 selected</span>
         </div>
         <div class="flex gap-2">
           <button id="bulk-dispatch-btn" class="px-3 py-1.5 bg-primary hover:bg-primary-hover text-white font-bold rounded-btn transition-colors flex items-center gap-1 shadow-sm text-[10px]">
-            <span class="material-symbols-outlined text-[12px]">local_shipping</span> Dispatch Field Team
+            <span aria-hidden="true" class="material-symbols-outlined text-[12px]">local_shipping</span> Dispatch Field Team
           </button>
           <button id="bulk-resolve-btn" class="px-3 py-1.5 bg-green-600 hover:bg-green-750 text-white font-bold rounded-btn transition-colors flex items-center gap-1 shadow-sm text-[10px]">
-            <span class="material-symbols-outlined text-[12px]">done_all</span> Resolve Selected
+            <span aria-hidden="true" class="material-symbols-outlined text-[12px]">done_all</span> Resolve Selected
           </button>
         </div>
       </div>
@@ -540,7 +566,7 @@
       <!-- Community events panel -->
       <div id="community-panel" class="bg-white border border-card-border rounded-card p-6">
         <div class="flex items-center justify-center py-6 text-slate-400 gap-2 text-xs">
-          <span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+          <span aria-hidden="true" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
           Loading community action schedules...
         </div>
       </div>
@@ -552,7 +578,7 @@
       <!-- Sidebar Header -->
       <div class="p-6 border-b border-card-border bg-white flex flex-col gap-1">
         <h2 class="font-bold text-slate-900 text-lg flex items-center gap-2">
-          <span class="material-symbols-outlined text-primary">smart_toy</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-primary">smart_toy</span>
           AI Action Insights
         </h2>
         <p class="text-xs text-slate-400">Gemini-powered municipal recommendations</p>
@@ -561,7 +587,7 @@
       <!-- AI Action Recommendation List -->
       <div id="ai-recommendations" class="p-6 flex-1">
         <div class="flex items-center justify-center py-12 text-slate-400 gap-2 text-xs">
-          <span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+          <span aria-hidden="true" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
           Aggregating hotspot analytics...
         </div>
       </div>
@@ -569,7 +595,7 @@
       <!-- District Trends Sparkline Container -->
       <div id="aqi-trend-chart" class="p-6 border-t border-card-border bg-white">
         <div class="flex items-center justify-center py-8 text-slate-400 gap-2 text-xs">
-          <span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+          <span aria-hidden="true" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
           Loading trend charts...
         </div>
       </div>
@@ -579,15 +605,15 @@
   <!-- Mobile Navigation Bar -->
   <nav class="bg-white/95 backdrop-blur-md fixed bottom-0 w-full z-50 border-t border-card-border flex justify-around items-center h-16 md:hidden">
     <a class="flex flex-col items-center justify-center text-slate-500 hover:text-slate-900" href="/national.html">
-      <span class="material-symbols-outlined mb-1">map</span>
+      <span aria-hidden="true" class="material-symbols-outlined mb-1">map</span>
       <span class="text-[10px] font-bold">Map</span>
     </a>
     <a class="flex flex-col items-center justify-center text-slate-500 hover:text-slate-900" href="/district.html">
-      <span class="material-symbols-outlined mb-1">explore</span>
+      <span aria-hidden="true" class="material-symbols-outlined mb-1">explore</span>
       <span class="text-[10px] font-bold">Districts</span>
     </a>
     <a class="flex flex-col items-center justify-center text-primary" href="/municipality.html">
-      <span class="material-symbols-outlined mb-1">analytics</span>
+      <span aria-hidden="true" class="material-symbols-outlined mb-1">analytics</span>
       <span class="text-[10px] font-bold">Analytics</span>
     </a>
   </nav>
@@ -685,21 +711,21 @@
       <div>
         <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Platform Navigation</h4>
         <ul class="space-y-2">
-          <li><a href="/national.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">map</span> National Interactive Map</a></li>
-          <li><a href="/district.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">explore</span> District Dashboard</a></li>
-          <li><a href="/municipality.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">analytics</span> Municipality Hub</a></li>
-          <li><a href="/forecast.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">cloud</span> 72-Hour AQI Forecast</a></li>
-          <li><a href="/community.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">groups</span> Community Citizen Hub</a></li>
+          <li><a href="/national.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">map</span> National Interactive Map</a></li>
+          <li><a href="/district.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">explore</span> District Dashboard</a></li>
+          <li><a href="/municipality.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">analytics</span> Municipality Hub</a></li>
+          <li><a href="/forecast.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">cloud</span> 72-Hour AQI Forecast</a></li>
+          <li><a href="/community.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">groups</span> Community Citizen Hub</a></li>
         </ul>
       </div>
 
       <div>
         <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Data &amp; Governance</h4>
         <ul class="space-y-2">
-          <li><a href="/methodology.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">science</span> AQI Standards &amp; Methodology</a></li>
-          <li><a href="/privacy.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">security</span> Privacy Policy</a></li>
-          <li><a href="/terms.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">gavel</span> Terms of Service</a></li>
-          <li><a href="https://cpcb.nic.in" target="_blank" rel="noreferrer" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">open_in_new</span> CPCB Official Portal</a></li>
+          <li><a href="/methodology.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">science</span> AQI Standards &amp; Methodology</a></li>
+          <li><a href="/privacy.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">security</span> Privacy Policy</a></li>
+          <li><a href="/terms.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">gavel</span> Terms of Service</a></li>
+          <li><a href="https://cpcb.nic.in" target="_blank" rel="noreferrer" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">open_in_new</span> CPCB Official Portal</a></li>
         </ul>
       </div>
 

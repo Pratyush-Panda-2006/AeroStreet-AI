@@ -39,11 +39,26 @@ test('Accessibility Audit: All HTML templates have valid document structure and 
     // 3. Descriptive title
     assert.match(content, /<title>[^<]+<\/title>/i, `${file} must contain a non-empty <title> tag`);
 
-    // 4. Semantic main landmark
+    // 4. Meta description for SEO
+    assert.match(content, /<meta\s+[^>]*name=["']description["'][^>]*content=["'][^"']+["']/i, `${file} must contain a meta description`);
+
+    // 5. Canonical link for SEO
+    assert.match(content, /<link\s+[^>]*rel=["']canonical["'][^>]*href=["']https:\/\/aerostreetai\.vercel\.app\/[^"']+["']/i, `${file} must contain a canonical link`);
+
+    // 6. Semantic main landmark
     assert.match(content, /<main[\s>]/i, `${file} must contain a semantic <main> landmark`);
 
-    // 5. Skip to main content link for keyboard navigation
+    // 7. Skip to main content link for keyboard navigation
     assert.match(content, /href=["']#main-content["']/i, `${file} must include a skip-to-content link targeting #main-content`);
+
+    // 8. Zero india-aqi.org placeholder links
+    assert.doesNotMatch(content, /https:\/\/india-aqi\.org/, `${file} must not contain india-aqi.org placeholders`);
+
+    // 9. All material symbols icons have aria-hidden="true"
+    const unhiddenIcons = content.match(/<span\s+[^>]*class=["'][^"']*material-symbols-outlined[^"']*["'][^>]*>/gi) || [];
+    unhiddenIcons.forEach((icon) => {
+      assert.ok(/aria-hidden=["']true["']/i.test(icon), `Material icon in ${file} must have aria-hidden="true": ${icon}`);
+    });
   });
 });
 

@@ -590,7 +590,7 @@ export function zoomToState(stateId) {
   const backBtn = document.createElement('button');
   backBtn.className = 'absolute top-4 left-4 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm border border-slate-800 transition-all';
   backBtn.innerHTML = `
-    <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+    <span aria-hidden="true" class="material-symbols-outlined text-[16px]">arrow_back</span>
     Back to India Map
   `;
   backBtn.addEventListener('click', () => {

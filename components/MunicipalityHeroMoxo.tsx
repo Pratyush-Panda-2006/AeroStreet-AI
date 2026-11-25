@@ -258,27 +258,31 @@ export const MunicipalityHeroMoxo: React.FC = () => {
               <div className="flex flex-col items-center md:items-end gap-2">
                 <div className="flex -space-x-3">
                   <img
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop"
-                    alt="Responder 1"
-                    referrerPolicy="no-referrer"
+                    src="/images/avatar.svg"
+                    width={48}
+                    height={48}
+                    alt="Municipal Responder 1"
                     className="w-12 h-12 rounded-full border-2 border-white object-cover"
                   />
                   <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop"
-                    alt="Responder 2"
-                    referrerPolicy="no-referrer"
+                    src="/images/avatar.svg"
+                    width={48}
+                    height={48}
+                    alt="Municipal Responder 2"
                     className="w-12 h-12 rounded-full border-2 border-white object-cover"
                   />
                   <img
-                    src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop"
-                    alt="Responder 3"
-                    referrerPolicy="no-referrer"
+                    src="/images/avatar.svg"
+                    width={48}
+                    height={48}
+                    alt="Municipal Responder 3"
                     className="w-12 h-12 rounded-full border-2 border-white object-cover"
                   />
                   <img
-                    src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop"
-                    alt="Responder 4"
-                    referrerPolicy="no-referrer"
+                    src="/images/avatar.svg"
+                    width={48}
+                    height={48}
+                    alt="Municipal Responder 4"
                     className="w-12 h-12 rounded-full border-2 border-white object-cover"
                   />
                 </div>

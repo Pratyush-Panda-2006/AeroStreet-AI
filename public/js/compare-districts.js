@@ -35,7 +35,7 @@ export function showComparisonModal() {
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-primary">
-              <span class="material-symbols-outlined">compare_arrows</span>
+              <span aria-hidden="true" class="material-symbols-outlined">compare_arrows</span>
             </div>
             <div>
               <h2 class="text-base font-bold text-slate-800">Compare Regional Air Quality</h2>
@@ -43,7 +43,7 @@ export function showComparisonModal() {
             </div>
           </div>
           <button id="compare-close-btn" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-slate-500">close</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-slate-500">close</span>
           </button>
         </div>
       </div>
@@ -121,7 +121,7 @@ function renderComparisonBars(distA, distB) {
   container.innerHTML = `
     <!-- Summary Statement Card -->
     <div class="p-3 bg-blue-50/50 border border-blue-100 rounded-lg text-xs text-slate-700 leading-relaxed">
-      <span class="material-symbols-outlined text-primary text-sm align-middle mr-1">info</span>
+      <span aria-hidden="true" class="material-symbols-outlined text-primary text-sm align-middle mr-1">info</span>
       ${comparisonText}
     </div>
 

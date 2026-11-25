@@ -233,7 +233,7 @@ function renderSuggestions() {
   dropdown.innerHTML = suggestions.map((s, i) => `
     <button class="delhi-suggestion w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors flex items-start gap-3 border-b border-slate-100 last:border-0 ${i === highlightIndex ? 'bg-blue-50' : ''}"
             data-index="${i}" type="button">
-      <span class="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">location_on</span>
+      <span aria-hidden="true" class="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">location_on</span>
       <div class="min-w-0">
         <p class="text-sm font-bold text-slate-800 truncate">${escapeHtml(s.name)}</p>
         <p class="text-xs text-slate-500 truncate">${escapeHtml(s.subtitle)}</p>
@@ -289,7 +289,7 @@ function showRecentLocations() {
   ` + recent.map((s, i) => `
     <button class="delhi-suggestion w-full text-left px-4 py-2.5 hover:bg-blue-50 transition-colors flex items-start gap-3 border-b border-slate-100 last:border-0"
             data-index="${i}" type="button">
-      <span class="material-symbols-outlined text-slate-400 text-[16px] mt-0.5 shrink-0">history</span>
+      <span aria-hidden="true" class="material-symbols-outlined text-slate-400 text-[16px] mt-0.5 shrink-0">history</span>
       <div class="min-w-0">
         <p class="text-sm font-semibold text-slate-700 truncate">${escapeHtml(s.name)}</p>
         <p class="text-xs text-slate-400 truncate">${escapeHtml(s.subtitle)}</p>
@@ -313,7 +313,7 @@ function showSearchingState() {
   if (!dropdown) return;
   dropdown.innerHTML = `
     <div class="px-4 py-4 flex items-center gap-3 text-slate-500">
-      <span class="material-symbols-outlined animate-spin text-[18px]">sync</span>
+      <span aria-hidden="true" class="material-symbols-outlined animate-spin text-[18px]">sync</span>
       <span class="text-sm font-medium">Searching Delhi NCR...</span>
     </div>
   `;
@@ -325,7 +325,7 @@ function showNoResults(query) {
   if (!dropdown) return;
   dropdown.innerHTML = `
     <div class="px-4 py-4 text-center">
-      <span class="material-symbols-outlined text-slate-300 text-[28px] mb-1">search_off</span>
+      <span aria-hidden="true" class="material-symbols-outlined text-slate-300 text-[28px] mb-1">search_off</span>
       <p class="text-sm font-semibold text-slate-600">No results in Delhi NCR</p>
       <p class="text-xs text-slate-400 mt-1">Try searching for a different place or landmark</p>
     </div>
@@ -338,7 +338,7 @@ function showSearchError() {
   if (!dropdown) return;
   dropdown.innerHTML = `
     <div class="px-4 py-4 text-center">
-      <span class="material-symbols-outlined text-red-300 text-[28px] mb-1">cloud_off</span>
+      <span aria-hidden="true" class="material-symbols-outlined text-red-300 text-[28px] mb-1">cloud_off</span>
       <p class="text-sm font-semibold text-slate-600">Search temporarily unavailable</p>
       <p class="text-xs text-slate-400 mt-1">Please try again in a moment</p>
     </div>
@@ -356,7 +356,7 @@ function hideDropdown() {
 function updateLocationSourceLabel(placeName) {
   const label = document.getElementById('location-source-label');
   if (label) {
-    label.innerHTML = `<span class="material-symbols-outlined text-[14px]">search</span> Searched Location`;
+    label.innerHTML = `<span aria-hidden="true" class="material-symbols-outlined text-[14px]">search</span> Searched Location`;
   }
 }
 
@@ -364,7 +364,7 @@ export function setLocationSourceAuto() {
   locationSource = 'auto';
   const label = document.getElementById('location-source-label');
   if (label) {
-    label.innerHTML = `<span class="material-symbols-outlined text-[14px]">location_on</span> Your Location`;
+    label.innerHTML = `<span aria-hidden="true" class="material-symbols-outlined text-[14px]">location_on</span> Your Location`;
   }
 }
 

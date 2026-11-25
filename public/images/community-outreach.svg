@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <circle cx="400" cy="300" r="180" fill="url(#glow)" opacity="0.3"/>
+  <circle cx="400" cy="300" r="120" stroke="#34d399" stroke-width="2" stroke-dasharray="8 6" opacity="0.6"/>
+  <!-- Community Clean Air Icons -->
+  <g transform="translate(400,240)">
+    <path d="M-60 60 C-60 20 -20 -20 0 -50 C20 -20 60 20 60 60 C60 93 33 120 0 120 C-33 120 -60 93 -60 60 Z" fill="#10b981" opacity="0.85"/>
+    <path d="M-20 40 L-5 55 L25 25" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g fill="#94a3b8" font-family="system-ui, sans-serif" text-anchor="middle">
+    <text x="400" y="420" font-size="24" font-weight="700" fill="#f8fafc">Clean Air Community Outreach</text>
+    <text x="400" y="455" font-size="14" fill="#cbd5e1">25,000+ Citizens Actively Monitoring &amp; Reporting Hotspots</text>
+  </g>
+</svg>

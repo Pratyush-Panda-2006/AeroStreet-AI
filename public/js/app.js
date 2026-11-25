@@ -55,10 +55,10 @@ function showToast(message, type = 'info', duration = 4000) {
   const toast = document.createElement('div');
   toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl ${TOAST_COLORS[type]} text-xs font-semibold max-w-sm border border-white/10 animate-[slideIn_0.3s_ease-out] backdrop-blur-sm`;
   toast.innerHTML = `
-    <span class="material-symbols-outlined text-[18px]">${TOAST_ICONS[type]}</span>
+    <span aria-hidden="true" class="material-symbols-outlined text-[18px]">${TOAST_ICONS[type]}</span>
     <span class="flex-1 leading-normal">${message}</span>
     <button class="opacity-70 hover:opacity-100 transition-opacity" onclick="this.parentElement.remove()">
-      <span class="material-symbols-outlined text-[14px]">close</span>
+      <span aria-hidden="true" class="material-symbols-outlined text-[14px]">close</span>
     </button>
   `;
 
@@ -193,11 +193,11 @@ function showUserMenu(anchor) {
     </div>
     <div class="p-2 space-y-1">
       <button id="switch-role-btn" class="w-full text-left px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-md transition-colors flex items-center gap-2">
-        <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+        <span aria-hidden="true" class="material-symbols-outlined text-[16px]">swap_horiz</span>
         Switch View
       </button>
       <button id="sign-out-btn" class="w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-md transition-colors flex items-center gap-2">
-        <span class="material-symbols-outlined text-[16px]">logout</span>
+        <span aria-hidden="true" class="material-symbols-outlined text-[16px]">logout</span>
         Sign Out
       </button>
     </div>
@@ -246,12 +246,12 @@ function showCommunityModal() {
           <p class="text-xs text-slate-400">Join local citizen-led initiatives</p>
         </div>
         <button id="community-close-btn" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
-          <span class="material-symbols-outlined text-slate-500">close</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-slate-500">close</span>
         </button>
       </div>
       <div id="community-events-container" class="p-6 overflow-y-auto flex-1">
         <div class="flex items-center justify-center py-8 gap-2 text-xs text-slate-400">
-          <span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+          <span aria-hidden="true" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
           Loading active schedules...
         </div>
       </div>
@@ -384,7 +384,7 @@ function syncSidebarList(viewState) {
       wrapper.innerHTML = `
         <div class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors border border-transparent hover:border-slate-200 select-none" data-accordion-header="${state.id}">
           <div class="flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-[16px] text-slate-400 transition-transform duration-200 accordion-arrow" id="arrow-${state.id}">chevron_right</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[16px] text-slate-400 transition-transform duration-200 accordion-arrow" id="arrow-${state.id}">chevron_right</span>
             <div>
               <div class="font-semibold text-slate-800 text-xs">${state.name}</div>
               <div class="text-[9px] text-slate-400">${state.capital}</div>
@@ -396,7 +396,7 @@ function syncSidebarList(viewState) {
               <svg width="38" height="15" class="overflow-visible">
                 <polyline fill="none" stroke="${trendColor}" stroke-width="1.5" points="${svgPoints}" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-              <span class="material-symbols-outlined text-[12px] font-bold" style="color: ${trendColor}">${trendIcon}</span>
+              <span aria-hidden="true" class="material-symbols-outlined text-[12px] font-bold" style="color: ${trendColor}">${trendIcon}</span>
             </div>
             
             <div class="flex items-center gap-1.5">
@@ -499,7 +499,7 @@ function syncSidebarList(viewState) {
             <svg width="38" height="15" class="overflow-visible">
               <polyline fill="none" stroke="${trendColor}" stroke-width="1.5" points="${svgPoints}" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-            <span class="material-symbols-outlined text-[12px] font-bold" style="color: ${trendColor}">${trendIcon}</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[12px] font-bold" style="color: ${trendColor}">${trendIcon}</span>
           </div>
 
           <div class="flex items-center gap-1.5">

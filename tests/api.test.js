@@ -135,3 +135,21 @@ test('POST /api/generate-legal-notice: generates formal cease-and-desist letter'
   assert.ok(data.notice.includes('LEGAL NOTICE'));
   assert.ok(data.notice.includes('AIR (PREVENTION AND CONTROL OF POLLUTION) ACT'));
 });
+
+test('GET /robots.txt: returns valid robots directives with HTTP 200', async () => {
+  const res = await fetch(`${baseUrl}/robots.txt`);
+  assert.equal(res.status, 200);
+  assert.ok(res.headers.get('content-type')?.includes('text/plain'));
+  const body = await res.text();
+  assert.ok(body.includes('User-agent: *'));
+  assert.ok(body.includes('Sitemap:'));
+});
+
+test('GET /sitemap.xml: returns valid XML sitemap with HTTP 200', async () => {
+  const res = await fetch(`${baseUrl}/sitemap.xml`);
+  assert.equal(res.status, 200);
+  assert.ok(res.headers.get('content-type')?.includes('xml'));
+  const body = await res.text();
+  assert.ok(body.includes('<urlset'));
+  assert.ok(body.includes('https://aerostreetai.vercel.app/national.html'));
+});

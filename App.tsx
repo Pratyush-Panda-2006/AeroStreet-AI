@@ -196,12 +196,14 @@ export default function App() {
 
       {/* Full-viewport Hero Container */}
       <section className="relative w-full h-screen overflow-hidden bg-black flex flex-col">
-        {/* Background Video: Zero overlay, zero dimming */}
+        {/* Background Video: Optimized with instant SVG poster & lazy preload */}
         <video
           autoPlay
           loop
           muted
           playsInline
+          preload="none"
+          poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080' width='100%25' height='100%25'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23050b14'/%3E%3Cstop offset='50%25' stop-color='%230f172a'/%3E%3Cstop offset='100%25' stop-color='%23020617'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E"
           className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
           src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4"
         />

@@ -13,7 +13,7 @@ export function initAssistantWidget() {
   launcher.id = 'aerostreet-assistant-launcher';
   launcher.type = 'button';
   launcher.className =
-    'fixed bottom-6 right-6 z-[90] flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 text-white font-semibold text-sm rounded-full shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-300';
+    'fixed bottom-5 right-5 z-[90] min-h-[48px] min-w-[48px] flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 text-white font-semibold text-sm rounded-full shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-300 select-none';
   launcher.setAttribute('aria-haspopup', 'dialog');
   launcher.setAttribute('aria-expanded', 'false');
   launcher.setAttribute('aria-label', 'Open Urban Air Quality Assistant');

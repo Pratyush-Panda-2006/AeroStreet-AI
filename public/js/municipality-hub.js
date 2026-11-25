@@ -188,7 +188,7 @@ function renderIncidentLog() {
     tbody.innerHTML = `
       <tr>
         <td colspan="8" class="p-8 text-center text-slate-400">
-          <span class="material-symbols-outlined text-3xl mb-1 block">checklist</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-3xl mb-1 block">checklist</span>
           No incidents logged or policies filtering current view.
         </td>
       </tr>
@@ -222,9 +222,9 @@ function renderIncidentLog() {
       </td>
       <td class="p-3">
         ${isResolved 
-          ? `<span class="text-green-600 flex items-center gap-1"><span class="material-symbols-outlined text-sm">done_all</span>Resolved</span>`
+          ? `<span class="text-green-600 flex items-center gap-1"><span aria-hidden="true" class="material-symbols-outlined text-sm">done_all</span>Resolved</span>`
           : `<button data-id="${inc.id}" class="resolve-btn px-2 py-1 bg-primary text-white hover:bg-primary-hover text-[10px] font-bold rounded-btn transition-colors flex items-center gap-1 shadow-sm">
-               <span class="material-symbols-outlined text-[12px]">check_circle</span> Resolve
+               <span aria-hidden="true" class="material-symbols-outlined text-[12px]">check_circle</span> Resolve
              </button>`
         }
       </td>
@@ -276,7 +276,7 @@ function openResolveModal(incident) {
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-primary">
-              <span class="material-symbols-outlined">gavel</span>
+              <span aria-hidden="true" class="material-symbols-outlined">gavel</span>
             </div>
             <div>
               <h2 class="text-base font-bold text-slate-800">Resolve Operations Incident</h2>
@@ -284,7 +284,7 @@ function openResolveModal(incident) {
             </div>
           </div>
           <button id="resolve-close-btn" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-slate-500">close</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-slate-500">close</span>
           </button>
         </div>
       </div>
@@ -311,7 +311,7 @@ function openResolveModal(incident) {
         </div>
         
         <button type="submit" class="w-full py-2.5 bg-success hover:bg-green-700 text-white rounded-btn text-xs font-semibold transition-colors flex items-center justify-center gap-2">
-          <span class="material-symbols-outlined text-[18px]">check_circle</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-[18px]">check_circle</span>
           Verify Resolution
         </button>
       </form>
@@ -349,7 +349,7 @@ function openResolveModal(incident) {
     if (recContainer) {
       recContainer.innerHTML = `
         <div class="flex items-center justify-center py-8 gap-3 text-slate-400">
-          <span class="material-symbols-outlined animate-spin">progress_activity</span>
+          <span aria-hidden="true" class="material-symbols-outlined animate-spin">progress_activity</span>
           <span class="text-xs">Updating AI recommendations...</span>
         </div>
       `;
@@ -645,7 +645,7 @@ async function initPollutionHeatmap() {
     console.warn('[MuniHub] Heatmap initialization failed:', e);
     canvas.innerHTML = `
       <div class="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 text-xs">
-        <span class="material-symbols-outlined text-3xl mb-1">map</span>
+        <span aria-hidden="true" class="material-symbols-outlined text-3xl mb-1">map</span>
         Google Maps SDK failed to load.
       </div>
     `;
@@ -673,7 +673,7 @@ function toggleRowExpansion(tr, inc) {
       <div class="flex flex-col sm:flex-row gap-6 animate-[fadeIn_0.2s_ease-out]">
         <div class="flex-1 min-w-[280px]">
           <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1">
-            <span class="material-symbols-outlined text-[12px] text-primary">location_on</span> Geolocation Map
+            <span aria-hidden="true" class="material-symbols-outlined text-[12px] text-primary">location_on</span> Geolocation Map
           </p>
           <div class="w-full h-40 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative shadow-sm">
             <iframe class="w-full h-full border-0" 
@@ -686,13 +686,13 @@ function toggleRowExpansion(tr, inc) {
         </div>
         <div class="w-full sm:w-64">
           <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1">
-            <span class="material-symbols-outlined text-[12px] text-error">visibility</span> Alert Evidence Snapshot
+            <span aria-hidden="true" class="material-symbols-outlined text-[12px] text-error">visibility</span> Alert Evidence Snapshot
           </p>
           <div class="w-full h-40 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative shadow-sm">
             ${inc.cctvPreview 
               ? `<img src="${inc.cctvPreview}" class="w-full h-full object-cover"/>`
               : `<div class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-2 text-center bg-slate-50">
-                   <span class="material-symbols-outlined text-2xl mb-1">no_photography</span>
+                   <span aria-hidden="true" class="material-symbols-outlined text-2xl mb-1">no_photography</span>
                    <span class="text-[10px] font-semibold">No CCTV snapshot available (Citizen Report)</span>
                  </div>`
             }

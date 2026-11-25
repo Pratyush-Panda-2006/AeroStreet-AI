@@ -364,20 +364,20 @@ export async function renderCommunityPanel(containerId) {
           <div class="p-4 rounded-xl border border-outline-variant/30 bg-surface-container-lowest hover:shadow-md transition-shadow">
             <div class="flex items-start gap-3">
               <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span class="material-symbols-outlined text-secondary">${icon}</span>
+                <span aria-hidden="true" class="material-symbols-outlined text-secondary">${icon}</span>
               </div>
               <div class="flex-1 min-w-0">
                 <h4 class="font-label-md text-label-md text-on-surface mb-1 truncate">${evt.title}</h4>
                 <p class="text-[11px] text-on-surface-variant line-clamp-2 mb-2">${evt.description}</p>
                 <div class="flex flex-wrap items-center gap-3 text-[11px] text-on-surface-variant mb-3">
-                  <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_today</span>${dateStr}</span>
+                  <span class="flex items-center gap-1"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">calendar_today</span>${dateStr}</span>
                   <a href="${getGoogleCalendarUrl(evt)}" target="_blank" class="inline-flex items-center gap-0.5 text-primary hover:underline" title="Add to Google Calendar">
-                    <span class="material-symbols-outlined text-[12px]">calendar_add_on</span>
+                    <span aria-hidden="true" class="material-symbols-outlined text-[12px]">calendar_add_on</span>
                     <span class="text-[10px]">Add to Calendar</span>
                   </a>
-                  <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>${timeStr}</span>
+                  <span class="flex items-center gap-1"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">schedule</span>${timeStr}</span>
                   <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(evt.location)}" target="_blank" class="flex items-center gap-1 text-primary hover:underline" title="View on Google Maps">
-                    <span class="material-symbols-outlined text-[14px]">location_on</span>${evt.location.split(',')[0]}
+                    <span aria-hidden="true" class="material-symbols-outlined text-[14px]">location_on</span>${evt.location.split(',')[0]}
                   </a>
                 </div>
 

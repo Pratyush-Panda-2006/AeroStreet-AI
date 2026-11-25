@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 600" width="1920" height="600" fill="none">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="60%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="600" fill="url(#skyGrad)"/>
+  <rect width="1920" height="600" fill="url(#sunGlow)"/>
+  <!-- Mountain & City Skyline Silhouette -->
+  <path d="M0 450 L300 380 L600 480 L900 350 L1200 430 L1500 360 L1920 440 L1920 600 L0 600 Z" fill="#032b21" opacity="0.7"/>
+  <path d="M0 500 L250 460 L500 520 L850 440 L1150 490 L1450 450 L1750 510 L1920 480 L1920 600 L0 600 Z" fill="#021f18"/>
+  <!-- Ambient Wind Lines -->
+  <path d="M100 200 Q400 150 700 220 T1300 200" stroke="#a7f3d0" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+  <path d="M300 260 Q600 210 900 280 T1500 250" stroke="#a7f3d0" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
+</svg>

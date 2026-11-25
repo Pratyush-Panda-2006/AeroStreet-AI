@@ -214,9 +214,27 @@ app.get('/api/iqair/city', async (req, res) => {
   }
 });
 
-// ── Serve static files ──
+// ── Serve static files & SEO routes ──
 const publicDir = resolveAssetPath('public');
-app.use(express.static(publicDir));
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').sendFile(join(publicDir, 'robots.txt'));
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml').sendFile(join(publicDir, 'sitemap.xml'));
+});
+
+app.use(express.static(publicDir, {
+  maxAge: '1d',
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+    }
+  }
+}));
 
 // ── API Routes ──
 

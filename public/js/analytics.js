@@ -270,7 +270,7 @@ export async function renderRecommendationsPanel(containerId, districtId, preloa
   if (!rec) {
     container.innerHTML = `
       <div class="text-center py-8 text-on-surface-variant">
-        <span class="material-symbols-outlined text-4xl mb-2 block">smart_toy</span>
+        <span aria-hidden="true" class="material-symbols-outlined text-4xl mb-2 block">smart_toy</span>
         <p class="text-body-sm">No AI recommendations available yet.</p>
       </div>
     `;
@@ -287,7 +287,7 @@ export async function renderRecommendationsPanel(containerId, districtId, preloa
       <div class="flex items-center justify-between">
         <div>
           <h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
-            <span class="material-symbols-outlined text-secondary">smart_toy</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-secondary">smart_toy</span>
             AI Action Insights
           </h3>
           <p class="text-[11px] text-on-surface-variant mt-0.5">
@@ -295,7 +295,7 @@ export async function renderRecommendationsPanel(containerId, districtId, preloa
           </p>
         </div>
         <button id="refresh-ai-btn" class="p-2 rounded-lg hover:bg-surface-container-high transition-colors" title="Refresh Analysis">
-          <span class="material-symbols-outlined text-on-surface-variant text-[20px]">refresh</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-on-surface-variant text-[20px]">refresh</span>
         </button>
       </div>
 
@@ -320,7 +320,7 @@ export async function renderRecommendationsPanel(containerId, districtId, preloa
           <div class="p-3 rounded-xl border ${style.border} ${style.bg} transition-all hover:shadow-sm">
             <div class="flex items-start gap-3">
               <div class="w-8 h-8 rounded-lg bg-white/70 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span class="material-symbols-outlined ${style.text} text-[18px]">${item.icon}</span>
+                <span aria-hidden="true" class="material-symbols-outlined ${style.text} text-[18px]">${item.icon}</span>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-1">
@@ -329,17 +329,17 @@ export async function renderRecommendationsPanel(containerId, districtId, preloa
                 </div>
                 <p class="text-[11px] text-on-surface-variant leading-relaxed mb-2">${item.description}</p>
                 <div class="flex items-center gap-1 text-[10px] ${style.text} mb-2">
-                  <span class="material-symbols-outlined text-[12px]">trending_up</span>
+                  <span aria-hidden="true" class="material-symbols-outlined text-[12px]">trending_up</span>
                   ${item.impact}
                 </div>
                 ${isCitizenCleanup ? `
                   <button data-idx="${idx}" class="approve-rec-btn px-3 py-1 bg-primary text-white hover:bg-primary-hover text-[10px] font-bold rounded-btn transition-colors flex items-center gap-1 shadow-sm mt-1.5">
-                    <span class="material-symbols-outlined text-[12px]">thumb_up</span> Approve Recommendation
+                    <span aria-hidden="true" class="material-symbols-outlined text-[12px]">thumb_up</span> Approve Recommendation
                   </button>
                 ` : ''}
                 ${(!isCitizenCleanup && (item.title.toLowerCase().includes('emission') || item.title.toLowerCase().includes('dust') || item.title.toLowerCase().includes('illegal') || item.description.toLowerCase().includes('violat') || item.description.toLowerCase().includes('factor') || item.description.toLowerCase().includes('burn') || item.title.toLowerCase().includes('sprinkl') || item.title.toLowerCase().includes('complian') || item.title.toLowerCase().includes('smog'))) ? `
                   <button data-idx="${idx}" class="generate-notice-btn px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold rounded-btn transition-colors flex items-center gap-1 shadow-sm mt-1.5">
-                    <span class="material-symbols-outlined text-[12px]">description</span> Generate Legal Notice
+                    <span aria-hidden="true" class="material-symbols-outlined text-[12px]">description</span> Generate Legal Notice
                   </button>
                 ` : ''}
               </div>
@@ -354,7 +354,7 @@ export async function renderRecommendationsPanel(containerId, districtId, preloa
   document.getElementById('refresh-ai-btn')?.addEventListener('click', async () => {
     container.innerHTML = `
       <div class="flex items-center justify-center py-8 gap-3 text-on-surface-variant">
-        <span class="material-symbols-outlined animate-spin">progress_activity</span>
+        <span aria-hidden="true" class="material-symbols-outlined animate-spin">progress_activity</span>
         <span class="text-body-sm">Generating AI insights...</span>
       </div>
     `;
@@ -431,14 +431,14 @@ function openDocumentModal(content) {
       <!-- Header -->
       <div class="p-6 pb-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-2.5">
-          <span class="material-symbols-outlined text-amber-600">gavel</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-amber-600">gavel</span>
           <div>
             <h3 class="text-base font-bold text-slate-900">Official Warning Notice</h3>
             <p class="text-[10px] text-slate-400">Gemini AI Auto-Generated Document</p>
           </div>
         </div>
         <button id="notice-close-btn" class="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center transition-colors">
-          <span class="material-symbols-outlined text-slate-500 text-[18px]">close</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-slate-500 text-[18px]">close</span>
         </button>
       </div>
       
@@ -450,7 +450,7 @@ function openDocumentModal(content) {
       <!-- Footer actions -->
       <div class="p-4 bg-white flex justify-end gap-3 flex-shrink-0">
         <button id="print-notice-btn" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all shadow flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-[16px]">print</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-[16px]">print</span>
           Print / Save PDF
         </button>
       </div>
@@ -502,7 +502,7 @@ function showApproveRecommendationForm(item) {
             <p class="text-[11px] text-slate-400">Initialize a new community clean-up drive</p>
           </div>
           <button id="approve-rec-close-btn" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-slate-500 text-[18px]">close</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-slate-500 text-[18px]">close</span>
           </button>
         </div>
       </div>
@@ -535,7 +535,7 @@ function showApproveRecommendationForm(item) {
         <div class="pt-2 flex items-center justify-end gap-3">
           <button type="button" id="rec-form-cancel-btn" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 rounded-btn transition-colors">Cancel</button>
           <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-btn shadow-md transition-colors flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-[14px]">rocket_launch</span> Launch Drive
+            <span aria-hidden="true" class="material-symbols-outlined text-[14px]">rocket_launch</span> Launch Drive
           </button>
         </div>
       </form>

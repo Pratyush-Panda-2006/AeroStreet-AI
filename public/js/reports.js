@@ -222,7 +222,7 @@ export function showReportModal() {
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-              <span class="material-symbols-outlined text-primary">report</span>
+              <span aria-hidden="true" class="material-symbols-outlined text-primary">report</span>
             </div>
             <div>
               <h2 class="text-lg font-bold text-slate-800">Quick Report</h2>
@@ -230,7 +230,7 @@ export function showReportModal() {
             </div>
           </div>
           <button id="report-close-btn" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
-            <span class="material-symbols-outlined text-slate-500">close</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-slate-500">close</span>
           </button>
         </div>
       </div>
@@ -255,7 +255,7 @@ export function showReportModal() {
         <div>
           <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-wider">Photo Evidence (Optional)</label>
           <div id="report-upload-area" class="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-slate-300 text-3xl mb-2">add_a_photo</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-slate-300 text-3xl mb-2">add_a_photo</span>
             <p class="text-xs text-slate-400">Click or drag an image here</p>
             <input id="report-image" type="file" accept="image/*" class="hidden" />
           </div>
@@ -266,14 +266,14 @@ export function showReportModal() {
         </div>
 
         <div id="report-detect-location" class="flex items-center gap-2 p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200/50 rounded-lg cursor-pointer transition-colors" title="Click to refresh device location coordinates">
-          <span class="material-symbols-outlined text-primary text-sm">my_location</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-primary text-sm">my_location</span>
           <span id="report-location-text" class="text-xs text-slate-500">Detecting your location...</span>
         </div>
 
         <div id="report-error" class="hidden text-red-600 text-xs bg-red-50 border border-red-100 p-3 rounded-lg"></div>
 
         <button type="submit" id="report-submit-btn" class="w-full py-2.5 bg-primary hover:bg-primary-hover text-white rounded-btn text-xs font-semibold transition-colors flex items-center justify-center gap-2">
-          <span class="material-symbols-outlined text-[18px]">send</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-[18px]">send</span>
           Submit Report
         </button>
       </form>
@@ -370,7 +370,7 @@ export function showReportModal() {
     const submitBtn = document.getElementById('report-submit-btn');
     errorDiv.classList.add('hidden');
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Submitting...';
+    submitBtn.innerHTML = '<span aria-hidden="true" class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Submitting...';
 
     try {
       const result = await submitReport({
@@ -386,7 +386,7 @@ export function showReportModal() {
       errorDiv.textContent = err.message;
       errorDiv.classList.remove('hidden');
       submitBtn.disabled = false;
-      submitBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">send</span> Submit Report';
+      submitBtn.innerHTML = '<span aria-hidden="true" class="material-symbols-outlined text-[18px]">send</span> Submit Report';
     }
   });
 }

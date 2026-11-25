@@ -3,12 +3,25 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>District Dashboard — AeroStreet-AI</title>
-  <meta name="description" content="District-level air quality explorer and high-precision interactive India map."/>
-  
-  <!-- Fontshare Satoshi Font -->
+  <title>District Air Quality Dashboard — AeroStreet-AI</title>
+  <meta name="description" content="District-level air quality explorer, high-precision interactive India map, and localized particulate hotspots."/>
+  <link rel="canonical" href="https://aerostreetai.vercel.app/district.html"/>
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="District Air Quality Dashboard — AeroStreet-AI"/>
+  <meta property="og:description" content="District-level air quality explorer, high-precision interactive India map, and localized particulate hotspots."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://aerostreetai.vercel.app/district.html"/>
+  <meta property="og:image" content="https://aerostreetai.vercel.app/images/og-preview.svg"/>
+
+  <!-- Optimized Non-Blocking Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+  </noscript>
   
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script id="tailwind-config">
@@ -62,6 +75,14 @@
     .interactive-state-path {
       transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
     }
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
@@ -77,25 +98,25 @@
     
     <nav class="hidden md:flex items-center gap-8">
       <a href="/national.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">map</span> National Map
+        <span aria-hidden="true" class="material-symbols-outlined text-[18px]">map</span> National Map
       </a>
       <a href="/district.html" class="text-sm font-semibold text-primary flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">explore</span> Districts
+        <span aria-hidden="true" class="material-symbols-outlined text-[18px]">explore</span> Districts
       </a>
       <a href="/municipality.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">analytics</span> Municipality Hub
+        <span aria-hidden="true" class="material-symbols-outlined text-[18px]">analytics</span> Municipality Hub
       </a>
       <a href="/forecast.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">cloud</span> AQI Forecast
+        <span aria-hidden="true" class="material-symbols-outlined text-[18px]">cloud</span> AQI Forecast
       </a>
       <a href="/community.html" class="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition-colors">
-        <span class="material-symbols-outlined text-[18px]">groups</span> Community
+        <span aria-hidden="true" class="material-symbols-outlined text-[18px]">groups</span> Community
       </a>
     </nav>
     
     <div class="flex items-center gap-4">
       <button id="nav-report-btn" class="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-4 py-2 border border-card-border hover:bg-slate-50 text-slate-700 rounded-btn transition-colors">
-        <span class="material-symbols-outlined text-[16px]">add_circle</span> Quick Report
+        <span aria-hidden="true" class="material-symbols-outlined text-[16px]">add_circle</span> Quick Report
       </button>
     </div>
   </header>
@@ -113,7 +134,7 @@
         
         <!-- Search bar -->
         <div class="relative">
-          <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">search</span>
+          <span aria-hidden="true" class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">search</span>
           <input id="sidebar-search" type="text" placeholder="Find state or UT..." 
             class="w-full pl-8 pr-3 py-1.5 border border-card-border bg-slate-50/50 rounded-lg text-xs outline-none focus:border-primary focus:bg-white transition-colors placeholder:text-slate-400"/>
         </div>
@@ -121,7 +142,7 @@
         <!-- Sorting Controls -->
         <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
           <span class="font-bold text-[9px] uppercase tracking-wider text-slate-400 flex items-center gap-0.5">
-            <span class="material-symbols-outlined text-[12px]">filter_list</span> Sort By
+            <span aria-hidden="true" class="material-symbols-outlined text-[12px]">filter_list</span> Sort By
           </span>
           <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5 border border-slate-200/50">
             <button id="sort-highest" class="px-2 py-0.5 rounded text-[9px] font-bold bg-white text-slate-800 shadow-sm transition-all">Highest</button>
@@ -132,7 +153,7 @@
         
         <!-- Comparison Action -->
         <button id="compare-districts-btn" class="w-full py-1.5 border border-primary/30 text-primary hover:bg-blue-50/60 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
-          <span class="material-symbols-outlined text-[16px]">compare_arrows</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-[16px]">compare_arrows</span>
           Compare States &amp; Districts
         </button>
       </div>
@@ -177,7 +198,7 @@
             <p id="kpi-national-aqi" class="text-xl font-bold text-slate-900 mt-0.5" data-target="107">107 <span class="text-xs text-amber-600 font-semibold ml-1">(Moderate)</span></p>
           </div>
           <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-primary">
-            <span class="material-symbols-outlined text-[18px]">air</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[18px]">air</span>
           </div>
         </div>
 
@@ -187,7 +208,7 @@
             <p id="kpi-most-polluted" class="text-sm font-bold text-rose-600 mt-0.5">Delhi (NCT) <span class="text-xs text-slate-500 font-normal ml-1">AQI 350</span></p>
           </div>
           <div class="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
-            <span class="material-symbols-outlined text-[18px]">warning</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[18px]">warning</span>
           </div>
         </div>
 
@@ -197,7 +218,7 @@
             <p id="kpi-cleanest-state" class="text-sm font-bold text-emerald-600 mt-0.5">Arunachal Pradesh <span class="text-xs text-slate-500 font-normal ml-1">AQI 22</span></p>
           </div>
           <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-            <span class="material-symbols-outlined text-[18px]">eco</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[18px]">eco</span>
           </div>
         </div>
       </div>
@@ -211,16 +232,16 @@
         <!-- Floating Map Layer Selector (Positioned cleanly at bottom without clipping southern states) -->
         <div class="mt-4 mb-2 z-20 flex items-center bg-slate-900/95 border border-slate-800 rounded-full p-1 shadow-xl">
           <button id="toggle-svg-map" class="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-white bg-primary">
-            <span class="material-symbols-outlined text-[16px]">map</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[16px]">map</span>
             SVG Map
           </button>
           <button id="toggle-predictive-map" class="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white">
-            <span class="material-symbols-outlined text-[16px]">insights</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[16px]">insights</span>
             3D AI Heatmap
           </button>
           <div class="w-px h-5 bg-slate-800 mx-1"></div>
           <button id="toggle-weather-vectors" class="px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-white">
-            <span class="material-symbols-outlined text-[16px]">air</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[16px]">air</span>
             Wind Flow
           </button>
         </div>
@@ -249,21 +270,21 @@
       <div>
         <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Platform Navigation</h4>
         <ul class="space-y-2">
-          <li><a href="/national.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">map</span> National Interactive Map</a></li>
-          <li><a href="/district.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">explore</span> District Dashboard</a></li>
-          <li><a href="/municipality.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">analytics</span> Municipality Hub</a></li>
-          <li><a href="/forecast.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">cloud</span> 72-Hour AQI Forecast</a></li>
-          <li><a href="/community.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">groups</span> Community Citizen Hub</a></li>
+          <li><a href="/national.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">map</span> National Interactive Map</a></li>
+          <li><a href="/district.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">explore</span> District Dashboard</a></li>
+          <li><a href="/municipality.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">analytics</span> Municipality Hub</a></li>
+          <li><a href="/forecast.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">cloud</span> 72-Hour AQI Forecast</a></li>
+          <li><a href="/community.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">groups</span> Community Citizen Hub</a></li>
         </ul>
       </div>
 
       <div>
         <h4 class="font-bold text-white text-xs uppercase tracking-wider mb-3">Data &amp; Governance</h4>
         <ul class="space-y-2">
-          <li><a href="/methodology.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">science</span> AQI Standards &amp; Methodology</a></li>
-          <li><a href="/privacy.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">security</span> Privacy Policy</a></li>
-          <li><a href="/terms.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">gavel</span> Terms of Service</a></li>
-          <li><a href="https://cpcb.nic.in" target="_blank" rel="noreferrer" class="hover:text-white transition-colors flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">open_in_new</span> CPCB Official Portal</a></li>
+          <li><a href="/methodology.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">science</span> AQI Standards &amp; Methodology</a></li>
+          <li><a href="/privacy.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">security</span> Privacy Policy</a></li>
+          <li><a href="/terms.html" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">gavel</span> Terms of Service</a></li>
+          <li><a href="https://cpcb.nic.in" target="_blank" rel="noreferrer" class="hover:text-white transition-colors flex items-center gap-1.5"><span aria-hidden="true" class="material-symbols-outlined text-[14px]">open_in_new</span> CPCB Official Portal</a></li>
         </ul>
       </div>
 

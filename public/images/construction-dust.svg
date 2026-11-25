@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" fill="none">
+  <rect width="400" height="300" fill="#292524"/>
+  <!-- Excavator silhouette -->
+  <path d="M120 220 L220 220 L230 190 L180 180 L140 180 Z" fill="#d97706"/>
+  <circle cx="150" cy="225" r="15" fill="#1c1917"/>
+  <circle cx="200" cy="225" r="15" fill="#1c1917"/>
+  <!-- Dust Cloud -->
+  <ellipse cx="260" cy="180" rx="70" ry="40" fill="#78716c" opacity="0.6"/>
+  <ellipse cx="300" cy="160" rx="60" ry="35" fill="#a8a29e" opacity="0.5"/>
+  <!-- Alert Chip -->
+  <rect x="20" y="20" width="160" height="28" rx="6" fill="#d97706" opacity="0.9"/>
+  <text x="100" y="38" fill="#ffffff" font-family="system-ui, sans-serif" font-size="11" font-weight="700" text-anchor="middle">CONSTRUCTION DUST</text>
+</svg>

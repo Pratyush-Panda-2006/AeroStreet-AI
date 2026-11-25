@@ -117,9 +117,10 @@ export const AboutUsMoxo: React.FC = () => {
             className="h-[350px] rounded-[24px] overflow-hidden relative group"
           >
             <img
-              src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=2070&auto=format&fit=crop"
+              src="/images/community-outreach.svg"
               alt="Clean Air Community Outreach"
-              referrerPolicy="no-referrer"
+              width={800}
+              height={600}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
