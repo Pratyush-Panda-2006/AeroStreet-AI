@@ -241,6 +241,8 @@ export function initAssistantWidget() {
   const closeBtn = document.getElementById('assistant-close-btn');
   const form = document.getElementById('assistant-form');
   const cityInput = document.getElementById('assistant-city-input');
+  const activitySelect = document.getElementById('assistant-activity-select');
+  const sensitivitySelect = document.getElementById('assistant-sensitivity-select');
   const detectBtn = document.getElementById('assistant-detect-loc-btn');
   const resultContainer = document.getElementById('assistant-result-container');
   const submitBtn = document.getElementById('assistant-submit-btn');
@@ -248,6 +250,99 @@ export function initAssistantWidget() {
   const submitText = document.getElementById('assistant-submit-text');
   const ttsBtn = document.getElementById('assistant-tts-btn');
   const ttsLabel = document.getElementById('assistant-tts-label');
+
+  // Load persistent citizen profile from localStorage
+  const PROFILE_KEY = 'aerostreet_citizen_profile';
+  function loadSavedProfile() {
+    try {
+      const saved = localStorage.getItem(PROFILE_KEY);
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.city && cityInput) cityInput.value = p.city;
+        if (p.activity && activitySelect) activitySelect.value = p.activity;
+        if (p.sensitivity && sensitivitySelect) sensitivitySelect.value = p.sensitivity;
+        return p;
+      }
+    } catch (_) {}
+    return { city: cityInput.value || 'Delhi NCR (Anand Vihar)', activity: 'commuting', sensitivity: 'general' };
+  }
+
+  function saveProfile(city, activity, sensitivity) {
+    try {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify({
+        city,
+        activity,
+        sensitivity,
+        savedAt: new Date().toISOString()
+      }));
+    } catch (_) {}
+  }
+
+  const activeProfile = loadSavedProfile();
+
+  // Proactive Citizen Air Alert Banner
+  function renderProactiveBanner(city, aqi, category) {
+    if (document.getElementById('aerostreet-proactive-banner')) return;
+    const isSensitive = activeProfile.sensitivity !== 'general';
+    const alertThreshold = isSensitive ? 100 : 200;
+    if (aqi <= alertThreshold) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'aerostreet-proactive-banner';
+    banner.setAttribute('role', 'alert');
+    banner.setAttribute('aria-live', 'assertive');
+    banner.className =
+      'w-full bg-gradient-to-r from-amber-600 via-rose-600 to-red-700 text-white px-4 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-lg sticky top-0 z-[80] transition-all duration-300';
+    banner.innerHTML = `
+      <div class="flex items-center gap-2.5 overflow-hidden">
+        <span class="text-base flex-shrink-0 animate-bounce">⚠️</span>
+        <div class="truncate">
+          <span>Proactive Alert for <strong>${city}</strong>: AQI is <strong>${aqi} (${category})</strong>.</span>
+          <span class="hidden md:inline text-rose-100 ml-1">Elevated exposure risk detected for your saved activity (${activeProfile.activity}).</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0 ml-3">
+        <button
+          type="button"
+          id="proactive-plan-btn"
+          class="px-3 py-1 bg-white text-rose-800 hover:bg-rose-50 text-xs font-bold rounded-full shadow-sm hover:shadow transition"
+        >
+          Review AI Action Plan
+        </button>
+        <button
+          type="button"
+          id="proactive-dismiss-btn"
+          class="p-1 text-white/80 hover:text-white rounded focus:outline-none"
+          aria-label="Dismiss proactive alert banner"
+        >
+          &times;
+        </button>
+      </div>
+    `;
+
+    document.body.insertBefore(banner, document.body.firstChild);
+
+    document.getElementById('proactive-plan-btn')?.addEventListener('click', () => {
+      openModal();
+      if (!resultContainer.classList.contains('hidden')) {
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }
+    });
+
+    document.getElementById('proactive-dismiss-btn')?.addEventListener('click', () => {
+      banner.remove();
+    });
+  }
+
+  // Trigger proactive threshold evaluation on page load
+  setTimeout(() => {
+    // Anand Vihar/Delhi baseline is 320 (Severe); Mumbai 142 (Moderate); etc.
+    const baselineAQI = activeProfile.city.toLowerCase().includes('delhi') ? 320 : 165;
+    const category = baselineAQI > 300 ? 'Severe' : 'Moderate';
+    renderProactiveBanner(activeProfile.city, baselineAQI, category);
+  }, 1000);
 
   let currentSpeechText = '';
 
@@ -312,8 +407,11 @@ export function initAssistantWidget() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const city = cityInput.value.trim();
-    const activity = document.getElementById('assistant-activity-select').value;
-    const sensitivity = document.getElementById('assistant-sensitivity-select').value;
+    const activity = activitySelect ? activitySelect.value : 'commuting';
+    const sensitivity = sensitivitySelect ? sensitivitySelect.value : 'general';
+
+    // Persist profile to localStorage
+    saveProfile(city, activity, sensitivity);
 
     spinner.classList.remove('hidden');
     submitText.textContent = 'Analyzing with Gemini 2.5...';

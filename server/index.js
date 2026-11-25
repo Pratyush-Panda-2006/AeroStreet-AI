@@ -17,6 +17,7 @@ import { telemetryCache, geminiCache } from './utils/cache.js';
 import { securityHeadersMiddleware, corsOriginCheck, rateLimiter } from './middleware/security.js';
 import { validateForecastInputs, validateCoordinates, validateAssistantRequest } from './middleware/validate.js';
 import { queryUrbanAssistant, generateDeterministicAdvice } from './utils/assistant.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1531,19 +1532,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── Centralized Error Handling ──
-app.use((err, req, res, next) => {
-  console.error('[AeroStreet Error]', err.message);
-  if (err && err.name === 'MulterError') {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ success: false, error: 'File too large. Maximum size is 5 MB.' });
-    }
-    return res.status(400).json({ success: false, error: err.message });
-  }
-  res.status(err.status || 400).json({
-    success: false,
-    error: err.message || 'Invalid request'
-  });
-});
+app.use(errorHandler);
 
 // ── Start server ──
 const isRunningInTest =

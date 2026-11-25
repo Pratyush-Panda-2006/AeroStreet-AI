@@ -163,7 +163,6 @@ export const DEMO_STATES = [
   { id: 'in-ch', name: 'Chandigarh', aqi: 210, capital: 'Chandigarh', coordinates: { lat: 30.7333, lng: 76.7794 } },
   { id: 'in-an', name: 'Andaman and Nicobar Islands', aqi: 24, capital: 'Port Blair', coordinates: { lat: 11.6234, lng: 92.7265 } },
   { id: 'in-dd', name: 'Dadra and Nagar Haveli and Daman and Diu', aqi: 70, capital: 'Daman', coordinates: { lat: 20.3974, lng: 72.8328 } },
-  { id: 'in-dn', name: 'Dadra and Nagar Haveli and Daman and Diu', aqi: 70, capital: 'Daman', coordinates: { lat: 20.3974, lng: 72.8328 } },
   { id: 'in-la', name: 'Ladakh', aqi: 25, capital: 'Leh', coordinates: { lat: 34.1526, lng: 77.5771 } },
   { id: 'in-ld', name: 'Lakshadweep', aqi: 18, capital: 'Kavaratti', coordinates: { lat: 10.5667, lng: 72.6417 } },
   { id: 'in-py', name: 'Puducherry', aqi: 45, capital: 'Puducherry', coordinates: { lat: 11.9416, lng: 79.8083 } },
@@ -261,7 +260,7 @@ export const MOCK_CAMERAS = DEMO_STATES.map((state) => {
   const camLat = state.coordinates.lat + latOffset;
   const camLng = state.coordinates.lng + lngOffset;
   
-  const googleApiKey = window.__AEROSTREET_CONFIG__?.googleMapsApiKey || '';
+  const googleApiKey = (typeof window !== 'undefined' && window.__AEROSTREET_CONFIG__?.googleMapsApiKey) || '';
   // Use Static Maps API (Satellite View) to ensure we always get an image of the area, even if Street View is unavailable
   const areaImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${camLat},${camLng}&zoom=18&size=400x300&maptype=satellite&key=${googleApiKey}`;
 

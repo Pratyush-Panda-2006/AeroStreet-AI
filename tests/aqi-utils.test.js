@@ -88,3 +88,21 @@ test('normalizeTelemetry: properly maps provider data to standard schema', () =>
   assert.equal(normalized.coordinates.lng, 77.3158);
   assert.equal(normalized.source, 'openaq');
 });
+
+test('Indian States & UTs dataset: strictly 36 unique administrative entities with zero duplicates', async () => {
+  const { DEMO_STATES } = await import('../public/js/demo-data.js');
+  assert.equal(DEMO_STATES.length, 36, 'India must have exactly 28 states + 8 UTs = 36 total');
+
+  const names = DEMO_STATES.map((s) => s.name);
+  const ids = DEMO_STATES.map((s) => s.id);
+
+  const uniqueNames = new Set(names);
+  const uniqueIds = new Set(ids);
+
+  assert.equal(uniqueNames.size, 36, 'All 36 state/UT names must be strictly unique');
+  assert.equal(uniqueIds.size, 36, 'All 36 state/UT IDs must be strictly unique');
+
+  // Verify Dadra & Nagar Haveli and Daman & Diu is deduplicated
+  const dadraEntries = DEMO_STATES.filter((s) => s.name.includes('Dadra'));
+  assert.equal(dadraEntries.length, 1, 'Unified UT of Dadra and Nagar Haveli and Daman and Diu must appear exactly once');
+});
