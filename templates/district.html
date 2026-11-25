@@ -65,6 +65,8 @@
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+  <!-- WCAG 2.1 AA Skip Link -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[999] focus:p-3 focus:bg-blue-600 focus:text-white focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white">Skip to main content</a>
 
   <!-- Top Navigation Header -->
   <header class="fixed top-0 left-0 right-0 h-16 z-50 glass-panel border-b border-card-border/60 flex items-center justify-between px-6 lg:px-12">
@@ -99,7 +101,7 @@
   </header>
 
   <!-- Main Content Layout -->
-  <main class="pt-16 flex-1 flex flex-col md:flex-row min-h-[calc(100vh-64px)] relative">
+  <main id="main-content" role="main" class="pt-16 flex-1 flex flex-col md:flex-row min-h-[calc(100vh-64px)] relative">
     
     <!-- Left Sidebar: State Ranking Explorer -->
     <aside class="w-full md:w-80 bg-white border-r border-card-border flex flex-col select-none shrink-0 z-10">

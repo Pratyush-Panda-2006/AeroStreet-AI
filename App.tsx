@@ -186,6 +186,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white font-sans antialiased">
+      {/* WCAG 2.1 AA Skip Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[999] focus:p-3 focus:bg-blue-600 focus:text-white focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        Skip to main content
+      </a>
+
       {/* Full-viewport Hero Container */}
       <section className="relative w-full h-screen overflow-hidden bg-black flex flex-col">
         {/* Background Video: Zero overlay, zero dimming */}
@@ -215,7 +223,7 @@ export default function App() {
             </div>
 
             {/* Center (hidden on mobile, flex on md+): Links mapped to AeroStreet pages */}
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden md:flex items-center gap-8" aria-label="Primary Navigation">
               <a
                 href="/national.html"
                 className="text-sm text-white transition hover:text-gray-300 font-medium"

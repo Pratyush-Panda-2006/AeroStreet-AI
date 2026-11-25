@@ -10,6 +10,8 @@
   <style>body { font-family: 'Satoshi', sans-serif; }</style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+  <!-- WCAG 2.1 AA Skip Link -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[999] focus:p-3 focus:bg-blue-600 focus:text-white focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white">Skip to main content</a>
   <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-12 sticky top-0 z-50">
     <div class="flex items-center gap-3">
       <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-lg">I</div>
@@ -20,7 +22,7 @@
     </a>
   </header>
 
-  <main class="flex-1 max-w-4xl mx-auto py-12 px-6">
+  <main id="main-content" role="main" class="flex-1 max-w-4xl mx-auto py-12 px-6">
     <div class="bg-white p-8 lg:p-12 rounded-2xl border border-slate-200 shadow-sm space-y-6">
       <div class="border-b border-slate-100 pb-4">
         <h1 class="text-3xl font-bold text-slate-900">Terms of Service</h1>

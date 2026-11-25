@@ -1,0 +1,34 @@
+name: CI Test Suite & Code Quality
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Lint, Audit & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Syntax & Lint Check
+        run: npm run lint
+
+      - name: Run Native Test Suite (Unit, Integration & Audits)
+        run: npm test
+        env:
+          NODE_ENV: test
+          PORT: 3000

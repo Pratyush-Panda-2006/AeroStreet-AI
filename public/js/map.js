@@ -203,6 +203,8 @@ export function renderNationalMap() {
   const svg = document.createElementNS(svgNS, "svg");
   svg.setAttribute("viewBox", "0 0 612 696");
   svg.setAttribute("class", "india-svg-map w-full h-full select-none transition-all duration-500 animate-[fadeIn_0.4s_ease-out]");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Interactive vector map of India displaying real-time Air Quality Index across all 36 states and union territories.");
   svg.style.filter = "drop-shadow(0 12px 28px rgba(2, 6, 23, 0.08))";
 
   // Grid background
@@ -241,9 +243,26 @@ export function renderNationalMap() {
     path.setAttribute("stroke-width", "0.9");
     path.setAttribute("stroke-linejoin", "round");
     path.setAttribute("fill", baseFill);
+    path.setAttribute("tabindex", "0");
+    path.setAttribute("role", "button");
+    path.setAttribute("aria-label", `${state.name} - Current AQI: ${stateData.aqi} (${level.label})`);
     path.style.cursor = "pointer";
     path.style.transition = "all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1)";
     path.style.transformOrigin = "center";
+
+    // Keyboard navigation support (Enter / Space to select)
+    path.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        path.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      }
+    });
+    path.addEventListener('focus', (e) => {
+      path.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    });
+    path.addEventListener('blur', (e) => {
+      path.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+    });
 
     // Dynamic Hover using state's own AQI light tint (not generic orange)
     path.addEventListener('mouseenter', (e) => {
@@ -454,6 +473,8 @@ export function zoomToState(stateId) {
   const svg = document.createElementNS(svgNS, "svg");
   svg.setAttribute("viewBox", stateConfig.viewBox);
   svg.setAttribute("class", "w-full h-full max-h-[500px] select-none transition-all duration-500 animate-[fadeIn_0.5s_ease-out]");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", `Interactive district map of ${stateConfig.name} displaying real-time Air Quality Index.`);
   svg.style.filter = "drop-shadow(0 10px 20px rgba(2, 6, 23, 0.1))";
 
   // Grid line pattern
@@ -491,8 +512,24 @@ export function zoomToState(stateId) {
     path.setAttribute("stroke", "#e2e8f0");
     path.setAttribute("stroke-width", "1");
     path.setAttribute("fill", `${level.color}45`);
+    path.setAttribute("tabindex", "0");
+    path.setAttribute("role", "button");
+    path.setAttribute("aria-label", `${dist.name} District, ${stateConfig.name} - AQI: ${distData.aqi} (${level.label})`);
     path.style.cursor = "pointer";
     path.setAttribute("class", "transition-all duration-200");
+
+    path.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        path.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      }
+    });
+    path.addEventListener('focus', (e) => {
+      path.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    });
+    path.addEventListener('blur', (e) => {
+      path.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+    });
 
     path.addEventListener('mouseenter', (e) => {
       path.setAttribute("fill", `${level.color}80`);

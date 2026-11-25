@@ -5,11 +5,19 @@ import FooterMoxo from './components/FooterMoxo';
 export default function Municipality() {
   return (
     <div className="min-h-screen bg-white text-slate-800 antialiased flex flex-col font-sans">
+      {/* WCAG 2.1 AA Skip Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[999] focus:p-3 focus:bg-blue-600 focus:text-white focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        Skip to main content
+      </a>
+
       {/* Hero 05 Moxo Header and Hero for Municipality Hub */}
       <MunicipalityHeroMoxo />
 
       {/* Main Workspace Container */}
-      <main className="max-w-[1410px] mx-auto w-full px-6 py-10 flex flex-col lg:flex-row gap-8">
+      <main id="main-content" role="main" className="max-w-[1410px] mx-auto w-full px-6 py-10 flex flex-col lg:flex-row gap-8">
         {/* Left Column: Metrics, Policies, Simulator, Heatmap, and Operations Log */}
         <div className="flex-1 space-y-8">
           {/* Command Header + Statistics Cards */}
@@ -145,7 +153,7 @@ export default function Municipality() {
               </span>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="w-full text-left border-collapse text-xs" aria-label="System Operations and Incident Log">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-bold tracking-wider text-slate-400">
                     <th className="p-3">Source/ID</th>

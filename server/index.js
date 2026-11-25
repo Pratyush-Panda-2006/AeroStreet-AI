@@ -12,6 +12,12 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import multer from 'multer';
 
+import { calculateIndianAQI, getAQICategory, normalizeTelemetry } from './utils/aqi.js';
+import { telemetryCache, geminiCache } from './utils/cache.js';
+import { securityHeadersMiddleware, corsOriginCheck, rateLimiter } from './middleware/security.js';
+import { validateForecastInputs, validateCoordinates, validateAssistantRequest } from './middleware/validate.js';
+import { queryUrbanAssistant, generateDeterministicAdvice } from './utils/assistant.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -46,9 +52,18 @@ function resolveAssetPath(...segments) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ── Middleware ──
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+// ── Security Hardening ──
+app.disable('x-powered-by');
+app.use(securityHeadersMiddleware);
+app.use(cors({ origin: corsOriginCheck() }));
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+
+// ── Rate Limiting ──
+const generalLimiter = rateLimiter({ windowMs: 60 * 1000, max: 60 });
+const aiLimiter = rateLimiter({ windowMs: 60 * 1000, max: 15, message: 'AI rate limit exceeded (15 req/min). Please try again shortly.' });
+
+app.use('/api/', generalLimiter);
 
 // Map clean URLs and file names to actual template files
 const TEMPLATE_MAP = {
@@ -75,8 +90,8 @@ const TEMPLATE_MAP = {
 };
 
 // ── Inject config into HTML pages ──
-// This middleware intercepts HTML requests and injects the
-// Firebase/Maps/Gemini config from server-side env vars.
+// This middleware intercepts HTML requests and injects the client config.
+// Sensitive server keys (GEMINI_API_KEY) are intentionally excluded to prevent client leakage.
 app.use((req, res, next) => {
   const cleanPath = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
   let templateFile = TEMPLATE_MAP[cleanPath];
@@ -97,7 +112,7 @@ app.use((req, res, next) => {
         return res.status(404).send(`Template not found: ${templateFile}`);
       }
 
-      // Inject config script before closing </head>
+      // Inject client config script before closing </head>
       const configScript = `
 <script>
   window.__AEROSTREET_CONFIG__ = {
@@ -108,7 +123,7 @@ app.use((req, res, next) => {
     firebaseMessagingSenderId: "${process.env.FIREBASE_MESSAGING_SENDER_ID || ''}",
     firebaseAppId: "${process.env.FIREBASE_APP_ID || ''}",
     googleMapsApiKey: "${process.env.GOOGLE_MAPS_API_KEY || ''}",
-    geminiApiKey: "${process.env.GEMINI_API_KEY || ''}",
+    geminiApiKey: "", // Kept server-side in /api/* endpoints for security
     windyApiKey: "${process.env.WINDY_API_KEY || ''}",
     waqiApiToken: "${process.env.WAQI_API_TOKEN || ''}",
     iqairApiKey: "${process.env.IQAIR_API_KEY || ''}",
@@ -209,7 +224,7 @@ app.use(express.static(publicDir));
  * POST /api/gemini-analyze
  * Proxy endpoint for Gemini API calls (keeps API key server-side)
  */
-app.post('/api/gemini-analyze', async (req, res) => {
+app.post('/api/gemini-analyze', aiLimiter, async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -524,17 +539,7 @@ Return ONLY valid JSON, no markdown.`;
 });
 
 // ── OpenAQ & AI Predictive Routes ──
-
-// Helper: Indian CPCB sub-index AQI calculation for PM2.5
-function calculateIndianAQI(pm25) {
-  if (!pm25 || pm25 < 0) return 0;
-  if (pm25 <= 30) return Math.round(pm25 * 50 / 30);
-  if (pm25 <= 60) return Math.round(50 + (pm25 - 30) * 50 / 30);
-  if (pm25 <= 90) return Math.round(100 + (pm25 - 60) * 100 / 30);
-  if (pm25 <= 120) return Math.round(200 + (pm25 - 90) * 100 / 30);
-  if (pm25 <= 250) return Math.round(300 + (pm25 - 120) * 100 / 130);
-  return Math.min(500, Math.round(400 + (pm25 - 250) * 100 / 100));
-}
+// Uses calculateIndianAQI from ./utils/aqi.js
 
 // Fallback real-world mock data for Indian stations
 function mockLocationsFallback() {
@@ -671,14 +676,23 @@ function mockPredictiveHeatmapFallback() {
 
 /**
  * GET /api/live-aqi
- * Secure endpoint acting as proxy to OpenAQ API v3 locations
+ * Secure endpoint acting as proxy to OpenAQ API v3 locations with caching
  */
 app.get('/api/live-aqi', async (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=600');
+
+  const cached = telemetryCache.get('live_aqi_openaq');
+  if (cached) {
+    return res.json(cached);
+  }
+
   const apiKey = process.env.OPENAQ_API_KEY;
 
   if (!apiKey) {
     console.log('[OpenAQ] OPENAQ_API_KEY is not defined, returning fallback data');
-    return res.json(mockLocationsFallback());
+    const fallback = mockLocationsFallback();
+    telemetryCache.set('live_aqi_openaq', fallback);
+    return res.json(fallback);
   }
 
   try {
@@ -687,7 +701,8 @@ app.get('/api/live-aqi', async (req, res) => {
       headers: {
         'X-API-Key': apiKey,
         'Content-Type': 'application/json'
-      }
+      },
+      signal: AbortSignal.timeout(4000)
     });
 
     if (!response.ok) {
@@ -751,10 +766,13 @@ app.get('/api/live-aqi', async (req, res) => {
       };
     });
 
+    telemetryCache.set('live_aqi_openaq', mapped);
     res.json(mapped);
   } catch (err) {
     console.error('[OpenAQ] Proxy fetch failed:', err.message);
-    res.json(mockLocationsFallback());
+    const fallback = mockLocationsFallback();
+    telemetryCache.set('live_aqi_openaq', fallback);
+    res.json(fallback);
   }
 });
 
@@ -763,11 +781,20 @@ app.get('/api/live-aqi', async (req, res) => {
  * Uses Gemini AI to predict tomorrow's AQI heatmap in Delhi based on weather forecasts
  */
 app.get('/api/predictive-heatmap', async (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=600');
+
+  const cached = geminiCache.get('predictive_heatmap');
+  if (cached) {
+    return res.json(cached);
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     console.log('[Gemini Prediction] GEMINI_API_KEY is not defined, returning fallback heatmap');
-    return res.json(mockPredictiveHeatmapFallback());
+    const fallback = mockPredictiveHeatmapFallback();
+    geminiCache.set('predictive_heatmap', fallback);
+    return res.json(fallback);
   }
 
   try {
@@ -1037,71 +1064,39 @@ app.post('/api/drives', async (req, res) => {
   res.json({ success: true, drive: newDrive });
 });
 
-// Endpoint: Predictive Heatmap Coordinates
-app.get('/api/predictive-heatmap', (req, res) => {
-  const hotspots = [];
-
-  // Seed coordinates across major Indian cities
-  const centers = [
-    { name: 'Delhi NCR', lat: 28.6139, lng: 77.2090, weight: 340 },
-    { name: 'Mumbai Metro', lat: 19.0760, lng: 72.8777, weight: 120 },
-    { name: 'Bengaluru IT Hub', lat: 12.9716, lng: 77.5946, weight: 60 },
-    { name: 'Kolkata Port', lat: 22.5726, lng: 88.3639, weight: 160 },
-    { name: 'Chennai Auto Hub', lat: 13.0827, lng: 80.2707, weight: 80 },
-    { name: 'Patna Urban', lat: 25.5941, lng: 85.1376, weight: 240 },
-    { name: 'Lucknow Central', lat: 26.8467, lng: 80.9462, weight: 270 },
-    { name: 'Jaipur Industrial', lat: 26.9124, lng: 75.7873, weight: 180 },
-    { name: 'Hyderabad Tech', lat: 17.3850, lng: 78.4867, weight: 95 }
-  ];
-
-  // Generate density cluster layers for Deck.gl
-  centers.forEach(c => {
-    // Generate 25 coordinates around each major city to form nationwide visual hotspots
-    for (let i = 0; i < 25; i++) {
-      const offsetLat = (Math.random() - 0.5) * 0.8; // larger offset for nation-wide zoom visibility
-      const offsetLng = (Math.random() - 0.5) * 0.8;
-      const weightNoise = (Math.random() - 0.5) * 40;
-      hotspots.push({
-        coordinates: [c.lng + offsetLng, c.lat + offsetLat],
-        aqiPrediction: Math.max(10, Math.min(500, Math.round(c.weight + weightNoise)))
-      });
-    }
-  });
-
-  res.json(hotspots);
-});
-
-// Endpoint: Live AQI for state explorer
-app.get('/api/live-aqi', (req, res) => {
-  const cities = [
-    { id: 'in-dl', name: 'Delhi', aqi: 342, locality: 'Delhi' },
-    { id: 'in-mh', name: 'Mumbai', aqi: 110, locality: 'Mumbai' },
-    { id: 'in-ka', name: 'Bengaluru', aqi: 58, locality: 'Bengaluru' },
-    { id: 'in-wb', name: 'Kolkata', aqi: 156, locality: 'Kolkata' },
-    { id: 'in-mz', name: 'Aizawl', aqi: 22, locality: 'Aizawl' },
-    { id: 'in-up', name: 'Lucknow', aqi: 280, locality: 'Lucknow' },
-    { id: 'in-hr', name: 'Gurugram', aqi: 260, locality: 'Gurugram' },
-    { id: 'in-rj', name: 'Jaipur', aqi: 190, locality: 'Jaipur' },
-    { id: 'in-gj', name: 'Ahmedabad', aqi: 120, locality: 'Ahmedabad' },
-    { id: 'in-tn', name: 'Chennai', aqi: 75, locality: 'Chennai' },
-    { id: 'in-ap', name: 'Visakhapatnam', aqi: 82, locality: 'Visakhapatnam' },
-    { id: 'in-kl', name: 'Kochi', aqi: 45, locality: 'Kochi' },
-    { id: 'in-tg', name: 'Hyderabad', aqi: 92, locality: 'Hyderabad' },
-    { id: 'in-or', name: 'Bhubaneswar', aqi: 115, locality: 'Bhubaneswar' },
-    { id: 'in-pb', name: 'Ludhiana', aqi: 210, locality: 'Ludhiana' },
-    { id: 'in-br', name: 'Patna', aqi: 230, locality: 'Patna' }
-  ];
-  res.json(cities);
-});
-
-// Endpoint: Generate Legal Notice warning letter using Gemini
-app.post('/api/generate-legal-notice', async (req, res) => {
+// Endpoint: Generate Legal Notice warning letter using Gemini (with deterministic fallback)
+app.post('/api/generate-legal-notice', aiLimiter, async (req, res) => {
   const { incident } = req.body;
-  if (!incident) return res.status(400).json({ error: 'Incident description missing' });
+  if (!incident) return res.status(400).json({ success: false, error: 'Incident description missing' });
 
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!geminiKey) {
-    return res.status(500).json({ error: 'Gemini API key is not configured.' });
+    const fallbackNotice = `AEROSTREET-AI MUNICIPAL COMMAND CONTROL CENTER
+LEGAL NOTICE & STATUTORY COMPLIANCE DIRECTIVE
+Date: ${new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
+Case Reference: AS-ENV-${Date.now().toString().slice(-6)}
+
+TO: The Management / Property Occupier
+LOCATION: Under Continuous CCTV Surveillance & Micro-Telemetry Grid
+
+SUBJECT: IMMEDIATE CEASE-AND-DESIST NOTICE UNDER THE AIR (PREVENTION AND CONTROL OF POLLUTION) ACT, 1981
+
+1. NOTICE OF STATUTORY VIOLATION:
+Continuous environmental telemetry and automated surveillance verified an active emission violation:
+"${incident}"
+
+2. MANDATORY REMEDIAL ACTIONS (COMPLIANCE REQUIRED WITHIN 24 HOURS):
+a) Immediately extinguish or suppress all uncontrolled particulate emissions and fugitive dust.
+b) Deploy wet-suppression mist cannons and enclose perimeter boundaries with approved windbreak barriers.
+c) Cease all open combustion and submit verification documentation to the Municipal Environmental Dashboard.
+
+3. PENALTY WARNING:
+Failure to remediate within 24 hours of electronic dispatch will result in immediate escalation to the Central Pollution Control Board (CPCB), imposition of environmental compensation fines up to ₹5,00,000, and suspension of operational clearance.
+
+Issued by Order of:
+Municipal Air Quality Control Officer
+AeroStreet-AI Command & Enforcement Hub`;
+    return res.json({ success: true, notice: fallbackNotice });
   }
 
   try {
@@ -1119,16 +1114,38 @@ app.post('/api/generate-legal-notice', async (req, res) => {
     res.json({ success: true, notice: text });
   } catch (error) {
     console.error('Failed to generate notice:', error);
-    res.status(500).json({ error: 'Failed to generate legal notice document.' });
+    res.status(500).json({ success: false, error: 'Failed to generate legal notice document.' });
   }
 });
 
-// Endpoint: Generate simulated forecast insights using Gemini
-app.post('/api/gemini-forecast-insights', async (req, res) => {
-  const { traffic, industry, wind, temp, baseline } = req.body;
+// Endpoint: Generate simulated forecast insights using Gemini (or deterministic simulation fallback)
+const handleForecastInsights = async (req, res) => {
+  const { traffic, industry, wind, temp, baseline } = req.sanitized;
   const geminiKey = process.env.GEMINI_API_KEY;
+
   if (!geminiKey) {
-    return res.status(500).json({ error: 'Gemini API key is not configured.' });
+    // High-precision deterministic diurnal simulation model
+    const base = Number(baseline) || 150;
+    const trafficFactor = (traffic - 50) * 0.9;
+    const industryFactor = (industry - 40) * 0.8;
+    const windFactor = (wind - 12) * -2.4;
+    const tempFactor = (temp - 25) * 0.5;
+    const simulatedBase = Math.max(25, Math.min(480, Math.round(base + trafficFactor + industryFactor + windFactor + tempFactor)));
+
+    const forecast = [
+      simulatedBase,
+      Math.min(500, Math.round(simulatedBase * 1.06)),
+      Math.min(500, Math.round(simulatedBase * 1.14)),
+      Math.max(20, Math.round(simulatedBase * 0.95)),
+      Math.max(20, Math.round(simulatedBase * 0.90)),
+      Math.min(500, Math.round(simulatedBase * 1.03)),
+      Math.max(20, Math.round(simulatedBase * 0.98))
+    ];
+
+    const cat = getAQICategory(simulatedBase);
+    const insights = `AeroStreet Diurnal Simulation: Baseline AQI projected around ${simulatedBase} (${cat.category}). Surface wind of ${wind} km/h and traffic density of ${traffic}% drive atmospheric dispersion. ${cat.advisory}`;
+
+    return res.json({ success: true, forecast, insights });
   }
 
   try {
@@ -1152,12 +1169,50 @@ app.post('/api/gemini-forecast-insights', async (req, res) => {
     const data = JSON.parse(text);
     res.json({ success: true, ...data });
   } catch (error) {
-    console.error('Failed to get Gemini forecast insights:', error);
-    res.status(500).json({ error: 'Failed to compute predictions.' });
+    console.error('Failed to get Gemini forecast insights, using fallback:', error.message);
+    const base = Number(baseline) || 150;
+    const simulatedBase = Math.max(25, Math.min(480, Math.round(base + (traffic - 50) * 0.8 - (wind - 12) * 2)));
+    const forecast = [simulatedBase, simulatedBase + 10, simulatedBase + 15, simulatedBase - 5, simulatedBase - 10, simulatedBase + 4, simulatedBase];
+    res.json({
+      success: true,
+      forecast,
+      insights: `Simulated atmospheric projection based on ${traffic}% traffic and ${wind} km/h wind.`
+    });
+  }
+};
+
+app.post('/api/gemini-forecast-insights', aiLimiter, validateForecastInputs, handleForecastInsights);
+app.post('/api/forecast', aiLimiter, validateForecastInputs, handleForecastInsights);
+app.post('/api/forecast/analyze', aiLimiter, validateForecastInputs, handleForecastInsights);
+
+/**
+ * POST /api/assistant
+ * Challenge 6: Urban Air Quality Assistant (Citizen Health & Commute Advisor)
+ */
+app.post('/api/assistant', aiLimiter, validateAssistantRequest, async (req, res) => {
+  try {
+    const advice = await queryUrbanAssistant(req.sanitizedAssistant);
+    res.json(advice);
+  } catch (err) {
+    console.error('[Assistant Error]:', err.message);
+    const fallback = generateDeterministicAdvice(req.sanitizedAssistant);
+    res.json(fallback);
   }
 });
 
-const upload = multer({ storage: multer.memoryStorage() });
+// Hardened Multer configuration (5 MB max, strict MIME check)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max file size
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'));
+    }
+  }
+});
 
 // Endpoint: Submit Report (with Multer file upload & Gemini AI analysis)
 app.post('/api/reports', upload.single('image'), async (req, res) => {
@@ -1457,9 +1512,28 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ── Centralized Error Handling ──
+app.use((err, req, res, next) => {
+  console.error('[AeroStreet Error]', err.message);
+  if (err && err.name === 'MulterError') {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ success: false, error: 'File too large. Maximum size is 5 MB.' });
+    }
+    return res.status(400).json({ success: false, error: err.message });
+  }
+  res.status(err.status || 400).json({
+    success: false,
+    error: err.message || 'Invalid request'
+  });
+});
 
 // ── Start server ──
-if (!process.env.VERCEL) {
+const isRunningInTest =
+  process.env.NODE_ENV === 'test' ||
+  Boolean(process.env.NODE_TEST_CONTEXT) ||
+  process.argv.some((arg) => arg.includes('test'));
+
+if (!process.env.VERCEL && !isRunningInTest) {
   app.listen(PORT, () => {
     console.log(`
   ┌──────────────────────────────────────────────┐

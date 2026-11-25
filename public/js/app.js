@@ -10,12 +10,14 @@ import { initMap, registerOnStateChange } from './map.js';
 import { showReportModal } from './reports.js';
 import { renderCommunityPanel } from './community.js';
 import { renderRecommendationsPanel, renderTrendChart } from './analytics.js';
+import { initAssistantWidget } from './assistant-widget.js';
 
 // ── Global namespace for cross-module utilities ──
 window.__aerostreet = {
   showToast,
   showReportModal,
   showAuthModal,
+  initAssistantWidget,
 };
 
 // ============================================
@@ -114,6 +116,7 @@ async function initPage() {
 // ============================================
 
 function wireCommonUI() {
+  initAssistantWidget();
   // Navigation controls - open reports directly without login requirement!
   document.getElementById('nav-report-btn')?.addEventListener('click', () => {
     showReportModal();
