@@ -13,7 +13,7 @@ export function initAssistantWidget() {
   launcher.id = 'aerostreet-assistant-launcher';
   launcher.type = 'button';
   launcher.className =
-    'fixed bottom-5 right-5 z-[90] min-h-[48px] min-w-[48px] flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 text-white font-semibold text-sm rounded-full shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-300 select-none';
+    'fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[90] min-h-[44px] min-w-[44px] sm:min-h-[48px] sm:min-w-[48px] flex items-center gap-2 sm:gap-2.5 px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 text-white font-semibold text-xs sm:text-sm rounded-full shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-300 select-none';
   launcher.setAttribute('aria-haspopup', 'dialog');
   launcher.setAttribute('aria-expanded', 'false');
   launcher.setAttribute('aria-label', 'Open Urban Air Quality Assistant');
@@ -287,32 +287,36 @@ export function initAssistantWidget() {
     const alertThreshold = isSensitive ? 100 : 200;
     if (aqi <= alertThreshold) return;
 
+    const shortCity = city.split('(')[0].trim() || city;
+
     const banner = document.createElement('div');
     banner.id = 'aerostreet-proactive-banner';
     banner.setAttribute('role', 'alert');
     banner.setAttribute('aria-live', 'assertive');
     banner.className =
-      'w-full bg-gradient-to-r from-amber-600 via-rose-600 to-red-700 text-white px-4 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-lg sticky top-0 z-[80] transition-all duration-300';
+      'w-full bg-gradient-to-r from-amber-600 via-rose-600 to-red-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-between shadow-lg sticky top-0 z-[80] transition-all duration-300';
     banner.innerHTML = `
-      <div class="flex items-center gap-2.5 overflow-hidden">
-        <span class="text-base flex-shrink-0 animate-bounce">⚠️</span>
-        <div class="truncate">
-          <span>Proactive Alert for <strong>${city}</strong>: AQI is <strong>${aqi} (${category})</strong>.</span>
-          <span class="hidden md:inline text-rose-100 ml-1">Elevated exposure risk detected for your saved activity (${activeProfile.activity}).</span>
+      <div class="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+        <span class="text-sm sm:text-base flex-shrink-0 animate-bounce">⚠️</span>
+        <div class="leading-tight text-xs sm:text-sm">
+          <span class="sm:hidden font-bold">${shortCity}: AQI ${aqi} (${category})</span>
+          <span class="hidden sm:inline">Proactive Alert for <strong>${city}</strong>: AQI is <strong>${aqi} (${category})</strong>.</span>
+          <span class="hidden md:inline text-rose-100 ml-1">Elevated risk for saved activity (${activeProfile.activity}).</span>
         </div>
       </div>
-      <div class="flex items-center gap-2 flex-shrink-0 ml-3">
+      <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 ml-2">
         <button
           type="button"
           id="proactive-plan-btn"
-          class="px-3 py-1 bg-white text-rose-800 hover:bg-rose-50 text-xs font-bold rounded-full shadow-sm hover:shadow transition"
+          class="px-2.5 py-1 sm:px-3 sm:py-1 bg-white text-rose-800 hover:bg-rose-50 text-[11px] sm:text-xs font-bold rounded-full shadow-sm hover:shadow transition whitespace-nowrap"
         >
-          Review AI Action Plan
+          <span class="sm:hidden">Action Plan</span>
+          <span class="hidden sm:inline">Review AI Action Plan</span>
         </button>
         <button
           type="button"
           id="proactive-dismiss-btn"
-          class="p-1 text-white/80 hover:text-white rounded focus:outline-none"
+          class="p-1 text-white/80 hover:text-white rounded focus:outline-none text-base leading-none"
           aria-label="Dismiss proactive alert banner"
         >
           &times;

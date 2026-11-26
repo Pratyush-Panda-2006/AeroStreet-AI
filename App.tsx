@@ -209,16 +209,16 @@ export default function App() {
         />
 
         {/* Floating Navbar */}
-        <div className="relative z-10 w-full pt-6 px-6 md:px-12 lg:px-16">
-          <header className="liquid-glass rounded-xl px-4 py-2 flex items-center justify-between">
+        <div className="relative z-10 w-full pt-4 px-3 sm:pt-6 sm:px-6 md:px-12 lg:px-16">
+          <header className="liquid-glass rounded-xl px-3 py-2 sm:px-4 flex items-center justify-between gap-2">
             {/* Left: Brand wordmark with leading indicator block */}
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-base select-none backdrop-blur-sm">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0 whitespace-nowrap">
+              <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-base select-none backdrop-blur-sm shrink-0">
                 I
               </div>
               <a
                 href="/national.html"
-                className="text-2xl font-semibold tracking-tight text-white select-none"
+                className="text-base sm:text-xl md:text-2xl font-semibold tracking-tight text-white select-none whitespace-nowrap shrink-0"
               >
                 AeroStreet-AI
               </a>
@@ -260,11 +260,11 @@ export default function App() {
             </nav>
 
             {/* Right: Action button "Quick Report" */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0 whitespace-nowrap">
               <button
                 id="nav-report-btn"
                 onClick={handleQuickReport}
-                className="bg-white text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition"
+                className="bg-white text-black px-3 py-1.5 text-xs sm:px-5 sm:py-2 sm:text-sm rounded-lg font-medium hover:bg-gray-100 transition whitespace-nowrap shrink-0"
               >
                 Quick Report
               </button>
@@ -303,7 +303,7 @@ export default function App() {
             </FadeIn>
 
             {/* Button Row */}
-            <FadeIn delay={1200} duration={1000}>
+            <FadeIn delay={1200} duration={1000} className="pb-24 sm:pb-16">
               <div className="flex flex-wrap items-center gap-4">
                 <a
                   href="#national-explorer"

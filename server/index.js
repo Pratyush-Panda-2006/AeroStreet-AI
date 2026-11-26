@@ -15,7 +15,11 @@ import multer from 'multer';
 import { calculateIndianAQI, getAQICategory, normalizeTelemetry } from './utils/aqi.js';
 import { telemetryCache, geminiCache } from './utils/cache.js';
 import { securityHeadersMiddleware, corsOriginCheck, rateLimiter } from './middleware/security.js';
-import { validateForecastInputs, validateCoordinates, validateAssistantRequest } from './middleware/validate.js';
+import {
+  validateForecastInputs,
+  validateCoordinates,
+  validateAssistantRequest,
+} from './middleware/validate.js';
 import { queryUrbanAssistant, generateDeterministicAdvice } from './utils/assistant.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -36,7 +40,11 @@ const TEMPLATE_FILES = {
 
 // Helper to reliably find assets across local development and Vercel serverless environments
 function resolveAssetPath(...segments) {
-  if (segments[0] === 'templates' && TEMPLATE_FILES[segments[1]] && fs.existsSync(TEMPLATE_FILES[segments[1]])) {
+  if (
+    segments[0] === 'templates' &&
+    TEMPLATE_FILES[segments[1]] &&
+    fs.existsSync(TEMPLATE_FILES[segments[1]])
+  ) {
     return TEMPLATE_FILES[segments[1]];
   }
 
@@ -48,7 +56,6 @@ function resolveAssetPath(...segments) {
 
   return cwdCandidate;
 }
-
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -62,7 +69,11 @@ app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
 // ── Rate Limiting ──
 const generalLimiter = rateLimiter({ windowMs: 60 * 1000, max: 60 });
-const aiLimiter = rateLimiter({ windowMs: 60 * 1000, max: 15, message: 'AI rate limit exceeded (15 req/min). Please try again shortly.' });
+const aiLimiter = rateLimiter({
+  windowMs: 60 * 1000,
+  max: 15,
+  message: 'AI rate limit exceeded (15 req/min). Please try again shortly.',
+});
 
 app.use('/api/', generalLimiter);
 
@@ -94,7 +105,8 @@ const TEMPLATE_MAP = {
 // This middleware intercepts HTML requests and injects the client config.
 // Sensitive server keys (GEMINI_API_KEY) are intentionally excluded to prevent client leakage.
 app.use((req, res, next) => {
-  const cleanPath = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
+  const cleanPath =
+    req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
   let templateFile = TEMPLATE_MAP[cleanPath];
 
   if (!templateFile && cleanPath.endsWith('.html')) {
@@ -109,7 +121,10 @@ app.use((req, res, next) => {
 
     fs.readFile(fullPath, 'utf8', (err, html) => {
       if (err) {
-        console.error(`[AeroStreet] Error reading template "${templateFile}" at "${fullPath}":`, err.message);
+        console.error(
+          `[AeroStreet] Error reading template "${templateFile}" at "${fullPath}":`,
+          err.message
+        );
         return res.status(404).send(`Template not found: ${templateFile}`);
       }
 
@@ -143,8 +158,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
-
 // ── IQAir AirVisual API Cache & Proxy ──
 const iqairCache = new Map();
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes in ms
@@ -154,7 +167,9 @@ app.get('/api/iqair/nearest', async (req, res) => {
   const apiKey = process.env.IQAIR_API_KEY;
 
   if (!apiKey) {
-    return res.status(400).json({ status: 'error', message: 'IQAIR_API_KEY not configured in .env' });
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'IQAIR_API_KEY not configured in .env' });
   }
 
   if (!lat || !lon) {
@@ -163,7 +178,7 @@ app.get('/api/iqair/nearest', async (req, res) => {
 
   const cacheKey = `nearest_${parseFloat(lat).toFixed(2)}_${parseFloat(lon).toFixed(2)}`;
   const cached = iqairCache.get(cacheKey);
-  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return res.json({ status: 'success', source: 'cache', data: cached.data });
   }
 
@@ -176,7 +191,9 @@ app.get('/api/iqair/nearest', async (req, res) => {
       iqairCache.set(cacheKey, { timestamp: Date.now(), data: result.data });
       return res.json({ status: 'success', source: 'live', data: result.data });
     } else {
-      return res.status(502).json({ status: 'fail', message: result.data?.message || 'IQAir API error' });
+      return res
+        .status(502)
+        .json({ status: 'fail', message: result.data?.message || 'IQAir API error' });
     }
   } catch (error) {
     console.error('[IQAir Server Proxy Error]', error.message);
@@ -189,12 +206,14 @@ app.get('/api/iqair/city', async (req, res) => {
   const apiKey = process.env.IQAIR_API_KEY;
 
   if (!apiKey) {
-    return res.status(400).json({ status: 'error', message: 'IQAIR_API_KEY not configured in .env' });
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'IQAIR_API_KEY not configured in .env' });
   }
 
   const cacheKey = `city_${city}_${state}_${country}`.toLowerCase();
   const cached = iqairCache.get(cacheKey);
-  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return res.json({ status: 'success', source: 'cache', data: cached.data });
   }
 
@@ -207,7 +226,9 @@ app.get('/api/iqair/city', async (req, res) => {
       iqairCache.set(cacheKey, { timestamp: Date.now(), data: result.data });
       return res.json({ status: 'success', source: 'live', data: result.data });
     } else {
-      return res.status(502).json({ status: 'fail', message: result.data?.message || 'IQAir API error' });
+      return res
+        .status(502)
+        .json({ status: 'fail', message: result.data?.message || 'IQAir API error' });
     }
   } catch (error) {
     console.error('[IQAir City Proxy Error]', error.message);
@@ -226,16 +247,18 @@ app.get('/sitemap.xml', (req, res) => {
   res.type('application/xml').sendFile(join(publicDir, 'sitemap.xml'));
 });
 
-app.use(express.static(publicDir, {
-  maxAge: '1d',
-  setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.html')) {
-      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-    } else {
-      res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
-    }
-  }
-}));
+app.use(
+  express.static(publicDir, {
+    maxAge: '1d',
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+      } else {
+        res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+      }
+    },
+  })
+);
 
 // ── API Routes ──
 
@@ -255,7 +278,8 @@ app.post('/api/gemini-analyze', aiLimiter, async (req, res) => {
           {
             priority: 'high',
             title: 'Demo: Heavy Vehicle Diversion Recommended',
-            description: 'This is a demo recommendation. Add a GEMINI_API_KEY to .env for real AI analysis.',
+            description:
+              'This is a demo recommendation. Add a GEMINI_API_KEY to .env for real AI analysis.',
             impact: 'Add API key for real impact estimates',
             icon: 'local_shipping',
           },
@@ -294,7 +318,15 @@ Return ONLY valid JSON, no markdown.`;
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       recommendations = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
     } catch {
-      recommendations = [{ priority: 'info', title: 'Analysis Complete', description: text, impact: 'See details', icon: 'smart_toy' }];
+      recommendations = [
+        {
+          priority: 'info',
+          title: 'Analysis Complete',
+          description: text,
+          impact: 'See details',
+          icon: 'smart_toy',
+        },
+      ];
     }
 
     res.json({ success: true, result: { recommendations } });
@@ -322,7 +354,7 @@ app.post('/api/cctv-alert', async (req, res) => {
     confidence,
     description: description || '',
     cameraId: cameraId || 'unknown',
-    coordinates: coordinates || { lat: 28.6139, lng: 77.2090 },
+    coordinates: coordinates || { lat: 28.6139, lng: 77.209 },
     frameUrl: frameUrl || '',
     status: 'Pending',
     aqi: confidence > 0.9 ? 400 : 250,
@@ -340,7 +372,9 @@ app.post('/api/cctv-alert', async (req, res) => {
       const admin = await import('firebase-admin');
       if (!admin.default.apps.length) {
         const fs = await import('fs');
-        const serviceAccount = JSON.parse(fs.readFileSync(process.env.FIREBASE_SERVICE_ACCOUNT_PATH, 'utf8'));
+        const serviceAccount = JSON.parse(
+          fs.readFileSync(process.env.FIREBASE_SERVICE_ACCOUNT_PATH, 'utf8')
+        );
         admin.default.initializeApp({
           credential: admin.default.credential.cert(serviceAccount),
         });
@@ -371,7 +405,8 @@ app.get('/api/recommendations/:districtId', async (req, res) => {
       const admin = await import('firebase-admin');
       if (admin.default.apps.length) {
         const db = admin.default.firestore();
-        const snapshot = await db.collection('ai_recommendations')
+        const snapshot = await db
+          .collection('ai_recommendations')
           .where('districtId', '==', req.params.districtId)
           .orderBy('generatedAt', 'desc')
           .limit(1)
@@ -396,8 +431,20 @@ app.get('/api/recommendations/:districtId', async (req, res) => {
       generatedAt: new Date().toISOString(),
       dataContext: { hotspotCount: 8, avgAQI: 200, peakHours: ['8:00-10:00', '17:00-20:00'] },
       recommendations: [
-        { priority: 'high', title: 'Optimize Traffic Flow', description: 'Signal optimization during peak hours can reduce idling emissions.', impact: 'Estimated 10% NOx reduction', icon: 'traffic' },
-        { priority: 'medium', title: 'Deploy Dust Control', description: 'Water sprinkler deployment on major construction corridors.', impact: 'Estimated 15% PM10 reduction', icon: 'water_drop' },
+        {
+          priority: 'high',
+          title: 'Optimize Traffic Flow',
+          description: 'Signal optimization during peak hours can reduce idling emissions.',
+          impact: 'Estimated 10% NOx reduction',
+          icon: 'traffic',
+        },
+        {
+          priority: 'medium',
+          title: 'Deploy Dust Control',
+          description: 'Water sprinkler deployment on major construction corridors.',
+          impact: 'Estimated 15% PM10 reduction',
+          icon: 'water_drop',
+        },
       ],
     },
   });
@@ -410,15 +457,25 @@ app.get('/api/recommendations/:districtId', async (req, res) => {
 app.post('/api/recommendations/:districtId', async (req, res) => {
   const districtId = req.params.districtId;
   const incidents = req.body.incidents || [];
-  const weather = req.body.weather || { aqi: 345, windSpeed: 12, windDirection: 'North-East', temp: 28 };
+  const weather = req.body.weather || {
+    aqi: 345,
+    windSpeed: 12,
+    windDirection: 'North-East',
+    temp: 28,
+  };
 
   // Format incidents details for Gemini AI prompt context
-  const incidentsText = incidents.map(inc =>
-    `- ID: ${inc.id}, Event: ${inc.type}, Location: ${inc.location}, Confidence: ${inc.confidence}, Status: ${inc.status}`
-  ).join('\n');
+  const incidentsText = incidents
+    .map(
+      (inc) =>
+        `- ID: ${inc.id}, Event: ${inc.type}, Location: ${inc.location}, Confidence: ${inc.confidence}, Status: ${inc.status}`
+    )
+    .join('\n');
 
-  const cctvCount = incidents.filter(inc => inc.source === 'cctv' && inc.status !== 'Success Verified').length;
-  const pendingCount = incidents.filter(inc => inc.status !== 'Success Verified').length;
+  const cctvCount = incidents.filter(
+    (inc) => inc.source === 'cctv' && inc.status !== 'Success Verified'
+  ).length;
+  const pendingCount = incidents.filter((inc) => inc.status !== 'Success Verified').length;
 
   const fakeReq = {
     body: {
@@ -439,7 +496,7 @@ Your recommendations should be hyper-specific to these live weather and environm
         hotspotCount: pendingCount,
         cctvAlertsCount: cctvCount,
         peakHours: ['8:00-10:00', '17:00-20:00'],
-        weatherInfo: weather
+        weatherInfo: weather,
       },
     },
   };
@@ -454,39 +511,54 @@ Your recommendations should be hyper-specific to these live weather and environm
   if (!apiKey) {
     // Generate intelligent mock recommendations based on the incidents list
     const mockRecs = [];
-    if (incidents.some(i => i.type.includes('Smoke') && i.status !== 'Success Verified')) {
+    if (incidents.some((i) => i.type.includes('Smoke') && i.status !== 'Success Verified')) {
       mockRecs.push({
         priority: 'critical',
         title: 'Emergency Sprinkler Deployment for Anand Vihar',
-        description: 'Heavy smoke violation detected by CAM-A14 at Anand Vihar. Dispatched mist cannon systems.',
+        description:
+          'Heavy smoke violation detected by CAM-A14 at Anand Vihar. Dispatched mist cannon systems.',
         impact: 'Localized 20% PM2.5 reduction',
-        icon: 'water_drop'
+        icon: 'water_drop',
       });
     }
-    if (incidents.some(i => i.type.includes('Dust') && i.status !== 'Success Verified')) {
+    if (incidents.some((i) => i.type.includes('Dust') && i.status !== 'Success Verified')) {
       mockRecs.push({
         priority: 'high',
         title: 'Construction Site Compliance Audit',
-        description: 'Construction dust report active for Dwarka Sector 21. Enforce water-spray barriers and tarpaulin cover compliance.',
+        description:
+          'Construction dust report active for Dwarka Sector 21. Enforce water-spray barriers and tarpaulin cover compliance.',
         impact: 'Estimated 15% PM10 reduction',
-        icon: 'construction'
+        icon: 'construction',
       });
     }
-    if (incidents.some(i => i.type.includes('Litter') && i.status !== 'Success Verified')) {
+    if (incidents.some((i) => i.type.includes('Litter') && i.status !== 'Success Verified')) {
       mockRecs.push({
         priority: 'medium',
         title: 'Enforce Industrial Dumping Penalties',
-        description: 'Litter dumping at Mahul Industrial. Deploy mobile surveillance patrol and issue notices.',
+        description:
+          'Litter dumping at Mahul Industrial. Deploy mobile surveillance patrol and issue notices.',
         impact: 'Curb illegal dumping incidents',
-        icon: 'factory'
+        icon: 'factory',
       });
     }
 
     // Default fallback if no matches or no pending
     if (mockRecs.length === 0) {
       mockRecs.push(
-        { priority: 'high', title: 'Optimize Traffic Flows', description: 'Vehicle idling reduction recommendations for Delhi corridors.', impact: 'Estimated 8% reduction in NOx', icon: 'traffic' },
-        { priority: 'medium', title: 'Deploy Dust Control Sprinklers', description: 'Emergency water mist deployment along heavy traffic pathways.', impact: 'Estimated 12% PM10 reduction', icon: 'water_drop' }
+        {
+          priority: 'high',
+          title: 'Optimize Traffic Flows',
+          description: 'Vehicle idling reduction recommendations for Delhi corridors.',
+          impact: 'Estimated 8% reduction in NOx',
+          icon: 'traffic',
+        },
+        {
+          priority: 'medium',
+          title: 'Deploy Dust Control Sprinklers',
+          description: 'Emergency water mist deployment along heavy traffic pathways.',
+          impact: 'Estimated 12% PM10 reduction',
+          icon: 'water_drop',
+        }
       );
     }
 
@@ -497,8 +569,8 @@ Your recommendations should be hyper-specific to these live weather and environm
         districtId,
         generatedAt: new Date().toISOString(),
         recommendations: mockRecs,
-        dataContext: fakeReq.body.context
-      }
+        dataContext: fakeReq.body.context,
+      },
     });
   }
 
@@ -529,7 +601,15 @@ Return ONLY valid JSON, no markdown.`;
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       recommendations = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
     } catch {
-      recommendations = [{ priority: 'info', title: 'Analysis Complete', description: text.slice(0, 200), impact: 'See full analysis', icon: 'smart_toy' }];
+      recommendations = [
+        {
+          priority: 'info',
+          title: 'Analysis Complete',
+          description: text.slice(0, 200),
+          impact: 'See full analysis',
+          icon: 'smart_toy',
+        },
+      ];
     }
 
     const data = {
@@ -548,7 +628,9 @@ Return ONLY valid JSON, no markdown.`;
           await admin.default.firestore().collection('ai_recommendations').add(data);
         }
       }
-    } catch (e) { /* Non-critical */ }
+    } catch (e) {
+      /* Non-critical */
+    }
 
     res.json({ success: true, data });
   } catch (err) {
@@ -570,7 +652,7 @@ function mockLocationsFallback() {
       aqi: 385,
       coordinates: { lat: 28.6476, lng: 77.3158 },
       source: 'openaq',
-      pollutants: [{ name: 'PM2.5', value: 235, unit: 'µg/m³' }]
+      pollutants: [{ name: 'PM2.5', value: 235, unit: 'µg/m³' }],
     },
     {
       id: 'openaq-mock-2',
@@ -579,7 +661,7 @@ function mockLocationsFallback() {
       aqi: 310,
       coordinates: { lat: 28.6853, lng: 77.4498 },
       source: 'openaq',
-      pollutants: [{ name: 'PM2.5', value: 165, unit: 'µg/m³' }]
+      pollutants: [{ name: 'PM2.5', value: 165, unit: 'µg/m³' }],
     },
     {
       id: 'openaq-mock-3',
@@ -588,7 +670,7 @@ function mockLocationsFallback() {
       aqi: 285,
       coordinates: { lat: 28.6244, lng: 77.3784 },
       source: 'openaq',
-      pollutants: [{ name: 'PM2.5', value: 140, unit: 'µg/m³' }]
+      pollutants: [{ name: 'PM2.5', value: 140, unit: 'µg/m³' }],
     },
     {
       id: 'openaq-mock-4',
@@ -597,7 +679,7 @@ function mockLocationsFallback() {
       aqi: 245,
       coordinates: { lat: 28.4595, lng: 77.0266 },
       source: 'openaq',
-      pollutants: [{ name: 'PM2.5', value: 110, unit: 'µg/m³' }]
+      pollutants: [{ name: 'PM2.5', value: 110, unit: 'µg/m³' }],
     },
     {
       id: 'openaq-mock-5',
@@ -606,7 +688,7 @@ function mockLocationsFallback() {
       aqi: 295,
       coordinates: { lat: 28.5704, lng: 77.0712 },
       source: 'openaq',
-      pollutants: [{ name: 'PM2.5', value: 145, unit: 'µg/m³' }]
+      pollutants: [{ name: 'PM2.5', value: 145, unit: 'µg/m³' }],
     },
     {
       id: 'openaq-mock-6',
@@ -615,7 +697,7 @@ function mockLocationsFallback() {
       aqi: 145,
       coordinates: { lat: 19.0544, lng: 72.8402 },
       source: 'openaq',
-      pollutants: [{ name: 'PM2.5', value: 68, unit: 'µg/m³' }]
+      pollutants: [{ name: 'PM2.5', value: 68, unit: 'µg/m³' }],
     },
     {
       id: 'openaq-mock-7',
@@ -624,7 +706,7 @@ function mockLocationsFallback() {
       aqi: 65,
       coordinates: { lat: 12.9176, lng: 77.6244 },
       source: 'openaq',
-      pollutants: [{ name: 'PM2.5', value: 20, unit: 'µg/m³' }]
+      pollutants: [{ name: 'PM2.5', value: 20, unit: 'µg/m³' }],
     },
     {
       id: 'openaq-mock-8',
@@ -633,8 +715,8 @@ function mockLocationsFallback() {
       aqi: 155,
       coordinates: { lat: 22.5448, lng: 88.3425 },
       source: 'openaq',
-      pollutants: [{ name: 'PM2.5', value: 72, unit: 'µg/m³' }]
-    }
+      pollutants: [{ name: 'PM2.5', value: 72, unit: 'µg/m³' }],
+    },
   ];
 }
 
@@ -642,13 +724,13 @@ function mockLocationsFallback() {
 function mockPredictiveHeatmapFallback() {
   const centers = [
     // North
-    { name: 'New Delhi', coords: [77.2090, 28.6139], base: 345 },
+    { name: 'New Delhi', coords: [77.209, 28.6139], base: 345 },
     { name: 'Chandigarh', coords: [76.7794, 30.7333], base: 180 },
     { name: 'Lucknow', coords: [80.9462, 26.8467], base: 260 },
     { name: 'Jaipur', coords: [75.7873, 26.9124], base: 195 },
     { name: 'Kanpur', coords: [80.3319, 26.4499], base: 275 },
     // West
-    { name: 'Mumbai', coords: [72.8777, 19.0760], base: 142 },
+    { name: 'Mumbai', coords: [72.8777, 19.076], base: 142 },
     { name: 'Pune', coords: [73.8567, 18.5204], base: 112 },
     { name: 'Ahmedabad', coords: [72.5714, 23.0225], base: 165 },
     { name: 'Surat', coords: [72.8311, 21.1702], base: 120 },
@@ -656,7 +738,7 @@ function mockPredictiveHeatmapFallback() {
     // South
     { name: 'Bengaluru', coords: [77.5946, 12.9716], base: 55 },
     { name: 'Chennai', coords: [80.2707, 13.0827], base: 85 },
-    { name: 'Hyderabad', coords: [78.4867, 17.3850], base: 110 },
+    { name: 'Hyderabad', coords: [78.4867, 17.385], base: 110 },
     { name: 'Thiruvananthapuram', coords: [76.9366, 8.5241], base: 38 },
     { name: 'Coimbatore', coords: [76.9558, 11.0168], base: 45 },
     // East & Northeast
@@ -673,22 +755,22 @@ function mockPredictiveHeatmapFallback() {
     { name: 'Jabalpur', coords: [79.9864, 23.1815], base: 125 },
     // More scattered points
     { name: 'Gurugram', coords: [77.0266, 28.4595], base: 290 },
-    { name: 'Noida', coords: [77.3910, 28.5355], base: 320 },
+    { name: 'Noida', coords: [77.391, 28.5355], base: 320 },
     { name: 'Visakhapatnam', coords: [83.3186, 17.6868], base: 95 },
     { name: 'Madurai', coords: [78.1198, 9.9252], base: 65 },
     { name: 'Mysuru', coords: [76.6394, 12.2958], base: 45 },
     { name: 'Dhanbad', coords: [86.4304, 23.7957], base: 185 },
     { name: 'Kochi', coords: [76.2673, 9.9312], base: 42 },
-    { name: 'Mangaluru', coords: [74.8560, 12.9141], base: 50 },
-    { name: 'Hubli', coords: [75.1240, 15.3647], base: 55 },
-    { name: 'Nashik', coords: [73.7898, 19.9975], base: 88 }
+    { name: 'Mangaluru', coords: [74.856, 12.9141], base: 50 },
+    { name: 'Hubli', coords: [75.124, 15.3647], base: 55 },
+    { name: 'Nashik', coords: [73.7898, 19.9975], base: 88 },
   ];
 
-  return centers.map(c => {
+  return centers.map((c) => {
     const variance = Math.floor(Math.random() * 20) - 10;
     return {
       coordinates: c.coords,
-      aqiPrediction: Math.max(50, c.base + variance)
+      aqiPrediction: Math.max(50, c.base + variance),
     };
   });
 }
@@ -719,9 +801,9 @@ app.get('/api/live-aqi', async (req, res) => {
       method: 'GET',
       headers: {
         'X-API-Key': apiKey,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      signal: AbortSignal.timeout(4000)
+      signal: AbortSignal.timeout(4000),
     });
 
     if (!response.ok) {
@@ -731,11 +813,12 @@ app.get('/api/live-aqi', async (req, res) => {
     const data = await response.json();
     const results = data.results || [];
 
-    const mapped = results.map(loc => {
+    const mapped = results.map((loc) => {
       // Find PM2.5 sensor if available
-      const pm25Sensor = loc.sensors?.find(s =>
-        s.parameter?.name?.toLowerCase() === 'pm25' ||
-        s.parameter?.displayName?.toLowerCase() === 'pm2.5'
+      const pm25Sensor = loc.sensors?.find(
+        (s) =>
+          s.parameter?.name?.toLowerCase() === 'pm25' ||
+          s.parameter?.displayName?.toLowerCase() === 'pm2.5'
       );
 
       const activeSensor = pm25Sensor || loc.sensors?.[0];
@@ -743,7 +826,7 @@ app.get('/api/live-aqi', async (req, res) => {
 
       // Fallback coordinate-based calculation if value is zero/invalid
       if (val <= 0) {
-        val = Math.floor(Math.sin(loc.coordinates?.latitude || 0) * 100 + 150) % 250 + 35;
+        val = (Math.floor(Math.sin(loc.coordinates?.latitude || 0) * 100 + 150) % 250) + 35;
       }
 
       const aqi = calculateIndianAQI(val);
@@ -764,7 +847,11 @@ app.get('/api/live-aqi', async (req, res) => {
             }
           }
           if (city) {
-            city = city.replace(/\b(DPCC|MPCB|WBPCB|KSPCB|HSPCB|UPPCB|PCB|CPCB|APPCB|GPCB|SPCB|TSPCD|OSPCB)\b/gi, '')
+            city = city
+              .replace(
+                /\b(DPCC|MPCB|WBPCB|KSPCB|HSPCB|UPPCB|PCB|CPCB|APPCB|GPCB|SPCB|TSPCD|OSPCB)\b/gi,
+                ''
+              )
               .replace(/[-–—,]/g, '')
               .trim();
           }
@@ -776,12 +863,10 @@ app.get('/api/live-aqi', async (req, res) => {
         aqi: aqi,
         coordinates: {
           lat: loc.coordinates?.latitude || 28.6139,
-          lng: loc.coordinates?.longitude || 77.2090
+          lng: loc.coordinates?.longitude || 77.209,
         },
         source: 'openaq',
-        pollutants: [
-          { name: 'PM2.5', value: Math.round(val), unit: 'µg/m³' }
-        ]
+        pollutants: [{ name: 'PM2.5', value: Math.round(val), unit: 'µg/m³' }],
       };
     });
 
@@ -872,9 +957,9 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://njeeunzyfsgjmuzoronq.s
 const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_S5ZGyVxsfQPWscyto3rLvQ_Bu4ei7St';
 
 const supabaseHeaders = {
-  'apikey': SUPABASE_KEY,
-  'Authorization': `Bearer ${SUPABASE_KEY}`,
-  'Content-Type': 'application/json'
+  apikey: SUPABASE_KEY,
+  Authorization: `Bearer ${SUPABASE_KEY}`,
+  'Content-Type': 'application/json',
 };
 
 // Memory fallback store (synchronously initialized)
@@ -882,7 +967,8 @@ let memoryDrives = [
   {
     id: 'evt-1',
     title: 'River Yamuna Cleanup Drive',
-    description: 'Join us for a community cleanup along the Yamuna riverbank. Gloves and bags provided.',
+    description:
+      'Join us for a community cleanup along the Yamuna riverbank. Gloves and bags provided.',
     date: '2026-07-12T07:00:00Z',
     location: 'Yamuna Ghat, Delhi',
     coordinates: { lat: 28.6328, lng: 77.2197 },
@@ -890,12 +976,13 @@ let memoryDrives = [
     slotsFilled: 34,
     attendees: [],
     createdBy: 'Municipality of Delhi',
-    category: 'cleanup'
+    category: 'cleanup',
   },
   {
     id: 'evt-2',
     title: 'Tree Plantation — Green Bengaluru',
-    description: 'Plant 500 saplings across Cubbon Park. Refreshments and certificates for participants.',
+    description:
+      'Plant 500 saplings across Cubbon Park. Refreshments and certificates for participants.',
     date: '2026-07-15T06:30:00Z',
     location: 'Cubbon Park, Bangalore',
     coordinates: { lat: 12.9763, lng: 77.5929 },
@@ -903,12 +990,13 @@ let memoryDrives = [
     slotsFilled: 78,
     attendees: [],
     createdBy: 'BBMP Green Initiative',
-    category: 'plantation'
+    category: 'plantation',
   },
   {
     id: 'evt-3',
     title: 'Air Quality Awareness Workshop',
-    description: 'Learn about AQI monitoring, health impacts, and what you can do to reduce pollution.',
+    description:
+      'Learn about AQI monitoring, health impacts, and what you can do to reduce pollution.',
     date: '2026-07-20T10:00:00Z',
     location: 'Town Hall, Pune',
     coordinates: { lat: 18.5204, lng: 73.8567 },
@@ -916,8 +1004,8 @@ let memoryDrives = [
     slotsFilled: 12,
     attendees: [],
     createdBy: 'PMC Environment Dept',
-    category: 'workshop'
-  }
+    category: 'workshop',
+  },
 ];
 
 // Endpoint: Get all drives
@@ -925,7 +1013,7 @@ app.get('/api/drives', async (req, res) => {
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/drives?select=*`, {
       method: 'GET',
-      headers: supabaseHeaders
+      headers: supabaseHeaders,
     });
     if (response.ok) {
       const data = await response.json();
@@ -940,14 +1028,16 @@ app.get('/api/drives', async (req, res) => {
         for (const drive of memoryDrives) {
           await fetch(`${SUPABASE_URL}/rest/v1/drives`, {
             method: 'POST',
-            headers: { ...supabaseHeaders, 'Prefer': 'return=representation' },
-            body: JSON.stringify(drive)
+            headers: { ...supabaseHeaders, Prefer: 'return=representation' },
+            body: JSON.stringify(drive),
           });
         }
         return res.json({ success: true, drives: memoryDrives });
       }
     } else {
-      console.warn(`[Supabase] GET /api/drives returned status ${response.status}. Falling back to in-memory.`);
+      console.warn(
+        `[Supabase] GET /api/drives returned status ${response.status}. Falling back to in-memory.`
+      );
     }
   } catch (err) {
     console.warn('[Supabase] Failed to fetch drives, using memory fallback:', err.message);
@@ -965,7 +1055,7 @@ app.post('/api/drives/:id/rsvp', async (req, res) => {
     // 1. Get current drive data
     const getRes = await fetch(`${SUPABASE_URL}/rest/v1/drives?id=eq.${driveId}`, {
       method: 'GET',
-      headers: supabaseHeaders
+      headers: supabaseHeaders,
     });
 
     if (getRes.ok) {
@@ -973,25 +1063,27 @@ app.post('/api/drives/:id/rsvp', async (req, res) => {
       if (Array.isArray(data) && data.length > 0) {
         const drive = data[0];
         if (drive.attendees && drive.attendees.includes(userId)) {
-          return res.status(400).json({ success: false, error: 'Already RSVP\'d to this event' });
+          return res.status(400).json({ success: false, error: "Already RSVP'd to this event" });
         }
         if (drive.slotsFilled >= drive.maxSlots) {
           return res.status(400).json({ success: false, error: 'Event is full!' });
         }
 
         const newSlotsFilled = (drive.slotsFilled || 0) + 1;
-        const newAttendees = Array.isArray(drive.attendees) ? [...drive.attendees, userId] : [userId];
+        const newAttendees = Array.isArray(drive.attendees)
+          ? [...drive.attendees, userId]
+          : [userId];
 
         const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/drives?id=eq.${driveId}`, {
           method: 'PATCH',
           headers: {
             ...supabaseHeaders,
-            'Prefer': 'return=representation'
+            Prefer: 'return=representation',
           },
           body: JSON.stringify({
             slotsFilled: newSlotsFilled,
-            attendees: newAttendees
-          })
+            attendees: newAttendees,
+          }),
         });
 
         if (patchRes.ok) {
@@ -1000,7 +1092,7 @@ app.post('/api/drives/:id/rsvp', async (req, res) => {
           // Get all drives to recalculate total volunteer count
           const allDrivesRes = await fetch(`${SUPABASE_URL}/rest/v1/drives?select=slotsFilled`, {
             method: 'GET',
-            headers: supabaseHeaders
+            headers: supabaseHeaders,
           });
           let totalCount = 124;
           if (allDrivesRes.ok) {
@@ -1008,8 +1100,14 @@ app.post('/api/drives/:id/rsvp', async (req, res) => {
             totalCount = allDrives.reduce((sum, d) => sum + (d.slotsFilled || 0), 0);
           }
 
-          console.log(`[Supabase] RSVP successful for ${driveId}. New volunteerCount: ${totalCount}`);
-          return res.json({ success: true, slotsFilled: newSlotsFilled, volunteerCount: totalCount });
+          console.log(
+            `[Supabase] RSVP successful for ${driveId}. New volunteerCount: ${totalCount}`
+          );
+          return res.json({
+            success: true,
+            slotsFilled: newSlotsFilled,
+            volunteerCount: totalCount,
+          });
         }
       }
     }
@@ -1018,12 +1116,12 @@ app.post('/api/drives/:id/rsvp', async (req, res) => {
   }
 
   // Memory fallback logic
-  const drive = memoryDrives.find(d => d.id === driveId);
+  const drive = memoryDrives.find((d) => d.id === driveId);
   if (!drive) {
     return res.status(404).json({ success: false, error: 'Drive not found' });
   }
   if (drive.attendees.includes(userId)) {
-    return res.status(400).json({ success: false, error: 'Already RSVP\'d to this event' });
+    return res.status(400).json({ success: false, error: "Already RSVP'd to this event" });
   }
   if (drive.slotsFilled >= drive.maxSlots) {
     return res.status(400).json({ success: false, error: 'Event is full!' });
@@ -1039,7 +1137,8 @@ app.post('/api/drives/:id/rsvp', async (req, res) => {
 
 // Endpoint: Create a new drive
 app.post('/api/drives', async (req, res) => {
-  const { title, description, date, location, maxSlots, coordinates, createdBy, category } = req.body;
+  const { title, description, date, location, maxSlots, coordinates, createdBy, category } =
+    req.body;
 
   const newDrive = {
     id: 'evt-' + Date.now(),
@@ -1047,12 +1146,12 @@ app.post('/api/drives', async (req, res) => {
     description: description || '',
     date: date || new Date().toISOString(),
     location: location || 'Unknown Location',
-    coordinates: coordinates || { lat: 28.6139, lng: 77.2090 },
+    coordinates: coordinates || { lat: 28.6139, lng: 77.209 },
     maxSlots: parseInt(maxSlots) || 50,
     slotsFilled: 0,
     attendees: [],
     createdBy: createdBy || 'Municipality AI System',
-    category: category || 'cleanup'
+    category: category || 'cleanup',
   };
 
   try {
@@ -1060,9 +1159,9 @@ app.post('/api/drives', async (req, res) => {
       method: 'POST',
       headers: {
         ...supabaseHeaders,
-        'Prefer': 'return=representation'
+        Prefer: 'return=representation',
       },
-      body: JSON.stringify(newDrive)
+      body: JSON.stringify(newDrive),
     });
     if (response.ok) {
       const data = await response.json();
@@ -1071,7 +1170,9 @@ app.post('/api/drives', async (req, res) => {
         return res.json({ success: true, drive: data[0] });
       }
     } else {
-      console.warn(`[Supabase] POST /api/drives returned status ${response.status}. Falling back to memory.`);
+      console.warn(
+        `[Supabase] POST /api/drives returned status ${response.status}. Falling back to memory.`
+      );
     }
   } catch (err) {
     console.warn('[Supabase] Failed to create drive, using memory fallback:', err.message);
@@ -1086,7 +1187,8 @@ app.post('/api/drives', async (req, res) => {
 // Endpoint: Generate Legal Notice warning letter using Gemini (with deterministic fallback)
 app.post('/api/generate-legal-notice', aiLimiter, async (req, res) => {
   const { incident } = req.body;
-  if (!incident) return res.status(400).json({ success: false, error: 'Incident description missing' });
+  if (!incident)
+    return res.status(400).json({ success: false, error: 'Incident description missing' });
 
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!geminiKey) {
@@ -1149,16 +1251,19 @@ const handleForecastInsights = async (req, res) => {
     const industryFactor = (industry - 40) * 0.8;
     const windFactor = (wind - 12) * -2.4;
     const tempFactor = (temp - 25) * 0.5;
-    const simulatedBase = Math.max(25, Math.min(480, Math.round(base + trafficFactor + industryFactor + windFactor + tempFactor)));
+    const simulatedBase = Math.max(
+      25,
+      Math.min(480, Math.round(base + trafficFactor + industryFactor + windFactor + tempFactor))
+    );
 
     const forecast = [
       simulatedBase,
       Math.min(500, Math.round(simulatedBase * 1.06)),
       Math.min(500, Math.round(simulatedBase * 1.14)),
       Math.max(20, Math.round(simulatedBase * 0.95)),
-      Math.max(20, Math.round(simulatedBase * 0.90)),
+      Math.max(20, Math.round(simulatedBase * 0.9)),
       Math.min(500, Math.round(simulatedBase * 1.03)),
-      Math.max(20, Math.round(simulatedBase * 0.98))
+      Math.max(20, Math.round(simulatedBase * 0.98)),
     ];
 
     const cat = getAQICategory(simulatedBase);
@@ -1183,24 +1288,43 @@ const handleForecastInsights = async (req, res) => {
 
     const result = await model.generateContent(prompt);
     let text = result.response.text().trim();
-    text = text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+    text = text
+      .replace(/^```json\s*/i, '')
+      .replace(/```\s*$/, '')
+      .trim();
 
     const data = JSON.parse(text);
     res.json({ success: true, ...data });
   } catch (error) {
     console.error('Failed to get Gemini forecast insights, using fallback:', error.message);
     const base = Number(baseline) || 150;
-    const simulatedBase = Math.max(25, Math.min(480, Math.round(base + (traffic - 50) * 0.8 - (wind - 12) * 2)));
-    const forecast = [simulatedBase, simulatedBase + 10, simulatedBase + 15, simulatedBase - 5, simulatedBase - 10, simulatedBase + 4, simulatedBase];
+    const simulatedBase = Math.max(
+      25,
+      Math.min(480, Math.round(base + (traffic - 50) * 0.8 - (wind - 12) * 2))
+    );
+    const forecast = [
+      simulatedBase,
+      simulatedBase + 10,
+      simulatedBase + 15,
+      simulatedBase - 5,
+      simulatedBase - 10,
+      simulatedBase + 4,
+      simulatedBase,
+    ];
     res.json({
       success: true,
       forecast,
-      insights: `Simulated atmospheric projection based on ${traffic}% traffic and ${wind} km/h wind.`
+      insights: `Simulated atmospheric projection based on ${traffic}% traffic and ${wind} km/h wind.`,
     });
   }
 };
 
-app.post('/api/gemini-forecast-insights', aiLimiter, validateForecastInputs, handleForecastInsights);
+app.post(
+  '/api/gemini-forecast-insights',
+  aiLimiter,
+  validateForecastInputs,
+  handleForecastInsights
+);
 app.post('/api/forecast', aiLimiter, validateForecastInputs, handleForecastInsights);
 app.post('/api/forecast/analyze', aiLimiter, validateForecastInputs, handleForecastInsights);
 
@@ -1230,7 +1354,7 @@ const upload = multer({
     } else {
       cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'));
     }
-  }
+  },
 });
 
 // Endpoint: Submit Report (with Multer file upload & Gemini AI analysis)
@@ -1261,8 +1385,8 @@ app.post('/api/reports', upload.single('image'), async (req, res) => {
         contents.push({
           inlineData: {
             data: req.file.buffer.toString('base64'),
-            mimeType: req.file.mimetype
-          }
+            mimeType: req.file.mimetype,
+          },
         });
       }
 
@@ -1296,7 +1420,7 @@ app.post('/api/reports', upload.single('image'), async (req, res) => {
     source: 'citizen',
     description: description,
     imageUrl: imageUrl,
-    coordinates: { lat: parseFloat(lat) || 28.6139, lng: parseFloat(lng) || 77.2090 }
+    coordinates: { lat: parseFloat(lat) || 28.6139, lng: parseFloat(lng) || 77.209 },
   };
 
   // 1. Try to save to Supabase "reports" table
@@ -1305,9 +1429,9 @@ app.post('/api/reports', upload.single('image'), async (req, res) => {
       method: 'POST',
       headers: {
         ...supabaseHeaders,
-        'Prefer': 'return=representation'
+        Prefer: 'return=representation',
       },
-      body: JSON.stringify(reportData)
+      body: JSON.stringify(reportData),
     });
     if (resSupabase.ok) {
       const data = await resSupabase.json();
@@ -1316,7 +1440,9 @@ app.post('/api/reports', upload.single('image'), async (req, res) => {
         return res.json({ success: true, report: data[0] });
       }
     } else {
-      console.warn(`[Supabase] POST /rest/v1/reports returned status ${resSupabase.status}. Falling back to memory.`);
+      console.warn(
+        `[Supabase] POST /rest/v1/reports returned status ${resSupabase.status}. Falling back to memory.`
+      );
     }
   } catch (err) {
     console.warn('[Supabase] Failed to save report, using memory fallback:', err.message);
@@ -1335,18 +1461,27 @@ app.get('/api/environment/forecast', async (req, res) => {
   const cacheKey = `${parseFloat(lat).toFixed(2)}_${parseFloat(lng).toFixed(2)}`;
   if (forecastCache.has(cacheKey)) {
     const cached = forecastCache.get(cacheKey);
-    if (Date.now() - cached.timestamp < 30 * 60 * 1000) { // 30 min cache
+    if (Date.now() - cached.timestamp < 30 * 60 * 1000) {
+      // 30 min cache
       return res.json(cached.data);
     }
   }
 
   try {
     // 1. Reverse Geocode via Nominatim
-    let locationData = { city: 'Unknown', district: 'Unknown', state: 'Unknown', country: 'Unknown' };
+    let locationData = {
+      city: 'Unknown',
+      district: 'Unknown',
+      state: 'Unknown',
+      country: 'Unknown',
+    };
     try {
-      const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`, {
-        headers: { 'User-Agent': 'AeroStreet-AI/1.0' }
-      });
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+        {
+          headers: { 'User-Agent': 'AeroStreet-AI/1.0' },
+        }
+      );
       if (geoRes.ok) {
         const geoJson = await geoRes.json();
         const addr = geoJson.address || {};
@@ -1354,12 +1489,14 @@ app.get('/api/environment/forecast', async (req, res) => {
           city: addr.city || addr.town || addr.village || addr.county || 'Unknown',
           district: addr.county || addr.state_district || 'Unknown',
           state: addr.state || 'Unknown',
-          country: addr.country || 'Unknown'
+          country: addr.country || 'Unknown',
         };
       } else {
         console.warn('Nominatim HTTP error:', geoRes.status, await geoRes.text());
       }
-    } catch (e) { console.warn('Nominatim error', e.message); }
+    } catch (e) {
+      console.warn('Nominatim error', e.message);
+    }
 
     // 2. Fetch Open-Meteo Air Quality (past 3 days, current, forecast 3 days)
     const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone&hourly=us_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone&past_days=3&forecast_days=3&timezone=auto`;
@@ -1384,15 +1521,17 @@ app.get('/api/environment/forecast', async (req, res) => {
       wind_direction: weatherData.current?.wind_direction_10m || 0,
       pressure: weatherData.current?.surface_pressure || 0,
       precipitation: weatherData.current?.precipitation || 0,
-      timestamp: weatherData.current?.time
+      timestamp: weatherData.current?.time,
     };
 
     // Parse historical and forecast
     const aqiHourly = aqiData.hourly || {};
     const weatherHourly = weatherData.hourly || {};
-    
+
     // Use the API's reported current time to avoid server UTC vs location timezone mismatches
-    const currentLocalTime = weatherData.current?.time ? new Date(weatherData.current.time) : new Date();
+    const currentLocalTime = weatherData.current?.time
+      ? new Date(weatherData.current.time)
+      : new Date();
 
     const historical = [];
     const forecast = [];
@@ -1408,7 +1547,7 @@ app.get('/api/environment/forecast', async (req, res) => {
           temperature: weatherHourly.temperature_2m?.[i],
           humidity: weatherHourly.relative_humidity_2m?.[i],
           wind_speed: weatherHourly.wind_speed_10m?.[i],
-          precipitation: weatherHourly.precipitation_probability?.[i]
+          precipitation: weatherHourly.precipitation_probability?.[i],
         };
         // Use <= so the current hour is included in historical, and strictly > is future
         if (time <= currentLocalTime) {
@@ -1423,12 +1562,12 @@ app.get('/api/environment/forecast', async (req, res) => {
     const futureForecast = forecast.slice(0, 72);
 
     function sanitizeFutureWeatherForGemini(fData) {
-      return fData.map(item => ({
+      return fData.map((item) => ({
         timestamp: item.timestamp,
         temperature: item.temperature,
         humidity: item.humidity,
         wind_speed: item.wind_speed,
-        precipitation: item.precipitation
+        precipitation: item.precipitation,
       }));
     }
     const geminiWeatherForecast = sanitizeFutureWeatherForGemini(futureForecast);
@@ -1440,7 +1579,7 @@ app.get('/api/environment/forecast', async (req, res) => {
       confidence: 'Medium',
       health_advisory: 'Monitor conditions.',
       analysis_text: 'Gemini API not configured.',
-      hourly_forecast: futureForecast.map(f => ({
+      hourly_forecast: futureForecast.map((f) => ({
         timestamp: f.timestamp,
         predicted_aqi: f.aqi || 50,
         aqi_category: 'Moderate',
@@ -1450,8 +1589,8 @@ app.get('/api/environment/forecast', async (req, res) => {
         predicted_wind_speed: f.wind_speed,
         predicted_weather: 'Clear',
         confidence: 0.8,
-        reason: 'Fallback baseline.'
-      }))
+        reason: 'Fallback baseline.',
+      })),
     };
 
     if (geminiKey) {
@@ -1493,7 +1632,10 @@ app.get('/api/environment/forecast', async (req, res) => {
 
         const result = await model.generateContent(prompt);
         let text = result.response.text().trim();
-        text = text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+        text = text
+          .replace(/^```json\s*/i, '')
+          .replace(/```\s*$/, '')
+          .trim();
         const parsed = JSON.parse(text);
         if (parsed.hourly_forecast) {
           ai_analysis = parsed;
@@ -1509,12 +1651,11 @@ app.get('/api/environment/forecast', async (req, res) => {
       historical: recentHistory,
       weather_forecast: futureForecast,
       ai_analysis,
-      generated_at: new Date().toISOString()
+      generated_at: new Date().toISOString(),
     };
 
     forecastCache.set(cacheKey, { timestamp: Date.now(), data: payload });
     res.json(payload);
-
   } catch (err) {
     console.error('Forecast endpoint error:', err);
     res.status(500).json({ error: 'Failed to generate forecast' });

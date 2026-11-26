@@ -90,5 +90,5 @@ export class TTLMemoryCache {
 
 // Global shared caches
 export const telemetryCache = new TTLMemoryCache(10 * 60 * 1000, 300); // 10m TTL
-export const geminiCache = new TTLMemoryCache(5 * 60 * 1000, 200);     // 5m TTL
+export const geminiCache = new TTLMemoryCache(5 * 60 * 1000, 200); // 5m TTL
 export const assistantCache = new TTLMemoryCache(15 * 60 * 1000, 200); // 15m TTL

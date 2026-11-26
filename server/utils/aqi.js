@@ -54,8 +54,9 @@ export function getAQICategory(aqi) {
       color: '#10b981',
       badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       healthImpact: 'Minimal health impact.',
-      advisory: 'Air quality is satisfactory. Ideal for all outdoor activities and natural ventilation.',
-      grapStage: 'Normal'
+      advisory:
+        'Air quality is satisfactory. Ideal for all outdoor activities and natural ventilation.',
+      grapStage: 'Normal',
     };
   }
   if (val <= 100) {
@@ -65,7 +66,7 @@ export function getAQICategory(aqi) {
       badgeClass: 'bg-lime-50 text-lime-700 border-lime-200',
       healthImpact: 'Minor breathing discomfort to sensitive individuals.',
       advisory: 'Sensitive individuals should reduce prolonged outdoor heavy exertion.',
-      grapStage: 'Normal'
+      grapStage: 'Normal',
     };
   }
   if (val <= 200) {
@@ -74,8 +75,9 @@ export function getAQICategory(aqi) {
       color: '#f59e0b',
       badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
       healthImpact: 'Breathing discomfort to people with asthma, heart, or lung diseases.',
-      advisory: 'Children and elderly should take frequent breaks during outdoor exertion. Close windows during peak traffic.',
-      grapStage: 'GRAP Stage I (Poor - Approaching)'
+      advisory:
+        'Children and elderly should take frequent breaks during outdoor exertion. Close windows during peak traffic.',
+      grapStage: 'GRAP Stage I (Poor - Approaching)',
     };
   }
   if (val <= 300) {
@@ -84,8 +86,9 @@ export function getAQICategory(aqi) {
       color: '#f97316',
       badgeClass: 'bg-orange-50 text-orange-700 border-orange-200',
       healthImpact: 'Breathing discomfort to most people on prolonged exposure.',
-      advisory: 'Wear an N95 respirator when commuting. Avoid morning and evening rush-hour outdoor workouts.',
-      grapStage: 'GRAP Stage I (Active Enforcement)'
+      advisory:
+        'Wear an N95 respirator when commuting. Avoid morning and evening rush-hour outdoor workouts.',
+      grapStage: 'GRAP Stage I (Active Enforcement)',
     };
   }
   if (val <= 400) {
@@ -94,8 +97,9 @@ export function getAQICategory(aqi) {
       color: '#ef4444',
       badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
       healthImpact: 'Respiratory illness on prolonged exposure; severe impact on sensitive groups.',
-      advisory: 'Strictly avoid intense outdoor cardio. Run indoor HEPA air purifiers and seal gaps. Emergency municipal misting deployed.',
-      grapStage: 'GRAP Stage II & III (Critical)'
+      advisory:
+        'Strictly avoid intense outdoor cardio. Run indoor HEPA air purifiers and seal gaps. Emergency municipal misting deployed.',
+      grapStage: 'GRAP Stage II & III (Critical)',
     };
   }
   return {
@@ -103,8 +107,9 @@ export function getAQICategory(aqi) {
     color: '#7c3aed',
     badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
     healthImpact: 'Affects healthy people and severely impacts those with pre-existing conditions.',
-    advisory: 'Health warning: stay indoors with air purification. Essential travel only with certified N95/N99 protection. Emergency industrial shutdowns enforced.',
-    grapStage: 'GRAP Stage IV (Emergency Protocol)'
+    advisory:
+      'Health warning: stay indoors with air purification. Essential travel only with certified N95/N99 protection. Emergency industrial shutdowns enforced.',
+    grapStage: 'GRAP Stage IV (Emergency Protocol)',
   };
 }
 
@@ -123,14 +128,14 @@ export function normalizeTelemetry(raw, provider = 'cpcb') {
   let name = 'Monitored Station';
   let locality = 'Urban Station';
   let lat = 28.6139;
-  let lng = 77.2090;
+  let lng = 77.209;
 
   if (provider === 'openaq') {
     name = raw.name || raw.locality || 'OpenAQ Station';
     locality = raw.locality || 'India';
     lat = raw.coordinates?.lat || raw.coordinates?.latitude || lat;
     lng = raw.coordinates?.lng || raw.coordinates?.longitude || lng;
-    const pm25Pol = raw.pollutants?.find(p => p.name?.toUpperCase() === 'PM2.5');
+    const pm25Pol = raw.pollutants?.find((p) => p.name?.toUpperCase() === 'PM2.5');
     pm25 = pm25Pol ? Number(pm25Pol.value) : 0;
     aqi = raw.aqi || calculateIndianAQI(pm25);
   } else if (provider === 'iqair') {
@@ -174,6 +179,6 @@ export function normalizeTelemetry(raw, provider = 'cpcb') {
     },
     coordinates: { lat, lng },
     source: provider,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
 }

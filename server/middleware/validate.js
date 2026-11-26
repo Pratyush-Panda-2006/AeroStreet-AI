@@ -16,7 +16,12 @@ export function sanitizeString(str) {
 }
 
 /**
- * Validate and sanitize forecast simulation inputs
+ * Validate and sanitize forecast simulation inputs.
+ *
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next middleware
+ * @returns {void|import('express').Response}
  */
 export function validateForecastInputs(req, res, next) {
   const { traffic, industry, wind, temp, baseline } = req.body;
@@ -25,7 +30,7 @@ export function validateForecastInputs(req, res, next) {
   if (traffic === undefined || industry === undefined || wind === undefined || temp === undefined) {
     return res.status(400).json({
       success: false,
-      error: 'Missing required numeric parameters: traffic, industry, wind, temp'
+      error: 'Missing required numeric parameters: traffic, industry, wind, temp',
     });
   }
 
@@ -35,10 +40,16 @@ export function validateForecastInputs(req, res, next) {
   const numTemp = Number(temp);
   const numBaseline = baseline !== undefined ? Number(baseline) : 150;
 
-  if (isNaN(numTraffic) || isNaN(numIndustry) || isNaN(numWind) || isNaN(numTemp) || isNaN(numBaseline)) {
+  if (
+    isNaN(numTraffic) ||
+    isNaN(numIndustry) ||
+    isNaN(numWind) ||
+    isNaN(numTemp) ||
+    isNaN(numBaseline)
+  ) {
     return res.status(400).json({
       success: false,
-      error: 'Invalid parameter types. Parameters must be valid numeric values.'
+      error: 'Invalid parameter types. Parameters must be valid numeric values.',
     });
   }
 
@@ -48,14 +59,19 @@ export function validateForecastInputs(req, res, next) {
     industry: Math.max(0, Math.min(100, Math.round(numIndustry))),
     wind: Math.max(0, Math.min(150, Math.round(numWind * 10) / 10)),
     temp: Math.max(-20, Math.min(60, Math.round(numTemp * 10) / 10)),
-    baseline: Math.max(10, Math.min(500, Math.round(numBaseline)))
+    baseline: Math.max(10, Math.min(500, Math.round(numBaseline))),
   };
 
   next();
 }
 
 /**
- * Validate coordinates query parameters
+ * Validate geographic coordinates query or body parameters.
+ *
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next middleware
+ * @returns {void|import('express').Response}
  */
 export function validateCoordinates(req, res, next) {
   const lat = req.query.lat || req.body.lat || req.body.coordinates?.lat;
@@ -64,30 +80,42 @@ export function validateCoordinates(req, res, next) {
   if (lat === undefined || lng === undefined) {
     return res.status(400).json({
       success: false,
-      error: 'Missing latitude or longitude coordinates'
+      error: 'Missing latitude or longitude coordinates',
     });
   }
 
   const numLat = Number(lat);
   const numLng = Number(lng);
 
-  if (isNaN(numLat) || isNaN(numLng) || numLat < -90 || numLat > 90 || numLng < -180 || numLng > 180) {
+  if (
+    isNaN(numLat) ||
+    isNaN(numLng) ||
+    numLat < -90 ||
+    numLat > 90 ||
+    numLng < -180 ||
+    numLng > 180
+  ) {
     return res.status(400).json({
       success: false,
-      error: 'Invalid coordinates. Latitude must be -90 to 90, longitude -180 to 180.'
+      error: 'Invalid coordinates. Latitude must be -90 to 90, longitude -180 to 180.',
     });
   }
 
   req.sanitizedCoords = {
     lat: Math.round(numLat * 10000) / 10000,
-    lng: Math.round(numLng * 10000) / 10000
+    lng: Math.round(numLng * 10000) / 10000,
   };
 
   next();
 }
 
 /**
- * Validate Urban Air Quality Assistant request
+ * Validate Urban Air Quality Assistant request payload.
+ *
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next middleware
+ * @returns {void|import('express').Response}
  */
 export function validateAssistantRequest(req, res, next) {
   const { city, ward, activity, sensitivity, currentAQI } = req.body;
@@ -99,14 +127,15 @@ export function validateAssistantRequest(req, res, next) {
   const sanitizedWard = sanitizeString(ward || 'Central');
   const checkedActivity = validActivities.includes(activity) ? activity : 'general';
   const checkedSensitivity = validSensitivities.includes(sensitivity) ? sensitivity : 'general';
-  const sanitizedAQI = currentAQI !== undefined ? Math.max(0, Math.min(500, Number(currentAQI) || 150)) : 150;
+  const sanitizedAQI =
+    currentAQI !== undefined ? Math.max(0, Math.min(500, Number(currentAQI) || 150)) : 150;
 
   req.sanitizedAssistant = {
     city: sanitizedCity || 'Delhi',
     ward: sanitizedWard,
     activity: checkedActivity,
     sensitivity: checkedSensitivity,
-    currentAQI: sanitizedAQI
+    currentAQI: sanitizedAQI,
   };
 
   next();

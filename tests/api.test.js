@@ -67,8 +67,8 @@ test('POST /api/gemini-forecast-insights: returns 7-day predicted curve and advi
       industry: 50,
       wind: 10,
       temp: 26,
-      baseline: 210
-    })
+      baseline: 210,
+    }),
   });
 
   assert.equal(res.status, 200);
@@ -84,9 +84,9 @@ test('POST /api/gemini-forecast-insights: rejects missing required fields with H
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      traffic: 50
+      traffic: 50,
       // missing industry, wind, temp
-    })
+    }),
   });
 
   assert.equal(res.status, 400);
@@ -104,8 +104,8 @@ test('POST /api/assistant: returns context-aware urban advisory for citizen comm
       ward: 'Anand Vihar',
       activity: 'commute',
       sensitivity: 'respiratory_asthma',
-      currentAQI: 320
-    })
+      currentAQI: 320,
+    }),
   });
 
   assert.equal(res.status, 200);
@@ -125,8 +125,9 @@ test('POST /api/generate-legal-notice: generates formal cease-and-desist letter'
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      incident: 'Dense industrial black smoke observed from chimney stack at Anand Vihar industrial cluster.'
-    })
+      incident:
+        'Dense industrial black smoke observed from chimney stack at Anand Vihar industrial cluster.',
+    }),
   });
 
   assert.equal(res.status, 200);

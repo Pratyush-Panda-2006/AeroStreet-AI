@@ -142,12 +142,12 @@
     ></video>
 
     <!-- Floating Navbar -->
-    <div class="relative z-10 w-full pt-6 px-6 md:px-12 lg:px-16">
-      <header class="liquid-glass rounded-xl px-4 py-2 flex items-center justify-between">
+    <div class="relative z-10 w-full pt-4 px-3 sm:pt-6 sm:px-6 md:px-12 lg:px-16">
+      <header class="liquid-glass rounded-xl px-3 py-2 sm:px-4 flex items-center justify-between gap-2">
         <!-- Left: Brand wordmark AeroStreet-AI with leading indicator block -->
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-base select-none backdrop-blur-sm">I</div>
-          <a href="/national.html" class="text-2xl font-semibold tracking-tight text-white select-none">AeroStreet-AI</a>
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0 whitespace-nowrap">
+          <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-base select-none backdrop-blur-sm shrink-0">I</div>
+          <a href="/national.html" class="text-base sm:text-xl md:text-2xl font-semibold tracking-tight text-white select-none whitespace-nowrap shrink-0">AeroStreet-AI</a>
         </div>
 
         <!-- Center (hidden on mobile, flex on md+): Links mapped to AeroStreet pages -->
@@ -160,8 +160,8 @@
         </nav>
 
         <!-- Right: Action button "Quick Report" wired to quick-report modal trigger -->
-        <div class="flex items-center gap-4">
-          <button id="nav-report-btn" class="bg-white text-black px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition">
+        <div class="flex items-center gap-2 sm:gap-4 shrink-0 whitespace-nowrap">
+          <button id="nav-report-btn" class="bg-white text-black px-3 py-1.5 text-xs sm:px-5 sm:py-2 sm:text-sm rounded-lg font-medium hover:bg-gray-100 transition whitespace-nowrap shrink-0">
             Quick Report
           </button>
           <img alt="user profile avatar" id="user-avatar" class="w-8 h-8 rounded-full border border-white/20 object-cover cursor-pointer hidden" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq0NM-3MIfoLB0WYgeMarhquCFzUBTCG3997CleBO-PGN_WtYpT1lpfuBFOzr_jd8AWbUCZ0Jqg0U_3oLAImWndwjJCJt9m2aVwEAoRCaMTezxG0JNJygEdN_N_2EY36cOCD1CRil6Gfh7s_nnpCtKSvgCprI7taiXZXkfT8J-Y6EjoVVCdoXOfdRYQSWk4SfXcJDsMbJaDulJjZVGo9j6fNetMPh2pFAAvWmsQEFoVnhvAZB-hKTCbGVYSsx6t4LtS84p6oyHjrI"/>
@@ -200,7 +200,7 @@
         </div>
 
         <!-- Button Row (FadeIn delay=1200ms duration=1000ms) -->
-        <div class="fade-in-component pb-24 sm:pb-20" data-delay="1200" data-duration="1000">
+        <div class="fade-in-component pb-24 sm:pb-16" data-delay="1200" data-duration="1000">
           <div class="flex flex-wrap items-center gap-4">
             <a href="#national-explorer" class="bg-white text-black px-8 py-3 rounded-lg font-medium transition hover:bg-gray-100 inline-flex items-center gap-2">
               Explore Live Map →

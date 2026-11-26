@@ -8,11 +8,41 @@
 import 'dotenv/config';
 
 const DISTRICTS = [
-  { id: 'delhi', name: 'Delhi NCT', avgAQI: 345, hotspotCount: 12, peakHours: ['8:00-10:00', '17:00-20:00'] },
-  { id: 'mumbai', name: 'Mumbai', avgAQI: 142, hotspotCount: 5, peakHours: ['7:30-9:30', '18:00-20:30'] },
-  { id: 'bangalore', name: 'Bangalore', avgAQI: 55, hotspotCount: 2, peakHours: ['8:30-10:00', '17:30-19:30'] },
-  { id: 'kolkata', name: 'Kolkata', avgAQI: 178, hotspotCount: 7, peakHours: ['8:00-10:30', '17:00-19:00'] },
-  { id: 'pune', name: 'Pune', avgAQI: 112, hotspotCount: 4, peakHours: ['8:00-9:30', '17:30-19:30'] },
+  {
+    id: 'delhi',
+    name: 'Delhi NCT',
+    avgAQI: 345,
+    hotspotCount: 12,
+    peakHours: ['8:00-10:00', '17:00-20:00'],
+  },
+  {
+    id: 'mumbai',
+    name: 'Mumbai',
+    avgAQI: 142,
+    hotspotCount: 5,
+    peakHours: ['7:30-9:30', '18:00-20:30'],
+  },
+  {
+    id: 'bangalore',
+    name: 'Bangalore',
+    avgAQI: 55,
+    hotspotCount: 2,
+    peakHours: ['8:30-10:00', '17:30-19:30'],
+  },
+  {
+    id: 'kolkata',
+    name: 'Kolkata',
+    avgAQI: 178,
+    hotspotCount: 7,
+    peakHours: ['8:00-10:30', '17:00-19:00'],
+  },
+  {
+    id: 'pune',
+    name: 'Pune',
+    avgAQI: 112,
+    hotspotCount: 4,
+    peakHours: ['8:00-9:30', '17:30-19:30'],
+  },
 ];
 
 /**
@@ -86,13 +116,15 @@ Example format:
       recommendations = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
     } catch {
       console.warn(`  ⚠ Failed to parse Gemini JSON for ${district.name}, using raw text`);
-      recommendations = [{
-        priority: 'info',
-        title: 'AI Analysis Summary',
-        description: text.slice(0, 300),
-        impact: 'See full analysis',
-        icon: 'smart_toy',
-      }];
+      recommendations = [
+        {
+          priority: 'info',
+          title: 'AI Analysis Summary',
+          description: text.slice(0, 300),
+          impact: 'See full analysis',
+          icon: 'smart_toy',
+        },
+      ];
     }
 
     return {
@@ -117,7 +149,9 @@ Example format:
  */
 async function storeInFirestore(data) {
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
-    console.log(`  📦 Would store in Firestore: ${data.districtId} (${data.recommendations.length} recommendations)`);
+    console.log(
+      `  📦 Would store in Firestore: ${data.districtId} (${data.recommendations.length} recommendations)`
+    );
     return null;
   }
 
@@ -126,7 +160,9 @@ async function storeInFirestore(data) {
     const fs = await import('fs');
 
     if (!admin.apps.length) {
-      const serviceAccount = JSON.parse(fs.readFileSync(process.env.FIREBASE_SERVICE_ACCOUNT_PATH, 'utf8'));
+      const serviceAccount = JSON.parse(
+        fs.readFileSync(process.env.FIREBASE_SERVICE_ACCOUNT_PATH, 'utf8')
+      );
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
       });
@@ -172,7 +208,7 @@ async function runAnalyticsCron() {
 }
 
 // ── Execute ──
-runAnalyticsCron().catch(err => {
+runAnalyticsCron().catch((err) => {
   console.error('Cron job failed:', err);
   process.exit(1);
 });

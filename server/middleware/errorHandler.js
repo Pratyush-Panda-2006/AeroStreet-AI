@@ -34,7 +34,8 @@ export class AppError extends Error {
  * @param {import('express').NextFunction} next - Express next function
  */
 export function errorHandler(err, req, res, next) {
-  const statusCode = err.statusCode || (err.status ? Number(err.status) : (err.name === 'MulterError' ? 400 : 500));
+  const statusCode =
+    err.statusCode || (err.status ? Number(err.status) : err.name === 'MulterError' ? 400 : 500);
   const code = err.code || (statusCode >= 500 ? 'SERVER_ERROR' : 'INVALID_REQUEST');
   const message = err.message || 'An unexpected error occurred';
 
@@ -46,8 +47,8 @@ export function errorHandler(err, req, res, next) {
       details: {
         code: 'FILE_TOO_LARGE',
         message: 'File size exceeds maximum permitted limit (5 MB).',
-        statusCode: 400
-      }
+        statusCode: 400,
+      },
     });
   }
 
@@ -57,7 +58,7 @@ export function errorHandler(err, req, res, next) {
     details: {
       code,
       message,
-      statusCode
-    }
+      statusCode,
+    },
   });
 }

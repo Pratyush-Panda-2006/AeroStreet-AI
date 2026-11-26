@@ -3,8 +3,13 @@
 // ============================================
 
 /**
- * Configure comprehensive HTTP security headers
- * Complies with WCAG, OWASP, and enterprise deployment guidelines
+ * Configure comprehensive HTTP security headers.
+ * Complies with WCAG, OWASP, and enterprise deployment guidelines.
+ *
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next middleware function
+ * @returns {void}
  */
 export function securityHeadersMiddleware(req, res, next) {
   // Prevent MIME type sniffing
@@ -33,7 +38,7 @@ export function securityHeadersMiddleware(req, res, next) {
     "child-src 'self' blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
-    "form-action 'self'"
+    "form-action 'self'",
   ].join('; ');
 
   res.setHeader('Content-Security-Policy', csp);
@@ -41,18 +46,20 @@ export function securityHeadersMiddleware(req, res, next) {
 }
 
 /**
- * Restrict CORS to explicit allowlist
+ * Restrict CORS to explicit allowlist.
+ *
+ * @returns {(origin: string|undefined, callback: (err: Error|null, allow?: boolean) => void) => void} Custom CORS origin validator
  */
 export function corsOriginCheck() {
   const allowed = [
     'https://aerostreetai.vercel.app',
     'https://aerostreet-ai.vercel.app',
     'http://localhost:3000',
-    'http://127.0.0.1:3000'
+    'http://127.0.0.1:3000',
   ];
 
   if (process.env.ALLOWED_ORIGINS) {
-    const extra = process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim());
+    const extra = process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim());
     allowed.push(...extra);
   }
 
@@ -67,24 +74,33 @@ export function corsOriginCheck() {
 }
 
 /**
- * Sliding Window In-Memory Rate Limiter
- * @param {object} options
- * @param {number} options.windowMs - Window duration in ms (e.g. 60000 = 1 min)
- * @param {number} options.max - Max requests per window
- * @param {string} options.message - Error message on limit
+ * Sliding Window In-Memory Rate Limiter middleware factory.
+ *
+ * @param {object} options - Rate limiter options
+ * @param {number} [options.windowMs=60000] - Window duration in ms (e.g. 60000 = 1 min)
+ * @param {number} [options.max=60] - Max requests allowed per window
+ * @param {string} [options.message='Too many requests. Please try again later.'] - Error message on limit
+ * @returns {import('express').RequestHandler} Express rate limiting middleware handler
  */
-export function rateLimiter({ windowMs = 60 * 1000, max = 60, message = 'Too many requests. Please try again later.' }) {
+export function rateLimiter({
+  windowMs = 60 * 1000,
+  max = 60,
+  message = 'Too many requests. Please try again later.',
+}) {
   const requests = new Map();
 
   return (req, res, next) => {
     // In serverless / proxy environments, use X-Forwarded-For or IP
-    const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || 'unknown-client';
+    const ip =
+      req.headers['x-forwarded-for']?.split(',')[0].trim() ||
+      req.socket.remoteAddress ||
+      'unknown-client';
     const now = Date.now();
     const windowStart = now - windowMs;
 
     let timestamps = requests.get(ip) || [];
     // Filter timestamps within window
-    timestamps = timestamps.filter(t => t > windowStart);
+    timestamps = timestamps.filter((t) => t > windowStart);
 
     if (timestamps.length >= max) {
       const oldest = timestamps[0];
@@ -95,7 +111,7 @@ export function rateLimiter({ windowMs = 60 * 1000, max = 60, message = 'Too man
       return res.status(429).json({
         success: false,
         error: message,
-        retryAfterSeconds: retryAfterSec
+        retryAfterSeconds: retryAfterSec,
       });
     }
 
@@ -108,7 +124,7 @@ export function rateLimiter({ windowMs = 60 * 1000, max = 60, message = 'Too man
     // Periodic cleanup of stale IPs (every 100 requests)
     if (Math.random() < 0.01) {
       for (const [key, val] of requests.entries()) {
-        const active = val.filter(t => t > windowStart);
+        const active = val.filter((t) => t > windowStart);
         if (active.length === 0) requests.delete(key);
         else requests.set(key, active);
       }
