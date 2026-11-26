@@ -105,4 +105,13 @@ test('Indian States & UTs dataset: strictly 36 unique administrative entities wi
   // Verify Dadra & Nagar Haveli and Daman & Diu is deduplicated
   const dadraEntries = DEMO_STATES.filter((s) => s.name.includes('Dadra'));
   assert.equal(dadraEntries.length, 1, 'Unified UT of Dadra and Nagar Haveli and Daman and Diu must appear exactly once');
+
+  // Verify STATE_PATHS map geometries are also strictly deduplicated
+  const { STATE_PATHS } = await import('../public/js/india-map-svg.js');
+  const pathNames = STATE_PATHS.map((s) => s.name);
+  const pathIds = STATE_PATHS.map((s) => s.id);
+  assert.equal(new Set(pathNames).size, STATE_PATHS.length, 'All entries in STATE_PATHS must have unique names');
+  assert.equal(new Set(pathIds).size, STATE_PATHS.length, 'All entries in STATE_PATHS must have unique IDs');
+  const dadraPaths = STATE_PATHS.filter((s) => s.name.includes('Dadra'));
+  assert.equal(dadraPaths.length, 1, 'Dadra and Nagar Haveli and Daman and Diu must appear exactly once in STATE_PATHS');
 });

@@ -20,15 +20,17 @@ export function securityHeadersMiddleware(req, res, next) {
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
 
   // Content Security Policy
-  // Allows necessary CDNs (Tailwind, Google Fonts, CDNjs Chart.js, Firebase)
+  // Allows necessary CDNs (Tailwind, Google Fonts, CDNjs Chart.js, Firebase, Fontshare)
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://api.fontshare.com https://maps.googleapis.com https://www.gstatic.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com",
-    "font-src 'self' https://fonts.gstatic.com https://api.fontshare.com data:",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://api.fontshare.com https://maps.googleapis.com https://www.gstatic.com https://cdnjs.cloudflare.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com https://cdn.fontshare.com https://cdnjs.cloudflare.com",
+    "font-src 'self' https://fonts.gstatic.com https://api.fontshare.com https://cdn.fontshare.com https://*.fontshare.com data:",
     "img-src 'self' data: blob: https: http:",
     "media-src 'self' data: blob: https: https://d8j0ntlcm91z4.cloudfront.net",
-    "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.airvisual.com https://api.waqi.info https://api.openaq.org https://air-quality-api.open-meteo.com https://api.open-meteo.com https://nominatim.openstreetmap.org https://njeeunzyfsgjmuzoronq.supabase.co https://*.supabase.co",
+    "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://api.airvisual.com https://api.waqi.info https://api.openaq.org https://air-quality-api.open-meteo.com https://api.open-meteo.com https://nominatim.openstreetmap.org https://njeeunzyfsgjmuzoronq.supabase.co https://*.supabase.co https://cdn.jsdelivr.net",
+    "worker-src 'self' blob:",
+    "child-src 'self' blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'"

@@ -45,6 +45,15 @@ test('Accessibility Audit: All HTML templates have valid document structure and 
     // 5. Canonical link for SEO
     assert.match(content, /<link\s+[^>]*rel=["']canonical["'][^>]*href=["']https:\/\/aerostreetai\.vercel\.app\/[^"']+["']/i, `${file} must contain a canonical link`);
 
+    // 5b. Robots meta tag for SEO
+    assert.match(content, /<meta\s+[^>]*name=["']robots["'][^>]*content=["']index,\s*follow["']/i, `${file} must contain <meta name="robots" content="index, follow">`);
+
+    // 5c. Static compiled CSS linked
+    assert.match(content, /<link\s+[^>]*href=["']\/css\/main\.css["']/i, `${file} must link static /css/main.css`);
+
+    // 5d. No render-blocking runtime tailwindcss script
+    assert.doesNotMatch(content, /cdn\.tailwindcss\.com/i, `${file} must not load runtime cdn.tailwindcss.com script`);
+
     // 6. Semantic main landmark
     assert.match(content, /<main[\s>]/i, `${file} must contain a semantic <main> landmark`);
 
@@ -74,6 +83,9 @@ test('Accessibility Audit: Interactive elements have accessible names and contra
       const isAriaHidden = /aria-hidden=["']true["']/i.test(img);
       assert.ok(hasAlt || isAriaHidden, `Every <img> in ${file} must have an alt or aria-hidden attribute: ${img}`);
     });
+
+    // Ensure no raw URL anchor text in templates (Lighthouse SEO)
+    assert.doesNotMatch(content, /<a\s+[^>]*>[^<]*https:\/\/[^<]*<\/a>/i, `${file} must not contain raw URLs as anchor text`);
   });
 });
 

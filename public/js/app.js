@@ -311,8 +311,17 @@ function syncSidebarList(viewState) {
   lastViewState = viewState;
   sidebarList.innerHTML = '';
 
+  // Deduplicate entries by unique ID or Name to guarantee zero duplicate rows
+  const seenKeys = new Set();
+  const dedupedData = (viewState.data || []).filter(item => {
+    const key = (item.id || item.name || '').trim().toLowerCase();
+    if (!key || seenKeys.has(key)) return false;
+    seenKeys.add(key);
+    return true;
+  });
+
   // Apply sorting filter
-  let sortedData = [...viewState.data];
+  let sortedData = [...dedupedData];
   if (currentSortMode === 'highest') {
     sortedData.sort((a, b) => b.aqi - a.aqi);
   } else if (currentSortMode === 'lowest') {

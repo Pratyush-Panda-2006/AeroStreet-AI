@@ -116,13 +116,38 @@ export const AboutUsMoxo: React.FC = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="h-[350px] rounded-[24px] overflow-hidden relative group"
           >
-            <img
-              src="/images/community-outreach.svg"
-              alt="Clean Air Community Outreach"
+            <svg
+              viewBox="0 0 800 600"
               width={800}
               height={600}
+              fill="none"
+              role="img"
+              aria-label="Clean Air Community Outreach"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-            />
+            >
+              <defs>
+                <linearGradient id="community-moxo-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#0f172a" />
+                  <stop offset="50%" stopColor="#1e293b" />
+                  <stop offset="100%" stopColor="#064e3b" />
+                </linearGradient>
+                <linearGradient id="community-moxo-glow" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.2" />
+                </linearGradient>
+              </defs>
+              <rect width="800" height="600" fill="url(#community-moxo-bg)" />
+              <circle cx="400" cy="300" r="180" fill="url(#community-moxo-glow)" opacity="0.3" />
+              <circle cx="400" cy="300" r="120" stroke="#34d399" strokeWidth="2" strokeDasharray="8 6" opacity="0.6" />
+              <g transform="translate(400,240)">
+                <path d="M-60 60 C-60 20 -20 -20 0 -50 C20 -20 60 20 60 60 C60 93 33 120 0 120 C-33 120 -60 93 -60 60 Z" fill="#10b981" opacity="0.85" />
+                <path d="M-20 40 L-5 55 L25 25" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+              </g>
+              <g fill="#94a3b8" fontFamily="system-ui, sans-serif" textAnchor="middle">
+                <text x="400" y="420" fontSize="24" fontWeight="700" fill="#f8fafc">Clean Air Community Outreach</text>
+                <text x="400" y="455" fontSize="14" fill="#cbd5e1">25,000+ Citizens Actively Monitoring & Reporting Hotspots</text>
+              </g>
+            </svg>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
             {/* Bottom content */}
